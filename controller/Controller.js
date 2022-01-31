@@ -1,37 +1,44 @@
-const {response} = require('express')
+const {response, json} = require('express')
 const bcryptjs = require('bcryptjs')
 const Usuario = require('../model/Usuario')
 const { GenerarJwt } = require('../helper/Jwt')
+const fetch  = require('node-fetch')
 
 const LoginUsuario =async(req,res=response) =>{
 
-    const {username,password} = req.body
+    const {username,password,hotel} = req.body
 
-    try {
-            const user = await Usuario.findOne({username})
+    const body = {
+        username:username,
+        password:password,
+        hotel:hotel
+    }
+    
+    try {    
 
-            if(!user){
-                res.status(401).json({
-                    msg:"usuario no existe"
-                })
-            }
-
-            const validPassword = bcryptjs.compareSync(password,user.password)
-
-            if(!validPassword){
-              return  res.status(401).json({
-                    ok:false,
-                    msg:"password invalid"
-                })
-            }
-
-            const token =  await GenerarJwt(user.id,user.username)
-
+            const response =  await fetch('https://grupohoteles.co/login-api',{
+                body:JSON.stringify(body),
+                method:"post",
+                headers:{'Content-type':'application/json'}
+            }).then(index =>{
+                const data =  index.json()
+                return data
+            })
+             .catch((e) =>{
+            })
+            
+           if(!response){
+               return res.status(401).json({
+                   ok:false,
+                   msg:"no estas registrado"
+               })
+           }
+        
             return res.status(201).json({
                 ok:true,
-                token,
-                user:{
-                    name:user.username
+                result:{
+                    name:response.nameUser,
+                    hotel:response.nameHotel
                 }
             })
 
@@ -43,8 +50,6 @@ const LoginUsuario =async(req,res=response) =>{
     }
 
 }
-
-
 
 const CreateUsuario =async (req,res= response) =>{
 

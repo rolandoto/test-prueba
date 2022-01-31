@@ -1,21 +1,21 @@
 const express = require('express')
-const { dbConnection } = require('./database/Config')
-const { router } = require('./Routes/Routes')
+const  AuthRoutes  = require('./Routes/Auth')
+const  ListRoutes  = require('./Routes/Listmotel')
 const cors = require('cors')
 require('dotenv').config()
 
 //connection database
-dbConnection()
 
 const app = express()
 
+app.use(express.static('public'))
+app.use(express.json())
 app.use(cors())
 
-app.use(express.json())
-
-app.use('/api/auth',router)
+app.use('/api/auth',AuthRoutes.router)
+app.use('/api',ListRoutes.router)
 
 //initial port
 app.listen(process.env.PORT,() =>{
     console.log(`server connect  port ${4000}`)
-})
+}) 

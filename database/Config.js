@@ -1,6 +1,5 @@
 const {connect} = require('mongoose')
 
-
 const dbConnection =() =>{
     
     const db = connect(process.env.URI)
@@ -9,7 +8,6 @@ const dbConnection =() =>{
     }).catch(() =>{
         console.log('error no connection')
     })
-
     return db
 
 }
