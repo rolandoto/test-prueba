@@ -4,10 +4,12 @@ const Usuario = require('../model/Usuario')
 const { GenerarJwt } = require('../helper/Jwt')
 const fetch  = require('node-fetch')
 
+
+
 const LoginUsuario =async(req,res=response) =>{
-
+    
     const {username,password,hotel} = req.body
-
+    
     const body = {
         username:username,
         password:password,
@@ -32,13 +34,14 @@ const LoginUsuario =async(req,res=response) =>{
                    ok:false,
                    msg:"no estas registrado"
                })
-           }
+           }    
         
             return res.status(201).json({
                 ok:true,
                 result:{
-                    name:response.nameUser,
-                    hotel:response.nameHotel
+                    name:response.user_name,
+                    hotel:response.hotel_name,
+                    id:response.id_hotel,
                 }
             })
 
@@ -78,7 +81,6 @@ const CreateUsuario =async (req,res= response) =>{
             ok:true,
             name:user.username,
             token
-            
         })
         
     } catch (error) {
@@ -89,7 +91,5 @@ const CreateUsuario =async (req,res= response) =>{
     }
 
 }
-
-
 
 module.exports ={LoginUsuario,CreateUsuario}

@@ -3,6 +3,7 @@ const  AuthRoutes  = require('./Routes/Auth')
 const  ListRoutes  = require('./Routes/Listmotel')
 const cors = require('cors')
 require('dotenv').config()
+const ReverseMd5 = require('reverse-md5')
 
 //connection database
 
