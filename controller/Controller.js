@@ -35,13 +35,14 @@ const LoginUsuario =async(req,res=response) =>{
                    msg:"no estas registrado"
                })
            }    
-        
+           console.log(response)
             return res.status(201).json({
                 ok:true,
                 result:{
                     name:response.user_name,
                     hotel:response.hotel_name,
-                    id:response.id_hotel,
+                    id_hotel:response.id_hotel,
+                    id_user:response.id_user
                 }
             })
 
@@ -91,5 +92,8 @@ const CreateUsuario =async (req,res= response) =>{
     }
 
 }
+
+
+
 
 module.exports ={LoginUsuario,CreateUsuario}
