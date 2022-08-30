@@ -2,7 +2,8 @@ const {response} = require('express')
 const { pool } = require('../database/connection')
 const ReverseMd5 = require('reverse-md5')
 const moment = require("moment")
-const res = require('express/lib/response')
+const Product = require('../model/Product')
+
 
 const LisMotel = async(req,res=response) =>{
     
@@ -39,22 +40,7 @@ const listMotelisid = async(req,res)=>{
     })
 }
 
-const listBictacoras =async(req,res=response)=>{
-    const {id} = req.params
-    
-    const id_hotel =  id
-    const link = await  pool.query(`SELECT * FROM APP_bitacora INNER JOIN APP_colaboradores ON APP_bitacora.id_user = APP_colaboradores.id_user WHERE id_hotel=? ORDER BY APP_bitacora.date DESC`,[id_hotel])
-    
-    res.status(201).json({
-        LisMotel:{
-            data:{
-                result:{
-                    link
-                }
-            }
-        }
-    })
-}
+
 
 const reservas =async(req,res=response) =>{
     
@@ -63,14 +49,13 @@ const reservas =async(req,res=response) =>{
         const {id} = req.params
 
         const link = await  pool.query(`SELECT * FROM reservas  where id=?`,[id])
-        
+
         if(link.length ==0){
             return  res.status(401).json({
                 ok:false,
                 msg:"no esta disponible"
             })
         } 
-
         res.status(201).json({
             reservas:{
                 data:{
@@ -88,30 +73,6 @@ const reservas =async(req,res=response) =>{
     }
 }
 
-const formats =async(req,res=response) =>{
-
-    const {id} = req.params
-
-    try {
-        const link = await  pool.query(`SELECT *, hotels.name as hotel_name,APP_departamentos.name as name_departament, APP_centro_documental.name as name_centro_documental FROM APP_centro_documental INNER JOIN hotels ON APP_centro_documental.id_hotel = hotels.id  inner join APP_departamentos  ON APP_centro_documental.id_departamento =APP_departamentos.id WHERE APP_centro_documental.id_hotel=? AND  APP_centro_documental.id_departamento=2`,[id])
-        
-        if(link.length ==0){
-            return  res.status(401).json({
-                ok:false,
-                msg:"no esta disponible"
-            })
-        } 
-        res.status(201).json({
-                link 
-        })
-
-    } catch (error) {
-        return res.status(401).json({
-            ok:false,
-            msg:"comuniquese con el administrador"
-        })   
-    }
-}
 
 const forgetlfulnes =async(req,res=response) =>{
         
@@ -135,8 +96,6 @@ const forgetlfulnes =async(req,res=response) =>{
     }
 }
 
-
-
 const  forgetlfulnesInsert =async(req,res=respons) =>{
 
     console.log(req.body)
@@ -158,11 +117,7 @@ const  forgetlfulnesInsert =async(req,res=respons) =>{
     try {
         const query = pool.query('INSERT INTO APP_objectos_perdidos set ?', date, (err, customer) => {
             console.log(customer)
-            
           })
-          
-          console.log(query)
-
           res.status(201).json({
               ok:true,
               msg:"exictoso"
@@ -175,24 +130,7 @@ const  forgetlfulnesInsert =async(req,res=respons) =>{
     }   
 }
 
-const numberEmergencies =async(req,res=response) =>{
 
-    try {
-
-        const link = await pool.query("SELECT * FROM APP_number_emergencia")
-          
-        res.status(201).json({
-            link 
-            })
-    
-    } catch (error) {
-        res.status(401).json({
-            ok:false,
-            msg:"comuniquese con el administrador"
-        })
-    }
-
- }
 
  const ListBooking =async(req,res=response) =>{
     
@@ -219,7 +157,6 @@ const numberEmergencies =async(req,res=response) =>{
             msg:"comuniquese con el administrador"
         })
     }
-
  }
 
  const ListMaintenance = async(req,res=response) =>{
@@ -236,7 +173,7 @@ const numberEmergencies =async(req,res=response) =>{
                 msg:"no esta disponible"
             })
         } 
-
+        kjkhj
         res.status(201).json({
             link 
             })
@@ -309,7 +246,6 @@ const  InsertMaintenance = async(req,res=response) =>{
 
         const query = pool.query('INSERT INTO APP_mantenimiento set ?', date, (err, customer) => {
             console.log(customer)
-            
           })
           
           console.log(query)
@@ -326,15 +262,107 @@ const  InsertMaintenance = async(req,res=response) =>{
      }
 }
 
+const ProductInvoince =async(req,res=response)  =>{
+
+    const {product} = req.body
+
+    try {
+
+        if(!product){
+            return res.status(401).json({
+                ok:false,
+                msg:"no hay productos"
+            })
+        }
+
+        const  to = new Product({
+            check_list:product
+        })
+
+        await to.save()
+        
+        return res.status(201).json({
+            ok:true,
+            msg:"exitoso"
+        })
+        
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+const MinImboxrRecesion = async (req,res=response) =>{
+
+    const  {id} = req.params
+
+    const to= moment().format();   
+    
+    let today = new Date(to)
+
+    const day = today.toISOString().split('T')[0]
+
+    const link = await pool.query("SELECT * FROM APP_caja_menor WHERE APP_caja_menor.id_hotel=? AND APP_caja_menor.date_creation=? AND id_cargo=2",[id,day])
+
+    if(link.length ==0){
+        return  res.status(401).json({
+            ok:false,
+            msg:"no esta disponible "
+        })
+    } 
+    
+    res.status(201).json({
+        ok:true,
+        link
+    })
+}
+
+const MinImboxMaintance = async (req,res=response) =>{
+
+    const  {id} = req.params
+
+    const to= moment().format();   
+
+    let today = new Date(to)
+
+    const day = today.toISOString().split('T')[0]
+
+    const link = await pool.query("SELECT * FROM APP_caja_menor WHERE APP_caja_menor.id_hotel=? AND APP_caja_menor.date_creation=? AND id_cargo=3",[id,day])
+
+    if(link.length ==0){
+        return  res.status(401).json({
+            ok:false,
+            msg:"no esta disponible "
+        })
+    } 
+    
+    res.status(201).json({
+        ok:true,
+        link
+    })
+}
+
+const MinImboxMaintanceInsert =(req,res=response) =>{
+
+    return res.status(201).json({
+        ok:true
+    })
+}
+
+
 module.exports ={LisMotel,
                 listMotelisid,
-                listBictacoras,
                 reservas,
-                formats,
                 forgetlfulnes,
                 forgetlfulnesInsert,
-                numberEmergencies,
                 ListBooking,
                 ListMaintenance,
                 UpdateMaintenance,
-                InsertMaintenance}
+                InsertMaintenance,
+                ProductInvoince,
+                MinImboxrRecesion,
+                MinImboxMaintance,
+                MinImboxMaintanceInsert,
+                }
+    

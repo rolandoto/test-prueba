@@ -4,8 +4,6 @@ const Usuario = require('../model/Usuario')
 const { GenerarJwt } = require('../helper/Jwt')
 const fetch  = require('node-fetch')
 
-
-
 const LoginUsuario =async(req,res=response) =>{
     
     const {username,password,hotel} = req.body
@@ -18,7 +16,7 @@ const LoginUsuario =async(req,res=response) =>{
     
     try {    
 
-            const response =  await fetch('https://grupohoteles.co/login-api',{
+            const response =  await fetch('https://grupohoteles.co/api/login-api',{
                 body:JSON.stringify(body),
                 method:"post",
                 headers:{'Content-type':'application/json'}
@@ -35,14 +33,15 @@ const LoginUsuario =async(req,res=response) =>{
                    msg:"no estas registrado"
                })
            }    
-           console.log(response)
+           
             return res.status(201).json({
                 ok:true,
                 result:{
                     name:response.user_name,
                     hotel:response.hotel_name,
                     id_hotel:response.id_hotel,
-                    id_user:response.id_user
+                    id_user:response.id_user,
+                    id_departamento:response.id_departamento
                 }
             })
 
@@ -52,7 +51,6 @@ const LoginUsuario =async(req,res=response) =>{
             msg:"error de login"
         })
     }
-
 }
 
 const CreateUsuario =async (req,res= response) =>{
@@ -90,10 +88,6 @@ const CreateUsuario =async (req,res= response) =>{
             mgs:"error al register"
         })
     }
-
 }
-
-
-
 
 module.exports ={LoginUsuario,CreateUsuario}
