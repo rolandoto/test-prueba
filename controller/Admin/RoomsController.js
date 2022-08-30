@@ -1,5 +1,6 @@
 const {response} = require('express')
 const { pool } = require('../../database/connection')
+const fetch  = require('node-fetch')
 
 const InsertIntoRoomsAdmin =async (req,res=response) =>{
 
@@ -40,29 +41,49 @@ const InsertIntoRoomsAdmin =async (req,res=response) =>{
 
 const  GetroomsAdmin =async(req,res=response)=>{
     
-    const  {id}  = req.params
-
+    const  {id}  = req.params;
+ 
+    const ray =[]
+  
     try {
-        await  pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id], (err, customer) =>{
-        if(err) {
-            res.status(401).json({
-                ok:false
-            })
-        }else {
-            res.status(201).json({
-                ok:true,
-                customer
-            })
-        }
-
+        const  query = await  pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
+    
+        for(let i =0;i<query.length;i++){
+        const response =  await fetch( `https://grupohoteles.co/api/getTypeRoomByID?id_tipo_habitacion=${query[i].ID_Tipo_habitaciones}`,{
+            method:"get",
+            headers:{'Content-type':'application/json'}
+        }).then(index =>{
+            const data =  index.json()
+            
+            return  data
+        })
+        .catch((e) =>{
         })
 
+        
+           ray.push({
+            id_tipoHabitacion:response.id_tipoHabitacion,
+            nombre:response.nombre,
+            precio:response.precio,
+            precio_persona:response.precio_persona,
+            persona:response.persona,
+            max_persona:response.max_persona,
+            id:query[i].ID,
+            nombreEstado:query[i].nombreEstado,
+            Numero:query[i].Numero
+           })
+           
+        }
     
-
+        res.status(201).json({
+            ok:true,
+            ray
+        })
 
     } catch (error) {
             res.status(40.).json({
-                ok:false
+                ok:false,
+              
             })
     }   
 }
