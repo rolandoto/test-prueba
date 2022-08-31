@@ -125,6 +125,26 @@ const InsertIntoStoreAdmin =async(req,res=response) =>{
 }
 
 
+const GetCategoryAdmin  = async(req,res=response) =>{
+
+        try {
+            const  query = await  pool.query("SELECT ID,Nombre,Imagen FROM Tipo_categoria")
+
+            res.status(201).json({
+                ok:true,
+                query
+            })
+    
+        } catch (e) {
+            res.status(401).json({
+                ok:false
+            })
+        }
+
+}
+
+
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
-                InsertIntoStoreAdmin}
+                InsertIntoStoreAdmin,
+                GetCategoryAdmin}

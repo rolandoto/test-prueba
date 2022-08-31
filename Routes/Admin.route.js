@@ -1,5 +1,5 @@
 const router =require('express').Router()
-const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin } = require('../controller/Admin/RoomsController')
+const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin } = require('../controller/Admin/RoomsController')
 const  {check} = require("express-validator")
 const { ValidarCampos } = require('../middleweres/middleweres')
 
@@ -27,6 +27,8 @@ router.post("/insertintostoreadmin",
         ValidarCampos
     ],
 InsertIntoStoreAdmin)
+
+router.get("/getcategoryadmin",GetCategoryAdmin)
 
 
 module.exports={router}
