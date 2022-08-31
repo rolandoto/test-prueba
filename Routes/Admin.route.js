@@ -1,5 +1,5 @@
 const router =require('express').Router()
-const { InsertIntoRoomsAdmin, GetroomsAdmin } = require('../controller/Admin/RoomsController')
+const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin } = require('../controller/Admin/RoomsController')
 const  {check} = require("express-validator")
 const { ValidarCampos } = require('../middleweres/middleweres')
 
@@ -16,6 +16,17 @@ router.post("/inserintoroomsadmin",
 
 
 router.get("/getroomsadmin/:id",GetroomsAdmin)
+
+router.post("/insertintostoreadmin",
+    [
+        check("ID_Tipo_categoria","ID_Tipo_categoria es oblogatorio").not().isEmpty(),
+        check("ID_Hoteles","ID_Hoteles es obligatorio").not().isEmpty(),
+        check("Nombre","Nombre el obligatorio").not().isEmpty(),
+        check("Cantidad","Cantidad es obligatorio").not().isEmpty(),
+        check("Precio","Precio es obligatorio").not().isEmpty(),
+        ValidarCampos
+    ],
+InsertIntoStoreAdmin)
 
 
 module.exports={router}
