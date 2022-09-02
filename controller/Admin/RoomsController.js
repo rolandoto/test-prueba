@@ -143,8 +143,40 @@ const GetCategoryAdmin  = async(req,res=response) =>{
 
 }
 
+const GetListProductAdmin = async( req, res=response ) =>{
+
+    const  {id} = req.params;
+
+    try {
+
+        const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria' FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
+        
+
+        if(query.length==0) {
+           return  res.status(401).json({
+                ok:false
+            })
+        }
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+
+    } catch (error) {
+
+        res.status(201).json({
+            ok:false,
+            msg:"comuniquese con el administrador"
+        })
+        
+    }
+
+}
+
 
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
                 InsertIntoStoreAdmin,
-                GetCategoryAdmin}
+                GetCategoryAdmin,
+                GetListProductAdmin}
