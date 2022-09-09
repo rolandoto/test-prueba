@@ -2,6 +2,7 @@ const express = require('express')
 const  AuthRoutes  = require('./Routes/Auth')
 const  ListRoutes  = require('./Routes/Listmotel')
 const AdminRoute = require("./Routes/Admin.route")
+const ResecionRoute = require("./Routes/Resecion.route")
 const cors = require('cors')
 require('dotenv').config()
 const ReverseMd5 = require('reverse-md5')
@@ -19,6 +20,7 @@ app.use(cors())
 app.use('/api/auth',AuthRoutes.router)
 app.use('/api',ListRoutes.router)
 app.use("/api/admin",AdminRoute.router)
+app.use("/api/resecion",ResecionRoute.router)
 
 const axios = require('axios');
 const FormData = require('form-data');
