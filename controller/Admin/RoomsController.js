@@ -1,6 +1,7 @@
 const {response} = require('express')
 const { pool } = require('../../database/connection')
 const fetch  = require('node-fetch')
+const { count } = require('../../model/Usuario')
 
 const InsertIntoRoomsAdmin =async (req,res=response) =>{
 
@@ -46,7 +47,39 @@ const  GetroomsAdmin =async(req,res=response)=>{
     const ray =[]
   
     try {
-        const  query = await  pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
+
+        const response =  await fetch( `https://grupohoteles.co/api/getTypeRoomsByIDHotel?id_hotel=${id}`,{
+            method:"post",
+            headers:{'Content-type':'application/json'}
+        }).then(index =>{
+            const data =  index.json()
+            return  data
+        })
+        .catch((e) =>{
+        })
+
+        for ( let count = 0; count < response.length; count++ ) {
+
+            const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?",[response[count].id_tipoHabitacion])
+
+            query.forEach(element => {
+                ray.push({
+                    id_tipoHabitacion:response[count].id_tipoHabitacion,
+                    nombre:response[count].nombre,
+                    precio:response[count].precio,
+                    precio_persona:response[count].precio_persona,
+                    persona:response[count].persona,
+                    max_persona:response[count].max_persona,
+                    id: element.ID,
+                    nombreEstado: element.nombreEstado,
+                    Numero: element.Numero
+                })
+            });
+
+        }
+
+        /*
+        const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
     
         for(let i =0;i<query.length;i++){
             const response =  await fetch( `https://grupohoteles.co/api/getTypeRoomByID?id_tipo_habitacion=${query[i].ID_Tipo_habitaciones}`,{
@@ -58,7 +91,8 @@ const  GetroomsAdmin =async(req,res=response)=>{
             })
             .catch((e) =>{
             })
-           ray.push({
+            
+            ray.push({
                 id_tipoHabitacion:response.id_tipoHabitacion,
                 nombre:response.nombre,
                 precio:response.precio,
@@ -68,9 +102,10 @@ const  GetroomsAdmin =async(req,res=response)=>{
                 id:query[i].ID,
                 nombreEstado:query[i].nombreEstado,
                 Numero:query[i].Numero
-           })
+            })
            
         }
+        */
     
         res.status(201).json({
             ok:true,
