@@ -7,9 +7,10 @@ const cors = require('cors')
 require('dotenv').config()
 const ReverseMd5 = require('reverse-md5')
 const  {dbConnection}= require("./database/Config")
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 dbConnection()
-
 //connection database
 const app = express()
 
@@ -21,12 +22,11 @@ app.use('/api/auth',AuthRoutes.router)
 app.use('/api',ListRoutes.router)
 app.use("/api/admin",AdminRoute.router)
 app.use("/api/resecion",ResecionRoute.router)
-
+  
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
-
 const inputPath = '/path/to/files.jpg';
 const formData = new FormData();
 formData.append('size', 'auto');

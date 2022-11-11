@@ -33,6 +33,9 @@ const LoginUsuario =async(req,res=response) =>{
                    msg:"no estas registrado"
                })
            }    
+
+           const token = await GenerarJwt(response.id_hotel,response.user_name)
+    
            
             return res.status(201).json({
                 ok:true,
@@ -41,7 +44,8 @@ const LoginUsuario =async(req,res=response) =>{
                     hotel:response.hotel_name,
                     id_hotel:response.id_hotel,
                     id_user:response.id_user,
-                    id_departamento:response.id_departamento
+                    id_departamento:response.id_departamento,
+                    token
                 }
             })
 
@@ -83,11 +87,15 @@ const CreateUsuario =async (req,res= response) =>{
         })
         
     } catch (error) {
-       
+    
         return res.status(500).json({
             mgs:"error al register"
         })
     }
 }
+
+
+
+
 
 module.exports ={LoginUsuario,CreateUsuario}

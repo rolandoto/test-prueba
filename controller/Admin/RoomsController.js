@@ -36,8 +36,7 @@ const InsertIntoRoomsAdmin =async (req,res=response) =>{
             ok:false,
             msg:"comuniquese con el administrador"
         })  
-    }   
-    
+    }
 }
 
 const  GetroomsAdmin =async(req,res=response)=>{
@@ -45,6 +44,8 @@ const  GetroomsAdmin =async(req,res=response)=>{
     const  {id}  = req.params;
  
     const ray =[]
+
+    //api de cristian 
   
     try {
 
@@ -58,7 +59,7 @@ const  GetroomsAdmin =async(req,res=response)=>{
         .catch((e) =>{
         })
 
-        for ( let count = 0; count < response.length; count++ ) {
+        for ( let count = 0; count < response?.length; count++ ) {
 
             const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?",[response[count].id_tipoHabitacion])
 
@@ -74,9 +75,9 @@ const  GetroomsAdmin =async(req,res=response)=>{
                     nombreEstado: element.nombreEstado,
                     Numero: element.Numero
                 })
-            });
-
+            }); 
         }
+
 
         /*
         const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
@@ -103,7 +104,6 @@ const  GetroomsAdmin =async(req,res=response)=>{
                 nombreEstado:query[i].nombreEstado,
                 Numero:query[i].Numero
             })
-           
         }
         */
     
@@ -119,7 +119,6 @@ const  GetroomsAdmin =async(req,res=response)=>{
             })
     }   
 }
-
 
 const InsertIntoStoreAdmin =async(req,res=response) =>{
 
@@ -153,17 +152,14 @@ const InsertIntoStoreAdmin =async(req,res=response) =>{
         res.status(201).json({
             ok:false,
             msg:"comuniquese con el administrador"
-        })
-        
+        })   
     }
-
 }
-
 
 const GetCategoryAdmin  = async(req,res=response) =>{
 
         try {
-            const  query = await  pool.query("SELECT ID,Nombre,Imagen FROM Tipo_categoria")
+            const  query = await  pool.query("SELECT ID,Nombre as nombre ,Imagen FROM Tipo_categoria")
 
             res.status(201).json({
                 ok:true,
@@ -186,13 +182,8 @@ const GetListProductAdmin = async( req, res=response ) =>{
 
         const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria' FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
         
-
-        if(query.length==0) {
-           return  res.status(401).json({
-                ok:false
-            })
-        }
-
+    
+    
         res.status(201).json({
             ok:true,
             query
@@ -203,17 +194,32 @@ const GetListProductAdmin = async( req, res=response ) =>{
         res.status(201).json({
             ok:false,
             msg:"comuniquese con el administrador"
-        })
+        })   
+    }
+}
+
+const getStoreAdmin =async(req,res= response) =>{
+
+    try {
+
+            return res.status(201).json({
+                ok:false,
+                msg:"entro"
+            })
         
+    } catch (error) {
+
+        return res.status(401).json({
+            ok:false
+        })
+
     }
 
 }
-
-
-
 
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
                 InsertIntoStoreAdmin,
                 GetCategoryAdmin,
-                GetListProductAdmin}
+                GetListProductAdmin,
+                getStoreAdmin}

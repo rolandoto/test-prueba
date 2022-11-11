@@ -1,5 +1,5 @@
 const router =require('express').Router()
-const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin } = require('../controller/Admin/RoomsController')
+const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin, getStoreAdmin } = require('../controller/Admin/RoomsController')
 const  {check} = require("express-validator")
 const { ValidarCampos } = require('../middleweres/middleweres')
 
@@ -13,7 +13,6 @@ router.post("/inserintoroomsadmin",
         ]
 
 ,InsertIntoRoomsAdmin)
-
 
 router.get("/getroomsadmin/:id",GetroomsAdmin)
 
@@ -32,5 +31,6 @@ router.get("/getcategoryadmin",GetCategoryAdmin)
 
 router.get("/getlistproductadmin/:id",GetListProductAdmin)
 
+router.get("/getstore",getStoreAdmin)
 
 module.exports={router}

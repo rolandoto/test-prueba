@@ -28,7 +28,4 @@ router.get("/minImboxMaintance/:id",MinImboxMaintance)
 
 router.post("/minimboxmaintanceinsert",MinImboxMaintanceInsert)
 
-
-
-
 module.exports ={router}
