@@ -26,7 +26,6 @@ const InsertIntoRoomsAdmin =async (req,res=response) =>{
                 })
              }
           })
-       
           res.status(201).json({
               ok:true,
               msg:"exictoso"
@@ -59,10 +58,10 @@ const  GetroomsAdmin =async(req,res=response)=>{
         .catch((e) =>{
         })
 
-        for ( let count = 0; count < response?.length; count++ ) {
+        for( let count = 0; count < response?.length; count++ ) {
 
             const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?",[response[count].id_tipoHabitacion])
-
+            
             query.forEach(element => {
                 ray.push({
                     id_tipoHabitacion:response[count].id_tipoHabitacion,
@@ -77,7 +76,6 @@ const  GetroomsAdmin =async(req,res=response)=>{
                 })
             }); 
         }
-
 
         /*
         const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
@@ -171,7 +169,7 @@ const GetCategoryAdmin  = async(req,res=response) =>{
                 ok:false
             })
         }
-
+        
 }
 
 const GetListProductAdmin = async( req, res=response ) =>{
@@ -182,8 +180,6 @@ const GetListProductAdmin = async( req, res=response ) =>{
 
         const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria' FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
         
-    
-    
         res.status(201).json({
             ok:true,
             query
@@ -222,4 +218,5 @@ module.exports ={InsertIntoRoomsAdmin,
                 InsertIntoStoreAdmin,
                 GetCategoryAdmin,
                 GetListProductAdmin,
-                getStoreAdmin}
+                getStoreAdmin
+}

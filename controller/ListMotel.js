@@ -350,7 +350,6 @@ const MinImboxMaintanceInsert =(req,res=response) =>{
     })
 }
 
-
 module.exports ={LisMotel,
                 listMotelisid,
                 reservas,
