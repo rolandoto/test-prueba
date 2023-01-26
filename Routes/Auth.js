@@ -1,9 +1,7 @@
-const {Router} = require('express')
+const router = require('express').Router()
 const {check} = require('express-validator')
-const { LoginUsuario, CreateUsuario } = require('../controller/controller')
 const { ValidarCampos } = require('../middleweres/middleweres')
-
-const router = Router()
+const { LoginUsuario, CreateUsuario } = require('../controller/Controller')
 
 router.post('/login',
         [ 
@@ -12,7 +10,7 @@ router.post('/login',
             check('hotel',' error de hotel').not().isEmpty(),
             ValidarCampos
         ],
-    LoginUsuario     
+    LoginUsuario   
 )
 router.post('/register',
         [

@@ -1,11 +1,7 @@
 const { check } = require("express-validator")
 const { GetRooms, insertReservaRecepcion, getTypePet, getReserva, validateAvaible, GetCanales, roomAvaible, getDetailReservation, postCleanlineRooms, getCountry, updateDetailReservation, updateDetailPagos, getdetailhuespedes, postdetailUpdate, updateDetailReserva, getRoomdetalle, uploadImage, insertCartReservation, getCartReservaction, getDetailChecking, handAddHuespe, HuespeCount } = require("../controller/Resecion")
 const { ValidarCampos } = require("../middleweres/middleweres")
-const express = require('express')
 const router = require("express").Router()
-
-router.use(express.json());
-router.use(express.urlencoded({extended:true}))
 
 router.get("/getroomsresecion/:id",GetRooms)
 
@@ -64,26 +60,6 @@ router.get("/getroomdetalle/:id",getRoomdetalle)
 
 router.post("/uploadimage",uploadImage)
 
-router.post('/upload',(req,res) => {
-    try {
-
-        // to declare some path to store your converted image
-        const path = './images/'+Date.now()+'.png'
-
-        const imgdata = req.body.base64image;
-
-        // to convert base64 format into random filename
-        const base64Data = imgdata.replace(/^data:([A-Za-z-+/]+);base64,/, '');
-        
-        fs.writeFileSync(path, base64Data,  {encoding: 'base64'});
-
-        return res.send(path);
-
-    } catch (e) {
-        next(e);
-    }
- });
- 
 router.post("/insertcartreservation",insertCartReservation)
 
 router.get("/getcartreservaction/:id",getCartReservaction)
