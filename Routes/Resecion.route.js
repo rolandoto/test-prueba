@@ -1,8 +1,11 @@
 const { check } = require("express-validator")
-const { GetRooms, insertReservaRecepcion, getTypePet, getReserva, validateAvaible, GetCanales, roomAvaible, getDetailReservation, postCleanlineRooms, getCountry, updateDetailReservation, updateDetailPagos, getdetailhuespedes, postdetailUpdate } = require("../controller/Resecion")
+const { GetRooms, insertReservaRecepcion, getTypePet, getReserva, validateAvaible, GetCanales, roomAvaible, getDetailReservation, postCleanlineRooms, getCountry, updateDetailReservation, updateDetailPagos, getdetailhuespedes, postdetailUpdate, updateDetailReserva, getRoomdetalle, uploadImage, insertCartReservation, getCartReservaction, getDetailChecking, handAddHuespe, HuespeCount } = require("../controller/Resecion")
 const { ValidarCampos } = require("../middleweres/middleweres")
-
+const express = require('express')
 const router = require("express").Router()
+
+router.use(express.json());
+router.use(express.urlencoded({extended:true}))
 
 router.get("/getroomsresecion/:id",GetRooms)
 
@@ -27,11 +30,19 @@ router.post("/postinsertreservaresecipcion",insertReservaRecepcion)
 
 router.get("/gettypepet",getTypePet)
 
-router.get("/getreservarecepcion",getReserva)
+router.get("/getreservarecepcion/:id",getReserva)
 
 router.get("/getcanales",GetCanales)
 
-router.post("/roomsavaible",roomAvaible)
+router.post("/roomsavaible",
+    [
+        check("desde","el desde  es obligatorio").not().isEmpty(),
+        check("hasta","el hasta  es obligatorio").not().isEmpty(),
+        check("habitaciones","el habitaciones  es obligatorio").not().isEmpty(),
+        check("ID_Habitaciones","el ID_Habitaciones  es obligatorio").not().isEmpty(),
+    ],
+    ValidarCampos
+,roomAvaible)
 
 router.get("/getdetailreservation/:id",getDetailReservation)
 
@@ -46,5 +57,41 @@ router.post("/updateDetailPagos/:id",updateDetailPagos)
 router.get("/getdetailhuespedes/:id",getdetailhuespedes)
 
 router.post("/postdetailupdate/:id",postdetailUpdate)
+
+router.post("/updatedetailreserva",updateDetailReserva)
+
+router.get("/getroomdetalle/:id",getRoomdetalle)
+
+router.post("/uploadimage",uploadImage)
+
+router.post('/upload',(req,res) => {
+    try {
+
+        // to declare some path to store your converted image
+        const path = './images/'+Date.now()+'.png'
+
+        const imgdata = req.body.base64image;
+
+        // to convert base64 format into random filename
+        const base64Data = imgdata.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+        
+        fs.writeFileSync(path, base64Data,  {encoding: 'base64'});
+
+        return res.send(path);
+
+    } catch (e) {
+        next(e);
+    }
+ });
+ 
+router.post("/insertcartreservation",insertCartReservation)
+
+router.get("/getcartreservaction/:id",getCartReservaction)
+
+router.get("/getdetailchecking/:id",getDetailChecking)
+
+router.post("/handaddhuespe/:id",handAddHuespe)
+
+router.get("/huespecount/:id",HuespeCount)
 
 module.exports={router} 

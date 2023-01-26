@@ -16,7 +16,7 @@ const LoginUsuario =async(req,res=response) =>{
     
     try {    
 
-            const response =  await fetch('https://grupohoteles.co/api/login-api',{
+            const response =  await fetch('https://grupo-hoteles.com/api/login-api',{
                 body:JSON.stringify(body),
                 method:"post",
                 headers:{'Content-type':'application/json'}
@@ -44,7 +44,7 @@ const LoginUsuario =async(req,res=response) =>{
                     hotel:response.hotel_name,
                     id_hotel:response.id_hotel,
                     id_user:response.id_user,
-                    id_departamento:response.id_departamento,
+                    id_permissions:response.id_permissions,
                     token
                 }
             })

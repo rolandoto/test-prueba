@@ -48,7 +48,7 @@ const  GetroomsAdmin =async(req,res=response)=>{
   
     try {
 
-        const response =  await fetch( `https://grupohoteles.co/api/getTypeRoomsByIDHotel?id_hotel=${id}`,{
+        const response =  await fetch( `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,{
             method:"post",
             headers:{'Content-type':'application/json'}
         }).then(index =>{
@@ -178,7 +178,7 @@ const GetListProductAdmin = async( req, res=response ) =>{
 
     try {
 
-        const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria' FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
+        const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
         
         res.status(201).json({
             ok:true,
