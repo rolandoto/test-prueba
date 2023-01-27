@@ -70,4 +70,5 @@ router.post("/handaddhuespe/:id",handAddHuespe)
 
 router.get("/huespecount/:id",HuespeCount)
 
-module.exports={router} 
+module.exports={router}
+
