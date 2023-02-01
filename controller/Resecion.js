@@ -39,7 +39,7 @@ const  GetRooms =async(req, res=response) =>{
 
 const validateAvaible =async(req,res=response) => {
 
-    const  {desde,hasta,habitaciones,disponibilidad,id_estados_habitaciones,ID_Canal,Adultos,Ninos,ID_Talla_mascota,Infantes,Noches,Observacion,huespe,valor,ID_Tipo_Forma_pago,abono,valor_habitacion,Tipo_persona} = req.body
+    const  {desde,hasta,habitaciones,disponibilidad,id_estados_habitaciones,ID_Canal,Adultos,Ninos,ID_Talla_mascota,Infantes,Noches,Observacion,huespe,valor,ID_Tipo_Forma_pago,abono,valor_habitacion,Tipo_persona,valor_dia_habitacion} = req.body
  
     const date1 = new Date(desde)
     const date2 = new  Date(hasta)
@@ -221,7 +221,8 @@ const validateAvaible =async(req,res=response) => {
                 ID_Tipo_Forma_pago,
                 Valor:valor,
                 Abono:abono,
-                Valor_habitacion:valor_habitacion
+                Valor_habitacion:valor_habitacion,
+                valor_dia_habitacion:valor_dia_habitacion
             }
             
             const tothre = pool.query('INSERT INTO  Pagos  set ?',pay) 
@@ -303,7 +304,8 @@ const getReserva =async(req,res=response) =>{
                 Fecha_final:response[i].Fecha_final,
                 ID_Tipo_estados:response[i].ID_Tipo_Estados_Habitaciones,
                 Nombre:element.Nombre,
-                Document:element.Num_documento
+                Document:element.Num_documento,
+                Last_name:element.Apellido
             })
         })
     }
@@ -1017,6 +1019,7 @@ const HuespeCount =async(req, res=response) =>{
                 ok:false
             })
         }
+        
     return res.status(201).json({
         ok:true,
         query   ,
@@ -1031,6 +1034,18 @@ const HuespeCount =async(req, res=response) =>{
     }
 
 }
+
+
+const handCleanline =(req,res=response) =>{
+
+    try {
+        
+    } catch (error) {
+        
+    }
+
+}
+
 
 module.exports ={GetRooms,
                 validateAvaible,

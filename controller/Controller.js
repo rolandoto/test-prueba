@@ -13,7 +13,7 @@ const LoginUsuario =async(req,res=response) =>{
         password:password,
         hotel:hotel
     }
-    
+        
     try {    
             const response =  await fetch('https://grupo-hoteles.com/api/login-api',{
                 body:JSON.stringify(body),
@@ -92,9 +92,4 @@ const CreateUsuario =async (req,res= response) =>{
         })
     }
 }
-
-
-
-
-
 module.exports ={LoginUsuario,CreateUsuario}
