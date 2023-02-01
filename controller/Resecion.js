@@ -512,10 +512,10 @@ const roomAvaible =async(req,res=response) => {
 
         let habi = new Array();
         const acum =[]
-        fechaInicio.setDate(fechaInicio.getDate()+1)
+        fechaInicio.setDate(fechaInicio.getDate())
 
         x = 0;
-        while(fechaFin.getTime() >= fechaInicio.getTime()){
+        while(fechaFin.getTime() >= fechaInicio.getTime()+1){
             let fecha;
         
           const fechaone =  fechaInicio.setDate(fechaInicio.getDate() + 1);
@@ -1036,15 +1036,51 @@ const HuespeCount =async(req, res=response) =>{
 }
 
 
-const handCleanline =(req,res=response) =>{
+const handResolution =async(req,res=response) =>{
 
     try {
-        
+        const query = await pool.query("SELECT * FROM Resolucion_pms")
+
+      
+        res.status(201).json({
+            ok:true,
+            query
+        })
+
     } catch (error) {
-        
+            res.status(401).json({
+                ok:false
+            })
     }
 
 }
+
+
+const handUpdateResoluction =async(req,res=response)=>{
+
+        const {id} = req.params
+        const data= req.body
+
+        
+     
+    try {   
+
+        const query = await pool.query("UPDATE Resolucion_pms set ? WHERE Resolucion_pms.ID",[data, id])
+
+      
+        res.status(201).json({
+            ok:true,
+            query
+        })
+        
+    } catch (error) {
+        res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
 
 
 module.exports ={GetRooms,
@@ -1069,5 +1105,8 @@ module.exports ={GetRooms,
                 getCartReservaction,
                 getDetailChecking,
                 handAddHuespe,
-                HuespeCount
+                HuespeCount,
+                handResolution,
+                handUpdateResoluction,
+                handUpdateResoluction
             }
