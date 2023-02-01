@@ -512,7 +512,7 @@ const roomAvaible =async(req,res=response) => {
 
         let habi = new Array();
         const acum =[]
-        fechaInicio.setDate(fechaInicio.getDate()-1)
+        fechaInicio.setDate(fechaInicio.getDate()+1)
 
         x = 0;
         while(fechaFin.getTime() >= fechaInicio.getTime()){
