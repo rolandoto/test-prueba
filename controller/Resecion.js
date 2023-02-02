@@ -40,7 +40,7 @@ const  GetRooms =async(req, res=response) =>{
 const validateAvaible =async(req,res=response) => {
 
     const  {desde,hasta,habitaciones,disponibilidad,id_estados_habitaciones,ID_Canal,Adultos,Ninos,ID_Talla_mascota,Infantes,Noches,Observacion,huespe,valor,ID_Tipo_Forma_pago,abono,valor_habitacion,Tipo_persona,valor_dia_habitacion} = req.body
- 
+    console.log(huespe)
     const date1 = new Date(desde)
     const date2 = new  Date(hasta)
 
@@ -66,7 +66,7 @@ const validateAvaible =async(req,res=response) => {
             return index.ID
         })
 
-        if(avaible.length > reservation.length ){
+        
 
             /*const ray = []
 
@@ -208,7 +208,8 @@ const validateAvaible =async(req,res=response) => {
 
             const totwo = pool.query('INSERT INTO  Huespedes  set ?',huep ,(q_err, q_res) =>{
                 if (q_err) return res.status(401).json({
-                    ok:false
+                    ok:false,
+                    msg:"error de web huespedes"
                 })
             }) 
            }
@@ -232,11 +233,7 @@ const validateAvaible =async(req,res=response) => {
                 ok:true
             })
 
-        }else{
-            return res.status(401).json({
-                ok:false
-            })
-        }
+            
 
     } catch (error) {
         console.log(error);
@@ -1060,8 +1057,6 @@ const handUpdateResoluction =async(req,res=response)=>{
 
         const {id} = req.params
         const data= req.body
-
-        
      
     try {   
 
