@@ -1,5 +1,5 @@
 const { check } = require("express-validator")
-const { GetRooms, insertReservaRecepcion, getTypePet, getReserva, validateAvaible, GetCanales, roomAvaible, getDetailReservation, postCleanlineRooms, getCountry, updateDetailReservation, updateDetailPagos, getdetailhuespedes, postdetailUpdate, updateDetailReserva, getRoomdetalle, uploadImage, insertCartReservation, getCartReservaction, getDetailChecking, handAddHuespe, HuespeCount,handResolution, handUpdateResoluction, handUpdateStatus } = require("../controller/Resecion")
+const { GetRooms, insertReservaRecepcion, getTypePet, getReserva, validateAvaible, GetCanales, roomAvaible, getDetailReservation, postCleanlineRooms, getCountry, updateDetailReservation, updateDetailPagos, getdetailhuespedes, postdetailUpdate, updateDetailReserva, getRoomdetalle, uploadImage, insertCartReservation, getCartReservaction, getDetailChecking, handAddHuespe, HuespeCount,handResolution, handUpdateResoluction, handUpdateStatus, handDeleteReserva } = require("../controller/Resecion")
 const { ValidarCampos } = require("../middleweres/middleweres")
 const router = require("express").Router()
 
@@ -75,6 +75,8 @@ router.get("/resolucion",handResolution)
 router.post("/updateresolution/:id",handUpdateResoluction)
 
 router.post("/handupdatestatus/:id",handUpdateStatus)
+
+router.post("/handdeletereserva/:id",handDeleteReserva)
 
 module.exports={router}
 

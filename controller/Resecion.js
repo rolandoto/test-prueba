@@ -115,7 +115,13 @@ const validateAvaible =async(req,res=response) => {
                 }
 
             const  to = await pool.query('INSERT INTO Reservas set ?', data)
+            
+            const query1 = await  pool.query("SELECT MAX(ID) as max FROM Reservas")
 
+            const result = query1.map(index=>{
+                return index.max
+            })  
+            
             var prueba=  desde.split(" ",1).toString()
             var pruebaone=  hasta.split(" ",1).toString()
             
@@ -125,7 +131,8 @@ const validateAvaible =async(req,res=response) => {
             const dateOne  = {
                 ID_Habitaciones: parseInt(id_disponible.toString()),
                 Date:prueba,
-                Proceso: 0
+                Proceso: 0,
+                ID_Reserva:parseInt(result.toString()),
             }   
 
             await pool.query('INSERT INTO Lista_Fechas_Reservada set ?', dateOne)
@@ -140,7 +147,8 @@ const validateAvaible =async(req,res=response) => {
                     fecha  = {
                         ID_Habitaciones: parseInt(id_disponible.toString()),
                         Date:fechaInicio.getFullYear() + '/' + (fechaInicio.getMonth() + 1) + '/' + fechaInicio.getDate(),
-                        Proceso: 1
+                        Proceso: 1,
+                        ID_Reserva:parseInt(result.toString()),
                     }
               
                 await pool.query('INSERT INTO Lista_Fechas_Reservada set ?', fecha)
@@ -150,7 +158,8 @@ const validateAvaible =async(req,res=response) => {
             const dateTwo  = {
                 ID_Habitaciones: parseInt(id_disponible.toString()),
                 Date:pruebaone,
-                Proceso: 0
+                Proceso: 0,
+                ID_Reserva:parseInt(result.toString()),
             }
 
             await pool.query('INSERT INTO Lista_Fechas_Reservada set ?', dateTwo)
@@ -161,12 +170,7 @@ const validateAvaible =async(req,res=response) => {
             }
 
             await  pool.query("UPDATE Habitaciones set ? WHERE ID = ?",[newReservation,data.ID_Habitaciones])
-
-            const query1 = await  pool.query("SELECT MAX(ID) as max FROM Reservas")
-
-            const result = query1.map(index=>{
-                return index.max
-            })  
+ 
 
            for(let i =0;i<huespe?.length;i++){
              
@@ -1100,6 +1104,31 @@ const handUpdateStatus =async(req,res=response) =>{
 }
 
 
+const handDeleteReserva =async(req,res=response) =>{
+    
+    const {id} = req.params
+    
+    try {
+
+        await pool.query('DELETE FROM web_checking WHERE ID_Reserva = ?', [id]);
+        await pool.query('DELETE FROM Pagos WHERE ID_Reserva = ?', [id]);
+        await pool.query('DELETE FROM Reservas WHERE ID = ?', [id]);
+        await pool.query('DELETE FROM Huespedes WHERE `ID_Reserva` = ?', [id]);
+        await pool.query('DELETE FROM Lista_Fechas_Reservada WHERE ID_Reserva = ?', [id]);
+
+        res.status(201).json({
+           ok:true
+        })
+
+    } catch (error) {
+
+        res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
 
 
 module.exports ={GetRooms,
@@ -1128,5 +1157,6 @@ module.exports ={GetRooms,
                 handResolution,
                 handUpdateResoluction,
                 handUpdateResoluction,
-                handUpdateStatus
+                handUpdateStatus,
+                handDeleteReserva
             }
