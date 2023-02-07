@@ -287,29 +287,31 @@ const getReserva =async(req,res=response) =>{
    
     try {
 
-        const response =  await pool.query("SELECT  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Hotel = ?",[id])
+        const response =  await pool.query("SELECT web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido,  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking  on web_checking.ID_Reserva = Reservas.id WHERE Habitaciones.ID_Hotel = ?",[id])
+        
+        const promises = [];
 
-        const query = []
-
-       for(let i = 0;i<response.length; i++){
-        const web_checking =  await pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID])
-
-
-        web_checking.forEach(element => {
-           query.push({
-                Title: `${response[i].Numero} ${element.Nombre} ${element.Apellido}` ,
+        for(let i = 0; i < response.length; i++) {
+            //console.log(response[i])
+            // promises.push(pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID]));
+           const to = (pool.query("SELECT  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Hotel = ?",[response[i].ID]))
+              promises.push({
+                Title:`${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
                 ID:response[i].ID,
                 ID_Habitaciones:response[i].ID_Habitaciones,
                 Codigo_reserva:response[i].Codigo_reserva,
                 Fecha_inicio:response[i].Fecha_inicio,
                 Fecha_final:response[i].Fecha_final,
                 ID_Tipo_estados:response[i].ID_Tipo_Estados_Habitaciones,
-                Nombre:element.Nombre,
-                Document:element.Num_documento,
-                Last_name:element.Apellido
-            })
-        })
-    }
+                Nombre:response[i].Nombre,
+                Document:response[i].Num_documento,
+                Last_name:response[i].Apellido
+              })
+        }
+
+        const query = await Promise.all(promises);
+
+      
 
         return  res.status(201).json({
             ok:true,
@@ -318,7 +320,8 @@ const getReserva =async(req,res=response) =>{
 
     } catch (error) {
         res.status(201).json({
-            ok:false
+            ok:false,
+            
         })
     }
 }
@@ -494,8 +497,7 @@ const roomAvaible =async(req,res=response) => {
     var fechaInicio = new Date(desde)
     var fechaFin = new Date(hasta)
 
-    let desdeSinHora = desde.split(' ', 1);
-    let hastaSinHora = hasta.split(' ', 1);
+ 
 
     try {   
 
@@ -513,65 +515,55 @@ const roomAvaible =async(req,res=response) => {
 
         let habi = new Array();
         const acum =[]
-        fechaInicio.setDate(fechaInicio.getDate())
 
         x = 0;
-        while(fechaFin.getTime() >= fechaInicio.getTime()+1){
-            let fecha;
+
+        var fechaInicio = new Date(desde);
+        var fechaFin    = new Date(hasta);
+
+        fechaInicio.setDate(fechaInicio.getDate()-1);
+        while(fechaFin.getTime() >= fechaInicio.getTime()){
+            fechaInicio.setDate(fechaInicio.getDate() + 1);
         
-          const fechaone =  fechaInicio.setDate(fechaInicio.getDate() + 1);
-                    //disponibilidad
-               
-                fecha  = {
-                    Date:fechaInicio.getFullYear() + '/' + (fechaInicio.getMonth() + 1) + '/' + fechaInicio.getDate()
-                }
-                
-                const fechaOne ={
-                    Date:fechaInicio.getFullYear() + '-' + (fechaInicio.getMonth() + 1) + '-' + fechaInicio.getDate()+" 15:00:00"
-                }
-
-                const fechaTwo ={
-                    Date:fechaInicio.getFullYear() + '-' + (fechaInicio.getMonth() + 1) + '-' + fechaInicio.getDate()+" 13:00:00"
-                }
-          
-                const querys  = await pool.query("SELECT Date, ID_Habitaciones FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.ID_Habitaciones= ? AND Lista_Fechas_Reservada.Date = ? AND Proceso = 1 AND Proceso = 1",[habitaciones,ID_Habitaciones,fecha.Date])
-                
-                const reservatioone = await pool.query("SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_inicio = ? AND Reservas.ID_Habitaciones = ?  ",[fechaOne.Date,ID_Habitaciones])
-
-                const reservatiotwo = await pool.query("SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_final = ? AND Reservas.ID_Habitaciones = ?",[fechaTwo.Date,ID_Habitaciones])
-
-                console.log(fechaTwo)
-
-                if(reservatioone.length ==1){
-                    acum.push(1)
-                }else if(reservatiotwo.length ==1){
-                    acum.push(2)
-                }
-                
-                
-                if(querys.length ==1){
-                    return res.status(401).json({
-                        ok:false,
-                        msg:"ya esta en uso de la reserva"
-                    })
-                }   
+            fecha  = {
+                Date:fechaInicio.getFullYear() + '-' + (fechaInicio.getMonth() + 1) + '-' + fechaInicio.getDate()
+            }
+            
+            const fechaOne ={
+                Date:fechaInicio.getFullYear() + '-' + (fechaInicio.getMonth() + 1) + '-' + fechaInicio.getDate()+" 15:00:00"
             }
 
-        if(acum.length>= 2){
-            return res.status(401).json({
-                ok:false,
-                msg:"sdkhajdkj"
-            })
-        }else{
+            const fechaTwo ={
+                Date:fechaInicio.getFullYear() + '-' + (fechaInicio.getMonth() + 1) + '-' + fechaInicio.getDate()+" 13:00:00"
+            }
+
+            const querys  = await pool.query("SELECT Date, ID_Habitaciones FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.ID_Habitaciones= ? AND Lista_Fechas_Reservada.Date = ? AND Proceso = 1",[habitaciones,ID_Habitaciones,fecha.Date])
+
+            const reservatioone = await pool.query("SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_inicio = ? AND Reservas.ID_Habitaciones = ?  ",[fechaOne.Date,ID_Habitaciones])
+
+            const reservatiotwo = await pool.query("SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_final = ? AND Reservas.ID_Habitaciones = ?",[fechaTwo.Date,ID_Habitaciones])
+
 
             if(reservatioone.length ==1){
-                return res.status(201).json({
-                    ok:true
-                })
+                acum.push(1)
+            }else if(reservatiotwo.length ==1){
+                acum.push(2)
             }
-    
+            
+            if(querys.length ==1){
+                return res.status(401).json({
+                    ok:false,
+                    msg:"ya esta en uso de la reserva"
+                })
+            } 
         }
 
+        if(acum.length >=2){
+            return res.status(401).json({
+                ok:false
+            })
+        }
+    
         res.status(201).json({
             ok:true
         })
