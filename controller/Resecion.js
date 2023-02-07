@@ -294,7 +294,6 @@ const getReserva =async(req,res=response) =>{
         for(let i = 0; i < response.length; i++) {
             //console.log(response[i])
             // promises.push(pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID]));
-           const to = (pool.query("SELECT  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Hotel = ?",[response[i].ID]))
               promises.push({
                 Title:`${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
                 ID:response[i].ID,
@@ -310,8 +309,6 @@ const getReserva =async(req,res=response) =>{
         }
 
         const query = await Promise.all(promises);
-
-      
 
         return  res.status(201).json({
             ok:true,
