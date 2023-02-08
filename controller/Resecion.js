@@ -518,7 +518,7 @@ const roomAvaible =async(req,res=response) => {
         var fechaInicio = new Date(desde);
         var fechaFin    = new Date(hasta);
 
-        fechaInicio.setDate(fechaInicio.getDate()-1);
+        fechaInicio.setDate(fechaInicio.getDate());
         while(fechaFin.getTime() >= fechaInicio.getTime()){
             fechaInicio.setDate(fechaInicio.getDate() + 1);
         
