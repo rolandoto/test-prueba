@@ -903,7 +903,7 @@ const uploadImage = async (req, res = response) => {
 };
 
 const insertCartReservation = async (req, res = response) => {
-  const { Cart, ID_Reserva, ID_Hoteles } = req.body;
+  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra } = req.body;
 
   try {
     for (let i = 0; i < Cart.length; i++) {
@@ -914,6 +914,7 @@ const insertCartReservation = async (req, res = response) => {
         Cantidad: Cart[i]?.quantity,
         ID_Categoria: Cart[i]?.id_categoria,
         ID_Hoteles,
+        Fecha_compra,
       };
 
       const id = Cart[i].ID;
@@ -940,8 +941,8 @@ const getCartReservaction = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID WHERE ID_Reserva = ?",
-      id
+      "SELECT Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID   WHERE ID_Reserva = ?",
+      id    
     );
 
     if (query.length == 0) {
