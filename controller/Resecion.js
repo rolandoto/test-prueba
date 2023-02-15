@@ -613,10 +613,14 @@ const roomAvaible = async (req, res = response) => {
 };
 
 const updateDetailReserva = async (req, res = response) => {
-  const { desde, hasta, habitaciones, ID_Habitaciones, id } = req.body;
+  const { desde, hasta, habitaciones, ID_Habitaciones, id ,dayOne,valor_dia_habitacion} = req.body;
 
   const date1 = new Date(desde);
   const date2 = new Date(hasta);
+
+  
+    const valorEstadia  = dayOne *valor_dia_habitacion
+
 
   try {
     if (date1 > date2) {
@@ -626,10 +630,6 @@ const updateDetailReserva = async (req, res = response) => {
       });
     }
 
-    var fecha1 = moment(desde);
-    var fecha2 = moment(hasta);
-
-    const totalDays = fecha2.diff(fecha1, "days");
 
     let habi = new Array();
     const acum = [];
@@ -743,11 +743,19 @@ const updateDetailReserva = async (req, res = response) => {
 
     const newCustomer = {
       Fecha_final: hasta,
+      Noches:dayOne
     };
+    let data ={
+        Valor_habitacion:valorEstadia,
+        Abono:valorEstadia,
+        Valor:valorEstadia
+    }
 
     await pool.query("INSERT INTO Lista_Fechas_Reservada set ?", dateTwo);
 
     await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
+
+    await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [data, id]);
 
     res.status(201).json({
       ok: true,
@@ -942,7 +950,7 @@ const getCartReservaction = async (req, res = response) => {
   try {
     const query = await pool.query(
       "SELECT Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID   WHERE ID_Reserva = ?",
-      id    
+      id
     );
 
     if (query.length == 0) {
