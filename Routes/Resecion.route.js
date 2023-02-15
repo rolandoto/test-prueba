@@ -119,7 +119,7 @@ router.post("/handupdatestatus/:id", handUpdateStatus);
 
 router.post("/handdeletereserva/:id", handDeleteReserva);
 
-router.post("/handinformeauditoria", handInformeAuditoria);
+router.post("/handinformeauditoria/:id", handInformeAuditoria);
 
 router.post("/reservaschecking/:id", handReservationChekin);
 

@@ -1173,23 +1173,36 @@ const handReservationChekin = async (req, res = response) => {
 };
 
 const handInformeAuditoria = async (req, res = response) => {
-  const { id } = req.params;
+  const { id } = req.params;    
+  const {fecha} = req.body
+
+
+  const fechaFiltrar = `${fecha} 15:00:00`
 
   try {
-    const query = await pool.query(
-      "SELECT Reservas.Fecha_inicio,Tipo_Forma_pago.Nombre ,Pagos.Valor_habitacion,web_checking.Nombre as Nombre_reserva,Habitaciones.Numero FROM `Reservas` INNER JOIN Pagos on Reservas.id = Pagos.ID_Reserva INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER JOIN web_checking on Reservas.id = web_checking.ID_Reserva INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.Fecha_inicio= ? and web_checking.Firma =1 and Habitaciones.ID_Hotel =13",
-      ["2023-02-08 15:00:00"]
-    );
+        const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre ,Reservas.Fecha_inicio, Pagos.Valor_habitacion from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio =? and Habitaciones.ID_Hotel= ? group by Habitaciones.ID",[fechaFiltrar,id] )
 
-    return res.status(201).json({
-      query,
-    });
+        if(query.length==0){
+            return res.status(401).json({
+                ok:false,
+                msg:"no hay informe en esta fecha"
+            })
+        }
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+
   } catch (error) {
     res.status(201).json({
       ok: false,
     });
   }
 };
+
+
+
 
 module.exports = {
   GetRooms,
