@@ -613,14 +613,20 @@ const roomAvaible = async (req, res = response) => {
 };
 
 const updateDetailReserva = async (req, res = response) => {
-  const { desde, hasta, habitaciones, ID_Habitaciones, id ,dayOne,valor_dia_habitacion} = req.body;
+  const {
+    desde,
+    hasta,
+    habitaciones,
+    ID_Habitaciones,
+    id,
+    dayOne,
+    valor_dia_habitacion,
+  } = req.body;
 
   const date1 = new Date(desde);
   const date2 = new Date(hasta);
 
-  
-    const valorEstadia  = dayOne *valor_dia_habitacion
-
+  const valorEstadia = dayOne * valor_dia_habitacion;
 
   try {
     if (date1 > date2) {
@@ -629,7 +635,6 @@ const updateDetailReserva = async (req, res = response) => {
         ok: false,
       });
     }
-
 
     let habi = new Array();
     const acum = [];
@@ -743,13 +748,13 @@ const updateDetailReserva = async (req, res = response) => {
 
     const newCustomer = {
       Fecha_final: hasta,
-      Noches:dayOne
+      Noches: dayOne,
     };
-    let data ={
-        Valor_habitacion:valorEstadia,
-        Abono:valorEstadia,
-        Valor:valorEstadia
-    }
+    let data = {
+      Valor_habitacion: valorEstadia,
+      Abono: valorEstadia,
+      Valor: valorEstadia,
+    };
 
     await pool.query("INSERT INTO Lista_Fechas_Reservada set ?", dateTwo);
 
@@ -1173,37 +1178,38 @@ const handReservationChekin = async (req, res = response) => {
 };
 
 const handInformeAuditoria = async (req, res = response) => {
-  const { id } = req.params;    
-  const {fecha} = req.body
+  const { id } = req.params;
+  const { fecha } = req.body;
 
-
-  const fechaFiltrar = `${fecha} 15:00:00`
+  const fechaFiltrar = `${fecha} 15:00:00`;
 
   try {
-        const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  13 group by Habitaciones.ID",[fechaFiltrar,id] )
+    const query = await pool.query(
+      "SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      [fechaFiltrar, id]
+    );
 
-        const promise =[]
+    const promise = [];
 
-        for(let i =0;i<query.length;i++){
-            promise.push({
-              Punto:query[i].Codigo_reserva,
-              Cuenta:query[i].Numero,
-              Fecha:query[i].Fecha_inicio,
-              Tipo_pago:query[i].Tipo_pago,
-              Identificacion:query[i].Num_documento,
-              Cliente:query[i].Nombre,
-              Exento:query[i].Valor_habitacion,
-              Codigo:`X14A-${query[i].Num_documento}${query[i].Codigo_reserva}`
-            })
-        }
-        
-        const data = await Promise.all(promise)
-        
-        res.status(201).json({
-            ok:true,
-            data
-        })
+    for (let i = 0; i < query.length; i++) {
+      promise.push({
+        Punto: query[i].Codigo_reserva,
+        Cuenta: query[i].Numero,
+        Fecha: query[i].Fecha_inicio,
+        Tipo_pago: query[i].Tipo_pago,
+        Identificacion: query[i].Num_documento,
+        Cliente: query[i].Nombre,
+        Exento: query[i].Valor_habitacion,
+        Codigo: `X14A-${query[i].Num_documento}${query[i].Codigo_reserva}`,
+      });
+    }
 
+    const data = await Promise.all(promise);
+
+    res.status(201).json({
+      ok: true,
+      data,
+    });
   } catch (error) {
     res.status(201).json({
       ok: false,
@@ -1211,45 +1217,97 @@ const handInformeAuditoria = async (req, res = response) => {
   }
 };
 
-
-const handInformeCamarera = async(req, res = response) =>{
-
+const handInformeCamarera = async (req, res = response) => {
+  const { fecha } = req.body;
   try {
+    const fechaFiltrar = `${fecha} 15:00:00`;
 
-    const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Reservas.Fecha_final, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 or Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel= 13 group by Habitaciones.ID ORDER BY `Pagos`.`Valor_habitacion` ASC",["2023-02-15 15:00:00"])
+    const query = await pool.query(
+      "SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Reservas.Fecha_final, Pagos.Valor_habitacion,Reservas.Codigo_reserva,Reservas.Adultos,Reservas.Ninos,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE   Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel= 13 group by Habitaciones.ID",
+      [fechaFiltrar]
+    );
 
-    const room = await pool.query("SELECT * from Habitaciones WHERE Habitaciones.ID_Hotel=13")
+    const room = await pool.query(
+      "SELECT * from Habitaciones WHERE Habitaciones.ID_Hotel=13"
+    );
 
-    const queryALL =[]
+    const queryALL = [];
 
-    for(let i =0;i<query.length;i++){
-      if(query[i].ID_Tipo_Estados_Habitaciones==3){
-        queryALL.push({
-          Ocupacion:"Ocupada"
-        })
-      }else{
-        queryALL.push({
-          Ocupacion:"Disponible"
-        })
+    /*queryALL.push({
+      ID:room[i].ID,
+      Disponible:"disponible",
+      Habitacion:room[i].Numero
+    })
+    */
+
+    for (let i = 0; i < room.length; i++) {
+      for (let j = 0; j < query.length; j++) {
+        if (
+          room[i].ID == query[j].ID &&
+          query[j].ID_Tipo_Estados_Habitaciones == 3
+        ) {
+          queryALL.push({
+            ID: room[i].ID,
+            Estado: "Ocupada",
+            Id_estado:1,
+            Habitacion: room[i].Numero,
+            Fecha_inicio: query[j].Fecha_inicio,
+            Fecha_final: query[j].Fecha_final,
+            Adultos: query[j].Adultos,
+            Ninos: query[j].Ninos,
+            Nombre: `${query[j].Nombre} ${query[j].Apellido}`,
+          });
+        } else if (
+          room[i].ID == query[j].ID &&
+          query[j].ID_Tipo_Estados_Habitaciones == 1
+        ) {
+          queryALL.push({
+            ID: room[i].ID,
+            Estado: "Aseo",
+            Id_estado:2,
+            Habitacion: room[i].Numero,
+            Fecha_inicio: 0,
+            Fecha_final: 0,
+            Adultos: 0,
+            Ninos: 0,
+            Nombre: 0,
+          });
+        }
       }
     }
 
-    
+    for (let i = 0; i < room.length; i++) {
+      queryALL.push({
+        ID: room[i].ID,
+        Estado: "Disponible",
+        Id_estado:3,
+        Habitacion: room[i].Numero,
+        Fecha_inicio: 0,
+        Fecha_final: 0,
+        Adultos: 0,
+        Ninos: 0,
+        Nombre: 0,
+      });
+    }
+
+    const uniqueArray = queryALL.filter(
+      (obj, index, self) =>
+        index ===
+        self.findIndex((o) => o.ID === obj.ID && o.Numero === obj.Numero)
+    );
+
+    uniqueArray.sort((a, b) => a.ID - b.ID);
 
     res.status(201).json({
-      ok:true,
-      queryALL
-    })
-
+      ok: true,
+      uniqueArray,
+    });
   } catch (error) {
-      res.status(201).json({
-        ok:false
-      })
+    res.status(201).json({
+      ok: false,
+    });
   }
-}
-
-
-
+};
 
 module.exports = {
   GetRooms,
@@ -1282,5 +1340,5 @@ module.exports = {
   handDeleteReserva,
   handInformeAuditoria,
   handReservationChekin,
-  handInformeCamarera
+  handInformeCamarera,
 };
