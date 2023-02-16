@@ -28,6 +28,7 @@ const {
   handDeleteReserva,
   handInformeAuditoria,
   handReservationChekin,
+  handInformeCamarera,
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -122,5 +123,7 @@ router.post("/handdeletereserva/:id", handDeleteReserva);
 router.post("/handinformeauditoria/:id", handInformeAuditoria);
 
 router.post("/reservaschecking/:id", handReservationChekin);
+
+router.post("/informecamerera/:id",handInformeCamarera)
 
 module.exports = { router };

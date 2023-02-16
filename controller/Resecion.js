@@ -1180,18 +1180,28 @@ const handInformeAuditoria = async (req, res = response) => {
   const fechaFiltrar = `${fecha} 15:00:00`
 
   try {
-        const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre ,Reservas.Fecha_inicio, Pagos.Valor_habitacion from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio =? and Habitaciones.ID_Hotel= ? group by Habitaciones.ID",[fechaFiltrar,id] )
+        const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  13 group by Habitaciones.ID",[fechaFiltrar,id] )
 
-        if(query.length==0){
-            return res.status(401).json({
-                ok:false,
-                msg:"no hay informe en esta fecha"
+        const promise =[]
+
+        for(let i =0;i<query.length;i++){
+            promise.push({
+              Punto:query[i].Codigo_reserva,
+              Cuenta:query[i].Numero,
+              Fecha:query[i].Fecha_inicio,
+              Tipo_pago:query[i].Tipo_pago,
+              Identificacion:query[i].Num_documento,
+              Cliente:query[i].Nombre,
+              Exento:query[i].Valor_habitacion,
+              Codigo:`X14A-${query[i].Num_documento}${query[i].Codigo_reserva}`
             })
         }
-
+        
+        const data = await Promise.all(promise)
+        
         res.status(201).json({
             ok:true,
-            query
+            data
         })
 
   } catch (error) {
@@ -1200,6 +1210,43 @@ const handInformeAuditoria = async (req, res = response) => {
     });
   }
 };
+
+
+const handInformeCamarera = async(req, res = response) =>{
+
+  try {
+
+    const query = await pool.query("SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Reservas.Fecha_final, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 or Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel= 13 group by Habitaciones.ID ORDER BY `Pagos`.`Valor_habitacion` ASC",["2023-02-15 15:00:00"])
+
+    const room = await pool.query("SELECT * from Habitaciones WHERE Habitaciones.ID_Hotel=13")
+
+    const queryALL =[]
+
+    for(let i =0;i<query.length;i++){
+      if(query[i].ID_Tipo_Estados_Habitaciones==3){
+        queryALL.push({
+          Ocupacion:"Ocupada"
+        })
+      }else{
+        queryALL.push({
+          Ocupacion:"Disponible"
+        })
+      }
+    }
+
+    
+
+    res.status(201).json({
+      ok:true,
+      queryALL
+    })
+
+  } catch (error) {
+      res.status(201).json({
+        ok:false
+      })
+  }
+}
 
 
 
@@ -1235,4 +1282,5 @@ module.exports = {
   handDeleteReserva,
   handInformeAuditoria,
   handReservationChekin,
+  handInformeCamarera
 };
