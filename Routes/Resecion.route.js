@@ -29,6 +29,7 @@ const {
   handInformeAuditoria,
   handReservationChekin,
   handInformeCamarera,
+  insertCartStore,
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -103,6 +104,8 @@ router.get("/getroomdetalle/:id", getRoomdetalle);
 router.post("/uploadimage", uploadImage);
 
 router.post("/insertcartreservation", insertCartReservation);
+
+router.post("/insertcartstore",insertCartStore)
 
 router.get("/getcartreservaction/:id", getCartReservaction);
 

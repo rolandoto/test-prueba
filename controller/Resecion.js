@@ -109,6 +109,8 @@ const validateAvaible = async (req, res = response) => {
     var n2 = 1000;
     var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
 
+
+
     let id_disponible = disponibilidad;
 
     if (reservation.length == 0) {
@@ -949,6 +951,45 @@ const insertCartReservation = async (req, res = response) => {
   }
 };
 
+const insertCartStore = async(req, res = response) =>{
+  const { Cart, ID_Reserva, ID_hotel, Fecha_compra,Nombre_persona,Forma_pago,Num_documento } = req.body;
+
+  try {
+    for (let i = 0; i < Cart.length; i++) {
+      let data = {
+        ID_Reserva: ID_Reserva,
+        Nombre: Cart[i]?.Nombre,
+        Precio: Cart[i]?.Precio,
+        Cantidad: Cart[i]?.quantity,
+        ID_Categoria: Cart[i]?.id_categoria,
+        ID_hotel,
+        Fecha_compra,
+        Nombre_persona,
+        Forma_pago,
+        Num_documento
+      };
+
+      const id = Cart[i].ID;
+
+      let dataone = {
+        Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
+      };
+      await pool.query("INSERT INTO  carrito_tienda  set ?", data);
+
+      await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
+    }
+    return res.status(201).json({
+      ok: true,
+    });
+    
+  } catch (error) {
+    res.status(401).json({
+      ok:false
+    })
+  }
+
+}
+
 const getCartReservaction = async (req, res = response) => {
   const { id } = req.params;
 
@@ -1185,30 +1226,47 @@ const handInformeAuditoria = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
       [fechaFiltrar, id]
     );
 
+    const queryOne = await pool.query(
+      "SELECT  SUM(Carrito_reserva.Precio) as total, Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.Fecha_compra = ?  GROUP BY Reservas.ID",
+      fecha
+    );
+
+    const queryTwo =  await pool.query("SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID_Reserva",
+    [fecha,id])
+
     const promise = [];
 
-    for (let i = 0; i < query.length; i++) {
-      promise.push({
-        Punto: query[i].Codigo_reserva,
-        Cuenta: query[i].Numero,
-        Fecha: query[i].Fecha_inicio,
-        Tipo_pago: query[i].Tipo_pago,
-        Identificacion: query[i].Num_documento,
-        Cliente: query[i].Nombre,
-        Exento: query[i].Valor_habitacion,
-        Codigo: `X14A-${query[i].Num_documento}${query[i].Codigo_reserva}`,
-      });
-    }
 
-    const data = await Promise.all(promise);
+    const groupedById = {};
+
+// Agrupar array1 por ID
+query.forEach((item) => {
+  if (!groupedById[item.ID_reserva]) {
+    groupedById[item.ID_reserva] = {};
+  }
+  Object.assign(groupedById[item.ID_reserva], item);
+});
+
+// Agrupar array2 por ID y combinar los objetos existentes
+queryOne.forEach((item) => {
+  if (groupedById[item.ID_reserva]) {
+    Object.assign(groupedById[item.ID_reserva], item);
+  } else {
+    groupedById[item.ID_reserva] = item;
+  }
+});
+
+
+const result = Object.values(groupedById);
 
     res.status(201).json({
       ok: true,
-      data,
+      result,
+      queryTwo
     });
   } catch (error) {
     res.status(201).json({
@@ -1341,4 +1399,5 @@ module.exports = {
   handInformeAuditoria,
   handReservationChekin,
   handInformeCamarera,
+  insertCartStore
 };
