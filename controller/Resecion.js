@@ -1240,7 +1240,6 @@ const handInformeAuditoria = async (req, res = response) => {
 
     const promise = [];
 
-
     const groupedById = {};
 
 // Agrupar array1 por ID
@@ -1260,7 +1259,6 @@ queryOne.forEach((item) => {
   }
 });
 
-
 const result = Object.values(groupedById);
 
     res.status(201).json({
@@ -1275,96 +1273,51 @@ const result = Object.values(groupedById);
   }
 };
 
+
 const handInformeCamarera = async (req, res = response) => {
   const { fecha } = req.body;
+  
   try {
-    const fechaFiltrar = `${fecha} 15:00:00`;
 
-    const query = await pool.query(
-      "SELECT Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Reservas.Fecha_final, Pagos.Valor_habitacion,Reservas.Codigo_reserva,Reservas.Adultos,Reservas.Ninos,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE   Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel= 13 group by Habitaciones.ID",
-      [fechaFiltrar]
-    );
+    const FechaInicio = `${fecha} 15:00:00`;
+    const FechaFinal =`${fecha} 13:00:00`;
 
-    const room = await pool.query(
-      "SELECT * from Habitaciones WHERE Habitaciones.ID_Hotel=13"
-    );
+    const query  = await pool.query("SELECT Reservas.ID_Tipo_Estados_Habitaciones,Reservas.Fecha_final,Reservas.Adultos,Reservas.Fecha_final,Reservas.Ninos, Reservas.Noches, web_checking.nombre,web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON  web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR  (Fecha_inicio <= ? AND Fecha_final >= ?))",[FechaInicio,FechaInicio,FechaFinal,FechaFinal,FechaInicio,FechaFinal])
 
-    const queryALL = [];
+    const room = await pool.query("SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero from Habitaciones WHERE Habitaciones.ID_Hotel = 13")
 
-    /*queryALL.push({
-      ID:room[i].ID,
-      Disponible:"disponible",
-      Habitacion:room[i].Numero
-    })
-    */
+    const groupedById = {};
 
-    for (let i = 0; i < room.length; i++) {
-      for (let j = 0; j < query.length; j++) {
-        if (
-          room[i].ID == query[j].ID &&
-          query[j].ID_Tipo_Estados_Habitaciones == 3
-        ) {
-          queryALL.push({
-            ID: room[i].ID,
-            Estado: "Ocupada",
-            Id_estado:1,
-            Habitacion: room[i].Numero,
-            Fecha_inicio: query[j].Fecha_inicio,
-            Fecha_final: query[j].Fecha_final,
-            Adultos: query[j].Adultos,
-            Ninos: query[j].Ninos,
-            Nombre: `${query[j].Nombre} ${query[j].Apellido}`,
-          });
-        } else if (
-          room[i].ID == query[j].ID &&
-          query[j].ID_Tipo_Estados_Habitaciones == 1
-        ) {
-          queryALL.push({
-            ID: room[i].ID,
-            Estado: "Aseo",
-            Id_estado:2,
-            Habitacion: room[i].Numero,
-            Fecha_inicio: 0,
-            Fecha_final: 0,
-            Adultos: 0,
-            Ninos: 0,
-            Nombre: 0,
-          });
-        }
+    // Agrupar array1 por ID
+    query.forEach((item) => {
+      if (!groupedById[item.id_habitaciones]) {
+        groupedById[item.id_habitaciones] = {};
       }
-    }
-
-    for (let i = 0; i < room.length; i++) {
-      queryALL.push({
-        ID: room[i].ID,
-        Estado: "Disponible",
-        Id_estado:3,
-        Habitacion: room[i].Numero,
-        Fecha_inicio: 0,
-        Fecha_final: 0,
-        Adultos: 0,
-        Ninos: 0,
-        Nombre: 0,
-      });
-    }
-
-    const uniqueArray = queryALL.filter(
-      (obj, index, self) =>
-        index ===
-        self.findIndex((o) => o.ID === obj.ID && o.Numero === obj.Numero)
-    );
-
-    uniqueArray.sort((a, b) => a.ID - b.ID);
+      Object.assign(groupedById[item.id_habitaciones], item);
+    });
+    
+    // Agrupar array2 por ID y combinar los objetos existentes
+    room.forEach((item) => {
+      if (groupedById[item.id_habitaciones]) {
+        Object.assign(groupedById[item.id_habitaciones], item);
+      } else {
+        groupedById[item.id_habitaciones] = item;
+      }
+    });
+      
+    const result = Object.values(groupedById);
 
     res.status(201).json({
-      ok: true,
-      uniqueArray,
-    });
-  } catch (error) {
-    res.status(201).json({
-      ok: false,
-    });
-  }
+      ok:true,
+      result
+    })
+    
+    } catch (error) {
+      res.status(401).json({
+        ok:false
+      })
+    } 
+    
 };
 
 module.exports = {
