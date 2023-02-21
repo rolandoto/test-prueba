@@ -1203,7 +1203,7 @@ const handReservationChekin = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Reservas.id , web_checking.Nombre as title FROM `Reservas` INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id   INNER join  Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3  and Habitaciones.ID_Hotel = ?",
+      "SELECT Reservas.id ,web_checking.Apellido , web_checking.Nombre as title,Habitaciones.Numero FROM `Reservas` INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id   INNER join  Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3  and Habitaciones.ID_Hotel = ?",
       [id]
     );
 
@@ -1224,6 +1224,8 @@ const handInformeAuditoria = async (req, res = response) => {
 
   const fechaFiltrar = `${fecha} 15:00:00`;
 
+
+
   try {
     const query = await pool.query(
       "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
@@ -1235,8 +1237,13 @@ const handInformeAuditoria = async (req, res = response) => {
       fecha
     );
 
+    
+
     const queryTwo =  await pool.query("SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID_Reserva",
     [fecha,id])
+
+
+  
 
     const promise = [];
 
@@ -1275,6 +1282,8 @@ const result = Object.values(groupedById);
 
 
 const handInformeCamarera = async (req, res = response) => {
+
+    const { id } = req.params;
   const { fecha } = req.body;
   
   try {
@@ -1284,7 +1293,7 @@ const handInformeCamarera = async (req, res = response) => {
 
     const query  = await pool.query("SELECT Reservas.ID_Tipo_Estados_Habitaciones,Reservas.Fecha_final,Reservas.Adultos,Reservas.Fecha_final,Reservas.Ninos, Reservas.Noches, web_checking.nombre,web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON  web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR  (Fecha_inicio <= ? AND Fecha_final >= ?))",[FechaInicio,FechaInicio,FechaFinal,FechaFinal,FechaInicio,FechaFinal])
 
-    const room = await pool.query("SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero from Habitaciones WHERE Habitaciones.ID_Hotel = 13")
+    const room = await pool.query("SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero from Habitaciones WHERE Habitaciones.ID_Hotel = ?",[id])
 
     const groupedById = {};
 
@@ -1316,9 +1325,96 @@ const handInformeCamarera = async (req, res = response) => {
       res.status(401).json({
         ok:false
       })
-    } 
-    
+    }  
 };
+
+const handRoomToSell =async(req, res = response) =>{
+
+  const { id } = req.params;
+  const { fecha } = req.body;
+
+  const FechaInicio = `${fecha} 15:00:00`;
+  const FechaFinal =`${fecha} 13:00:00`;
+
+  try {
+      
+    const response = await fetch(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {
+  method: "post",
+  headers: { 'Content-type': 'application/json' }
+}).then(index => {
+  const data = index.json()
+  return data
+}).catch((e) => {
+  console.log(e)
+})
+
+const FechaInicio = '2023-02-26';
+const FechaFinal = '2023-02-28';
+
+const dates = [];
+let currentDate = moment(FechaInicio);
+while (currentDate <= moment(FechaFinal)) {
+  dates.push(currentDate.format('YYYY-MM-DD'));
+  currentDate = currentDate.add(1, 'days');
+}
+
+const groupedData = {};
+
+for (let i = 0; i < response?.length; i++) {
+  const id_habitacion = response[i].id_tipoHabitacion;
+
+  for (const date of dates) {
+    const query = await pool.query(
+      "SELECT COUNT(*) AS total_reservas FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND ((Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?))",
+      [id_habitacion, date, moment(date).add(1, 'days').format('YYYY-MM-DD'), date, moment(date).add(1, 'days').format('YYYY-MM-DD'), date, moment(date).add(1, 'days').format('YYYY-MM-DD')]
+    );
+
+    const availableRooms = query[0].total_reservas;
+
+    if (!groupedData[date]) {
+      groupedData[date] = [];
+    }
+    
+    groupedData[date].push({
+      Room: response[i].nombre,
+      disponible: availableRooms,
+      fecha:date
+    });
+  }
+}
+
+
+const result = {};
+for (const date of dates) {
+  result[date] = groupedData[date];
+}
+
+const groupedDataWithoutDates = Object.values(result).map(groupedData => {
+  return groupedData.map(data => {
+    return {
+      Room: data.Room,
+      disponible: data.disponible,
+      fecha:data.fecha
+    }
+  });
+});
+
+
+
+    res.status(201).json({
+      ok:true,
+      groupedDataWithoutDates
+          })
+
+  } catch (error) {
+
+    res.status(401).json({
+      ok:false,
+    })
+
+  }
+
+}
 
 module.exports = {
   GetRooms,
@@ -1352,5 +1448,6 @@ module.exports = {
   handInformeAuditoria,
   handReservationChekin,
   handInformeCamarera,
-  insertCartStore
+  insertCartStore,
+  handRoomToSell
 };

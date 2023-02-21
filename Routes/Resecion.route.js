@@ -30,6 +30,7 @@ const {
   handReservationChekin,
   handInformeCamarera,
   insertCartStore,
+  handRoomToSell,
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -128,5 +129,7 @@ router.post("/handinformeauditoria/:id", handInformeAuditoria);
 router.post("/reservaschecking/:id", handReservationChekin);
 
 router.post("/informecamerera/:id",handInformeCamarera)
+
+router.post("/informeroomtosell/:id",handRoomToSell)
 
 module.exports = { router };
