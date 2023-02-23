@@ -1284,6 +1284,7 @@ const result = Object.values(groupedById);
 
 const handInformeCamarera = async (req, res = response) => {
 
+  
     const { id } = req.params;
   const { fecha } = req.body;
   
