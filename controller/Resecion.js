@@ -1224,11 +1224,15 @@ const handInformeAuditoria = async (req, res = response) => {
 
   const fechaFiltrar = `${fecha} 15:00:00`;
 
-
-
   try {
     const query = await pool.query(
-      "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      [fechaFiltrar, id]
+    );
+
+
+    const querythree = await pool.query(
+      "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=1 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
       [fechaFiltrar, id]
     );
 
@@ -1237,13 +1241,9 @@ const handInformeAuditoria = async (req, res = response) => {
       fecha
     );
 
-    
-
     const queryTwo =  await pool.query("SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID_Reserva",
     [fecha,id])
 
-
-  
 
     const promise = [];
 
@@ -1258,7 +1258,7 @@ query.forEach((item) => {
 });
 
 // Agrupar array2 por ID y combinar los objetos existentes
-queryOne.forEach((item) => {
+querythree.forEach((item) => {
   if (groupedById[item.ID_reserva]) {
     Object.assign(groupedById[item.ID_reserva], item);
   } else {
@@ -1271,7 +1271,8 @@ const result = Object.values(groupedById);
     res.status(201).json({
       ok: true,
       result,
-      queryTwo
+      queryTwo,
+      queryOne
     });
   } catch (error) {
     res.status(201).json({
@@ -1328,13 +1329,13 @@ const handInformeCamarera = async (req, res = response) => {
     }  
 };
 
+
+
 const handRoomToSell =async(req, res = response) =>{
 
   const { id } = req.params;
-  const { fecha } = req.body;
+  const { fechaInicio,fechaFinal } = req.body;
 
-  const FechaInicio = `${fecha} 15:00:00`;
-  const FechaFinal =`${fecha} 13:00:00`;
 
   try {
       
@@ -1348,8 +1349,8 @@ const handRoomToSell =async(req, res = response) =>{
   console.log(e)
 })
 
-const FechaInicio = '2023-02-26';
-const FechaFinal = '2023-02-28';
+const FechaInicio = fechaInicio
+const FechaFinal = fechaFinal
 
 const dates = [];
 let currentDate = moment(FechaInicio);
@@ -1384,10 +1385,13 @@ for (let i = 0; i < response?.length; i++) {
 }
 
 
+
 const result = {};
 for (const date of dates) {
   result[date] = groupedData[date];
 }
+
+
 
 const groupedDataWithoutDates = Object.values(result).map(groupedData => {
   return groupedData.map(data => {
@@ -1399,8 +1403,6 @@ const groupedDataWithoutDates = Object.values(result).map(groupedData => {
   });
 });
 
-
-
     res.status(201).json({
       ok:true,
       groupedDataWithoutDates
@@ -1411,9 +1413,7 @@ const groupedDataWithoutDates = Object.values(result).map(groupedData => {
     res.status(401).json({
       ok:false,
     })
-
   }
-
 }
 
 module.exports = {
