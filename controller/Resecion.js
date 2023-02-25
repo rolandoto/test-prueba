@@ -928,6 +928,7 @@ const insertCartReservation = async (req, res = response) => {
         ID_Categoria: Cart[i]?.id_categoria,
         ID_Hoteles,
         Fecha_compra,
+        Forma_pago:1
       };
 
       const id = Cart[i].ID;
