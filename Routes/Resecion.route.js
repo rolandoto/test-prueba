@@ -140,3 +140,4 @@ router.post("/handstorereservation/:id",handPayStoreReservation)
 router.post("/updatedetailReservaTypeRoom",updateDetailReservaTypeRoom)
 
 module.exports = { router };
+
