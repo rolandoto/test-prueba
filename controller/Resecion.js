@@ -318,8 +318,19 @@ const getReserva = async (req, res = response) => {
     const promises = [];
 
     for (let i = 0; i < response.length; i++) {
-      //console.log(response[i])
-      // promises.push(pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID]));
+      const daytBefore = moment(response[i].Fecha_final)
+        .utc()
+        .format("YYYY/MM/DD");
+
+      const now = moment().format("YYYY/MM/DD");
+
+      var fechaInicio = new Date(daytBefore).getTime();
+      var fechaFin = new Date(now).getTime();
+
+      var diff = fechaFin - fechaInicio;
+
+      const day = diff / (1000 * 60 * 60 * 24);
+
       promises.push({
         Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
         ID: response[i].ID,
@@ -333,6 +344,9 @@ const getReserva = async (req, res = response) => {
         Last_name: response[i].Apellido,
       });
     }
+
+    //console.log(response[i])
+    // promises.push(pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID]));
 
     const query = await Promise.all(promises);
 
@@ -507,106 +521,31 @@ const GetCanales = async (req, res = response) => {
 
 const roomAvaible = async (req, res = response) => {
   const { desde, hasta, habitaciones, ID_Habitaciones } = req.body;
-  const date1 = new Date(desde);
-  const date2 = new Date(hasta);
-
-  var fechaInicio = new Date(desde);
-  var fechaFin = new Date(hasta);
 
   try {
-    if (date1 > date2) {
+    if (desde > hasta) {
       return res.status(401).json({
         msg: "no puede ser mayor de la fecha",
         ok: false,
       });
     }
 
-    var fecha1 = moment(desde);
-    var fecha2 = moment(hasta);
+    const resultado = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
+    );
 
-    const totalDays = fecha2.diff(fecha1, "days");
-
-    let habi = new Array();
-    const acum = [];
-
-    x = 0;
-
-    var fechaInicio = new Date(desde);
-    var fechaFin = new Date(hasta);
-
-    fechaInicio.setDate(fechaInicio.getDate());
-    while (fechaFin.getTime() >= fechaInicio.getTime()) {
-      fechaInicio.setDate(fechaInicio.getDate() + 1);
-
-      fecha = {
-        Date:
-          fechaInicio.getFullYear() +
-          "-" +
-          (fechaInicio.getMonth() + 1) +
-          "-" +
-          fechaInicio.getDate(),
-      };
-
-      const fechaOne = {
-        Date:
-          fechaInicio.getFullYear() +
-          "-" +
-          (fechaInicio.getMonth() + 1) +
-          "-" +
-          fechaInicio.getDate() +
-          " 15:00:00",
-      };
-
-      const fechaTwo = {
-        Date:
-          fechaInicio.getFullYear() +
-          "-" +
-          (fechaInicio.getMonth() + 1) +
-          "-" +
-          fechaInicio.getDate() +
-          " 13:00:00",
-      };
-
-      const querys = await pool.query(
-        "SELECT Date, ID_Habitaciones FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.ID_Habitaciones= ? AND Lista_Fechas_Reservada.Date = ? AND Proceso = 1",
-        [habitaciones, ID_Habitaciones, fecha.Date]
-      );
-
-      const reservatioone = await pool.query(
-        "SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_inicio = ? AND Reservas.ID_Habitaciones = ?  ",
-        [fechaOne.Date, ID_Habitaciones]
-      );
-
-      const reservatiotwo = await pool.query(
-        "SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_final = ? AND Reservas.ID_Habitaciones = ?",
-        [fechaTwo.Date, ID_Habitaciones]
-      );
-
-      if (reservatioone.length == 1) {
-        acum.push(1);
-      } else if (reservatiotwo.length == 1) {
-        acum.push(2);
-      }
-
-      if (querys.length == 1) {
-        return res.status(401).json({
-          ok: false,
-          msg: "ya esta en uso de la reserva",
-        });
-      }
-    }
-
-    if (acum.length >= 2) {
+    if (resultado[0].Num_Reservas === 0) {
+      return res.status(201).json({
+        ok: true,
+      });
+    } else {
       return res.status(401).json({
         ok: false,
       });
     }
-
-    res.status(201).json({
-      ok: true,
-    });
   } catch (e) {
-    return res.status(201).json({
+    return res.status(401).json({
       ok: false,
     });
   }
@@ -623,151 +562,223 @@ const updateDetailReserva = async (req, res = response) => {
     valor_dia_habitacion,
   } = req.body;
 
-  const date1 = new Date(desde);
-  const date2 = new Date(hasta);
-
   const valorEstadia = dayOne * valor_dia_habitacion;
 
   try {
-    if (date1 > date2) {
+    const validate = await pool.query(
+      "SELECT Reservas.ID_Tipo_Estados_Habitaciones from Reservas  WHERE Reservas.ID = ?",
+      [id]
+    );
+
+    if (validate[0].ID_Tipo_Estados_Habitaciones == 1) {
       return res.status(401).json({
-        msg: "no puede ser mayor de la fecha",
         ok: false,
       });
     }
 
-    let habi = new Array();
-    const acum = [];
+    if (validate[0].ID_Tipo_Estados_Habitaciones == 3) {
+      const fecha = desde;
+      const fechaObj = new Date(fecha);
+      const anio = fechaObj.getFullYear();
+      const mes = fechaObj.getMonth() + 1; // sumamos 1 ya que los meses en JS empiezan en 0 (enero = 0)
+      const dia = fechaObj.getDate();
 
-    x = 0;
+      const fechaFormateada = `${anio}-${mes.toString().padStart(2, "0")}-${dia
+        .toString()
+        .padStart(2, "0")} 15:00:00`;
 
-    var fechaInicio = new Date(desde);
-    var fechaFin = new Date(hasta);
-
-    fechaInicio.setDate(fechaInicio.getDate());
-    while (fechaFin.getTime() >= fechaInicio.getTime()) {
-      fechaInicio.setDate(fechaInicio.getDate() + 1);
-
-      fecha = {
-        Date:
-          fechaInicio.getFullYear() +
-          "/" +
-          (fechaInicio.getMonth() + 1) +
-          "/" +
-          fechaInicio.getDate(),
-      };
-
-      const fechaOne = {
-        Date:
-          fechaInicio.getFullYear() +
-          "-" +
-          (fechaInicio.getMonth() + 1) +
-          "-" +
-          fechaInicio.getDate() +
-          " 15:00:00",
-      };
-
-      const fechaTwo = {
-        Date:
-          fechaInicio.getFullYear() +
-          "-" +
-          (fechaInicio.getMonth() + 1) +
-          "-" +
-          fechaInicio.getDate() +
-          " 13:00:00",
-      };
-
-      const querys = await pool.query(
-        "SELECT Date, ID_Habitaciones FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.ID_Habitaciones= ? AND Lista_Fechas_Reservada.Date = ? AND Proceso = 1 AND Proceso = 1",
-        [habitaciones, ID_Habitaciones, fecha.Date]
+      const resultado = await pool.query(
+        "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+        [
+          ID_Habitaciones,
+          fechaFormateada,
+          fechaFormateada,
+          hasta,
+          hasta,
+          fechaFormateada,
+          hasta,
+        ]
       );
 
-      const reservatioone = await pool.query(
-        "SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_inicio = ? AND Reservas.ID_Habitaciones = ?  ",
-        [fechaOne.Date, ID_Habitaciones]
-      );
+      if (resultado[0].Num_Reservas === 0) {
+        const newCustomer = {
+          Fecha_final: hasta,
+          Noches: dayOne,
+        };
+        let data = {
+          Valor_habitacion: valorEstadia,
+          Abono: valorEstadia,
+          Valor: valorEstadia,
+        };
 
-      const reservatiotwo = await pool.query(
-        "SELECT ID_Habitaciones FROM Reservas WHERE Reservas.Fecha_final = ? AND Reservas.ID_Habitaciones = ?",
-        [fechaTwo.Date, ID_Habitaciones]
-      );
+        await pool.query("UPDATE Reservas set ? WHERE id = ?", [
+          newCustomer,
+          id,
+        ]);
 
-      if (reservatioone.length == 1) {
-        acum.push(1);
-      } else if (reservatiotwo.length == 1) {
-        acum.push(2);
-      }
+        await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [data, id]);
 
-      if (querys.length == 1) {
+        return res.status(201).json({
+          ok: true,
+        });
+      } else {
         return res.status(401).json({
           ok: false,
-          msg: "ya esta en uso de la reserva",
+        });
+      }
+    } else if (validate[0].ID_Tipo_Estados_Habitaciones == 0) {
+      const fecha = desde;
+      const fechaObj = new Date(fecha);
+      const anio = fechaObj.getFullYear();
+      const mes = fechaObj.getMonth() + 1; // sumamos 1 ya que los meses en JS empiezan en 0 (enero = 0)
+      const dia = fechaObj.getDate();
+
+      const fechaFormateada = `${anio}-${mes.toString().padStart(2, "0")}-${dia
+        .toString()
+        .padStart(2, "0")} 15:00:00`;
+
+      const resultado = await pool.query(
+        "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+        [
+          ID_Habitaciones,
+          fechaFormateada,
+          fechaFormateada,
+          hasta,
+          hasta,
+          fechaFormateada,
+          hasta,
+        ]
+      );
+
+      if (resultado[0].Num_Reservas === 0) {
+        const newCustomer = {
+          Fecha_final: hasta,
+          Noches: dayOne,
+        };
+        let data = {
+          Valor_habitacion: valorEstadia,
+          Valor: valorEstadia,
+        };
+
+        await pool.query("UPDATE Reservas set ? WHERE id = ?", [
+          newCustomer,
+          id,
+        ]);
+
+        await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [data, id]);
+
+        return res.status(201).json({
+          ok: true,
+        });
+      } else {
+        return res.status(401).json({
+          ok: false,
         });
       }
     }
+  } catch (e) {
+    return res.status(401).json({
+      ok: false,
+    });
+  }
+};
 
-    if (acum.length >= 2) {
+const updateDetailReservaTypeRoom = async (req, res = response) => {
+  const { desde, hasta, ID_Habitaciones, id, ID_Tipo_habitaciones,RoomById } = req.body;
+
+  try {
+    const fecha = desde;
+    const fechaObj = new Date(fecha);
+    const anio = fechaObj.getFullYear();
+    const mes = fechaObj.getMonth() + 1; // sumamos 1 ya que los meses en JS empiezan en 0 (enero = 0)
+    const dia = fechaObj.getDate();
+
+    const fechaFormateadaDesde = `${anio}-${mes
+      .toString()
+      .padStart(2, "0")}-${dia.toString().padStart(2, "0")} 15:00:00`;
+
+    const fechaOne = hasta;
+    const fechaObjOne = new Date(fechaOne);
+    const anioOne = fechaObjOne.getFullYear();
+    const mesOne = fechaObjOne.getMonth() + 1; // sumamos 1 ya que los meses en JS empiezan en 0 (enero = 0)
+    const diaOne = fechaObjOne.getDate();
+
+    const fechaFormateadaHasta = `${anioOne}-${mesOne
+      .toString()
+      .padStart(2, "0")}-${diaOne.toString().padStart(2, "0")} 13:00:00`;
+
+    const resultado = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [
+        ID_Habitaciones,
+        fechaFormateadaDesde,
+        fechaFormateadaDesde,
+        fechaFormateadaHasta,
+        fechaFormateadaHasta,
+        fechaFormateadaDesde,
+        fechaFormateadaHasta,
+      ]
+    );
+
+    const Reservation = await pool.query(
+      "SELECT Reservas.Noches, Habitaciones.ID_Tipo_habitaciones,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN  Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID  WHERE  Reservas.ID = ?",
+      [id]
+    );
+
+    if (resultado[0].Num_Reservas === 0) {
+      if (Reservation[0].ID_Tipo_Estados_Habitaciones == 3) {
+          const newCustomer = {
+            ID_Habitaciones: ID_Habitaciones,
+          };
+          await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
+          
+          return res.status(201).json({
+            ok: true,
+          });
+      } else if(Reservation[0].ID_Tipo_Estados_Habitaciones == 0){
+            if(Reservation[0].ID_Tipo_habitaciones ==ID_Tipo_habitaciones){
+                const newCustomer = {
+                  ID_Habitaciones: ID_Habitaciones,
+                };
+                await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
+                
+                return res.status(201).json({
+                  ok: true,
+                });
+            }else{
+                //cuando este ya en check in
+                  const payByIdRoom = Reservation[0].Noches * RoomById.precio
+
+                  const newCustomer = {
+                    ID_Habitaciones: ID_Habitaciones,
+                  };
+
+                  const newPay = {
+                    valor_dia_habitacion:RoomById.precio,
+                    Valor:payByIdRoom,
+                    Valor_habitacion:payByIdRoom
+                  }
+                  
+                  await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
+                  await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva = ?", [newPay, id]);
+
+                  return res.status(201).json({
+                    ok: true,
+                  });
+            }
+      }else {
+        return res.status(401).json({
+          ok:false
+        })
+      }
+
+    } else {
       return res.status(401).json({
         ok: false,
       });
     }
-
-    var pruebaone = hasta.split(" ", 1).toString();
-    var prueba = desde.split(" ", 1).toString();
-
-    const dateOne = {
-      ID_Habitaciones: parseInt(ID_Habitaciones),
-      Date: prueba,
-      Proceso: 0,
-    };
-
-    fechaInicio.setDate(fechaInicio.getDate() + 1);
-
-    while (fechaFin.getTime() > fechaInicio.getTime()) {
-      let fecha;
-
-      fechaInicio.setDate(fechaInicio.getDate() + 1);
-
-      fecha = {
-        ID_Habitaciones: parseInt(ID_Habitaciones),
-        Date:
-          fechaInicio.getFullYear() +
-          "/" +
-          (fechaInicio.getMonth() + 1) +
-          "/" +
-          fechaInicio.getDate(),
-        Proceso: 1,
-      };
-    }
-
-    const dateTwo = {
-      ID_Habitaciones: parseInt(ID_Habitaciones),
-      Date: pruebaone,
-      Proceso: 0,
-    };
-
-    const newCustomer = {
-      Fecha_final: hasta,
-      Noches: dayOne,
-    };
-    let data = {
-      Valor_habitacion: valorEstadia,
-      Abono: valorEstadia,
-      Valor: valorEstadia,
-    };
-
-    await pool.query("INSERT INTO Lista_Fechas_Reservada set ?", dateTwo);
-
-    await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
-
-    await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [data, id]);
-
-    res.status(201).json({
-      ok: true,
-    });
-  } catch (e) {
-    console.log("fallo");
-    return res.status(401).json({
+  } catch (error) {
+    res.status(401).json({
       ok: false,
     });
   }
@@ -928,6 +939,7 @@ const insertCartReservation = async (req, res = response) => {
         ID_Categoria: Cart[i]?.id_categoria,
         ID_Hoteles,
         Fecha_compra,
+        Forma_pago: 1,
       };
 
       const id = Cart[i].ID;
@@ -1002,8 +1014,6 @@ const getCartReservaction = async (req, res = response) => {
       "SELECT Tipo_Forma_pago.Nombre as  forma_pago,  Carrito_reserva.ID, Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre,Carrito_reserva.pago_deuda,Carrito_reserva.Forma_pago FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER JOIN Tipo_Forma_pago on  Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago  WHERE Carrito_reserva.ID_Reserva = ?",
       id
     );
-
-    
 
     if (query.length == 0) {
       return res.status(201).json({
@@ -1242,12 +1252,12 @@ const handInformeAuditoria = async (req, res = response) => {
     );
 
     const queryOne = await pool.query(
-      "SELECT  SUM(Carrito_reserva.Precio) as total, Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra = ?  GROUP BY Reservas.ID",
+      "SELECT  SUM(Carrito_reserva.Precio) as total, Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra = ? GROUP by Carrito_reserva.ID",
       fecha
     );
 
     const queryTwo = await pool.query(
-      "SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID_Reserva",
+      "SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
       [fecha, id]
     );
 
@@ -1380,20 +1390,15 @@ const handRoomToSell = async (req, res = response) => {
       const id_habitacion = response[i].id_tipoHabitacion;
 
       for (const date of dates) {
+        console.log(date);
         const query = await pool.query(
-          "SELECT COUNT(*) AS total_reservas FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND ((Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?))",
-          [
-            id_habitacion,
-            date,
-            moment(date).add(1, "days").format("YYYY-MM-DD"),
-            date,
-            moment(date).add(1, "days").format("YYYY-MM-DD"),
-            date,
-            moment(date).add(1, "days").format("YYYY-MM-DD"),
-          ]
+          "SELECT GREATEST((SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ) -  (SELECT COUNT(*)  FROM Reservas  INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE Habitaciones.ID_Tipo_habitaciones = ?   AND ((Fecha_inicio >= ? AND Fecha_inicio <  ? )  OR (Fecha_final > ? AND Fecha_final <=  ?)  OR (Fecha_inicio <= ? AND Fecha_final >=  ?))), 0) AS total_disponible",
+          [id_habitacion, id_habitacion, date, date, date, date, date, date]
         );
 
-        const availableRooms = query[0].total_reservas;
+        const availableRooms = query[0].total_disponible;
+
+        console.log(query);
 
         if (!groupedData[date]) {
           groupedData[date] = [];
@@ -1435,21 +1440,21 @@ const handRoomToSell = async (req, res = response) => {
 
 const handPayStoreReservation = async (req, res = response) => {
   const { id } = req.params;
-  const {data} = req.body;
+  const { data } = req.body;
 
-  const dataOne ={
-    Forma_pago:data.Forma_pago,
-    Fecha_compra:data.Fecha_compra,
-    pago_deuda:1
-  }
+  const dataOne = {
+    Forma_pago: data.Forma_pago,
+    Fecha_compra: data.Fecha_compra,
+    pago_deuda: 1,
+  };
 
-  console.log(dataOne)
+  console.log(dataOne);
 
   try {
-
-    
-
-    await pool.query("UPDATE Carrito_reserva set ? WHERE ID = ?", [dataOne, id]);
+    await pool.query("UPDATE Carrito_reserva set ? WHERE ID = ?", [
+      dataOne,
+      id,
+    ]);
 
     res.status(201).json({
       ok: true,
@@ -1496,4 +1501,5 @@ module.exports = {
   insertCartStore,
   handRoomToSell,
   handPayStoreReservation,
+  updateDetailReservaTypeRoom,
 };
