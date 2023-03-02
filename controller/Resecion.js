@@ -311,7 +311,7 @@ const getReserva = async (req, res = response) => {
 
   try {
     const response = await pool.query(
-      "SELECT web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido,  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking  on web_checking.ID_Reserva = Reservas.id WHERE Habitaciones.ID_Hotel = ?",
+      "SELECT web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos,  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking  on web_checking.ID_Reserva = Reservas.id WHERE Habitaciones.ID_Hotel = ?",
       [id]
     );
 
@@ -332,6 +332,12 @@ const getReserva = async (req, res = response) => {
       const day = diff / (1000 * 60 * 60 * 24);
 
       promises.push({
+        Num_Room: response[i].Numero,
+        Codigo_reservaOne: `X14A-${response[i].Num_documento}`,
+        Observation: response[i].Observacion,
+        Noches: response[i].Noches,
+        Adultos: response[i].Adultos,
+        Ninos: response[i].Ninos,
         Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
         ID: response[i].ID,
         ID_Habitaciones: response[i].ID_Habitaciones,
@@ -684,7 +690,8 @@ const updateDetailReserva = async (req, res = response) => {
 };
 
 const updateDetailReservaTypeRoom = async (req, res = response) => {
-  const { desde, hasta, ID_Habitaciones, id, ID_Tipo_habitaciones,RoomById } = req.body;
+  const { desde, hasta, ID_Habitaciones, id, ID_Tipo_habitaciones, RoomById } =
+    req.body;
 
   try {
     const fecha = desde;
@@ -727,51 +734,62 @@ const updateDetailReservaTypeRoom = async (req, res = response) => {
 
     if (resultado[0].Num_Reservas === 0) {
       if (Reservation[0].ID_Tipo_Estados_Habitaciones == 3) {
+        const newCustomer = {
+          ID_Habitaciones: ID_Habitaciones,
+        };
+        await pool.query("UPDATE Reservas set ? WHERE id = ?", [
+          newCustomer,
+          id,
+        ]);
+
+        return res.status(201).json({
+          ok: true,
+        });
+      } else if (Reservation[0].ID_Tipo_Estados_Habitaciones == 0) {
+        if (Reservation[0].ID_Tipo_habitaciones == ID_Tipo_habitaciones) {
           const newCustomer = {
             ID_Habitaciones: ID_Habitaciones,
           };
-          await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
-          
+          await pool.query("UPDATE Reservas set ? WHERE id = ?", [
+            newCustomer,
+            id,
+          ]);
+
           return res.status(201).json({
             ok: true,
           });
-      } else if(Reservation[0].ID_Tipo_Estados_Habitaciones == 0){
-            if(Reservation[0].ID_Tipo_habitaciones ==ID_Tipo_habitaciones){
-                const newCustomer = {
-                  ID_Habitaciones: ID_Habitaciones,
-                };
-                await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
-                
-                return res.status(201).json({
-                  ok: true,
-                });
-            }else{
-                //cuando este ya en check in
-                  const payByIdRoom = Reservation[0].Noches * RoomById.precio
+        } else {
+          //cuando este ya en check in
+          const payByIdRoom = Reservation[0].Noches * RoomById.precio;
 
-                  const newCustomer = {
-                    ID_Habitaciones: ID_Habitaciones,
-                  };
+          const newCustomer = {
+            ID_Habitaciones: ID_Habitaciones,
+          };
 
-                  const newPay = {
-                    valor_dia_habitacion:RoomById.precio,
-                    Valor:payByIdRoom,
-                    Valor_habitacion:payByIdRoom
-                  }
-                  
-                  await pool.query("UPDATE Reservas set ? WHERE id = ?", [newCustomer, id]);
-                  await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva = ?", [newPay, id]);
+          const newPay = {
+            valor_dia_habitacion: RoomById.precio,
+            Valor: payByIdRoom,
+            Valor_habitacion: payByIdRoom,
+          };
 
-                  return res.status(201).json({
-                    ok: true,
-                  });
-            }
-      }else {
+          await pool.query("UPDATE Reservas set ? WHERE id = ?", [
+            newCustomer,
+            id,
+          ]);
+          await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva = ?", [
+            newPay,
+            id,
+          ]);
+
+          return res.status(201).json({
+            ok: true,
+          });
+        }
+      } else {
         return res.status(401).json({
-          ok:false
-        })
+          ok: false,
+        });
       }
-
     } else {
       return res.status(401).json({
         ok: false,
@@ -1391,6 +1409,8 @@ const handRoomToSell = async (req, res = response) => {
 
       for (const date of dates) {
         console.log(date);
+        const FechaInicio = `${date} 15:00:00`;
+        const FechaFinal = `${date} 13:00:00`;
         const query = await pool.query(
           "SELECT GREATEST((SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ) -  (SELECT COUNT(*)  FROM Reservas  INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE Habitaciones.ID_Tipo_habitaciones = ?   AND ((Fecha_inicio >= ? AND Fecha_inicio <  ? )  OR (Fecha_final > ? AND Fecha_final <=  ?)  OR (Fecha_inicio <= ? AND Fecha_final >=  ?))), 0) AS total_disponible",
           [id_habitacion, id_habitacion, date, date, date, date, date, date]
