@@ -58,7 +58,7 @@ const validateAvaible = async (req, res = response) => {
     Tipo_persona,
     valor_dia_habitacion,
   } = req.body;
-  console.log(huespe);
+ 
   const date1 = new Date(desde);
   const date2 = new Date(hasta);
 
@@ -1561,8 +1561,6 @@ const handPayStoreReservation = async (req, res = response) => {
     pago_deuda: 1,
   };
 
-  console.log(dataOne);
-
   try {
     await pool.query("UPDATE Carrito_reserva set ? WHERE ID = ?", [
       dataOne,
@@ -1581,10 +1579,9 @@ const handPayStoreReservation = async (req, res = response) => {
 const handAlltotalReservation =async(req, res = response) =>{
 
   const {fecha} =req.body
+  const {id} = req.params
 
   try {
-
-    const id = 13
  
     const FechaInicio = `${fecha} 15:00:00`;  
 
@@ -1661,7 +1658,6 @@ const handAlltotalReservation =async(req, res = response) =>{
         }
     }
 
-
         const priceInformeStore = queryTwo?.reduce((acum,current) => {
           return acum  +   parseInt(current.total) 
       },0)
@@ -1670,7 +1666,6 @@ const handAlltotalReservation =async(req, res = response) =>{
           return acum  +   parseInt(current.total) 
       },0)
 
-      console.log(queryOne)
 
 
     const totalDay = count + priceInformeStore +priceInformeStoreOne
