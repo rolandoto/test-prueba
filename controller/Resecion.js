@@ -3,6 +3,7 @@ const { pool } = require("../database/connection");
 const fetch = require("node-fetch");
 const moment = require("moment/moment");
 const { FechaFormato } = require("../middleweres/FechaFormato");
+const axios = require('axios');
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -1475,21 +1476,15 @@ const handRoomToSell = async (req, res = response) => {
   const { id } = req.params;
   const { fechaInicio, fechaFinal } = req.body;
 
+  
   try {
-    const response = await fetch(
-      `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
-      {
-        method: "post",
-        headers: { "Content-type": "application/json" },
-      }
-    )
-      .then((index) => {
-        const data = index.json();
-        return data;
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
+      headers: { "Content-type": "application/json" },
+      timeout: 1000 // tiempo de espera de 5 segundos
+    });
+  
+    const response = roomById.data;
+    
 
     const FechaInicio = fechaInicio;
     const FechaFinal = fechaFinal;
@@ -1502,7 +1497,7 @@ const handRoomToSell = async (req, res = response) => {
     }
 
     const groupedData = {};
-    
+
 
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
@@ -1530,12 +1525,9 @@ const handRoomToSell = async (req, res = response) => {
       }
     }
 
-    const result = {};
-    for (const date of dates) {
-      result[date] = groupedData[date];
-    }
-
-    const groupedDataWithoutDates = Object.values(result).map((groupedData) => {
+  
+  
+    const groupedDataWithoutDates = Object.values(groupedData).map((groupedData) => {
       return groupedData.map((data) => {
         return {
           Room: data.Room,
@@ -1545,9 +1537,12 @@ const handRoomToSell = async (req, res = response) => {
       });
     });
 
+    const query = await Promise.all(groupedDataWithoutDates);
+
+
     res.status(201).json({
       ok: true,
-      groupedDataWithoutDates,
+      groupedDataWithoutDates:query,
     });
   } catch (error) {
     res.status(401).json({
@@ -1582,6 +1577,125 @@ const handPayStoreReservation = async (req, res = response) => {
     });
   }
 };
+
+const handAlltotalReservation =async(req, res = response) =>{
+
+  const {fecha} =req.body
+
+  try {
+
+    const id = 13
+ 
+    const FechaInicio = `${fecha} 15:00:00`;  
+
+    const RoomBusyById = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = 13  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [13, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
+    );
+
+    const RoomReservationbyId = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =0 AND Habitaciones.ID_Hotel = 13  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [13, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
+    );
+
+    const TotalHuespedById = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID INNER JOIN  Huespedes on Huespedes.ID_Reserva = Reservas.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [13, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
+    );
+
+    const query = await pool.query(
+      "SELECT  Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=3 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      [FechaInicio, id]
+    );
+
+    const querythree = await pool.query(
+      "SELECT Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre as Tipo_pago ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones=1 and Reservas.Fecha_inicio = ? and Habitaciones.ID_Hotel=  ? group by Habitaciones.ID",
+      [FechaInicio, id]
+    );
+
+    const queryOne = await pool.query(
+      "SELECT  SUM(Carrito_reserva.Precio) as total, Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra = ? GROUP by Carrito_reserva.ID",
+      fecha
+    );
+
+    const queryTwo = await pool.query(
+      "SELECT SUM(carrito_tienda.Precio) as total, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
+      [fecha, id]
+    );
+
+    const promise = [];
+
+    const groupedById = {};
+
+    // Agrupar array1 por ID
+    query.forEach((item) => {
+      if (!groupedById[item.ID_reserva]) {
+        groupedById[item.ID_reserva] = {};
+      }
+      Object.assign(groupedById[item.ID_reserva], item);
+    });
+
+    // Agrupar array2 por ID y combinar los objetos existentes
+    querythree.forEach((item) => {
+      if (groupedById[item.ID_reserva]) {
+        Object.assign(groupedById[item.ID_reserva], item);
+      } else {
+        groupedById[item.ID_reserva] = item;
+      }
+    });
+
+    const result = Object.values(groupedById);
+
+    let count =0
+    for(let i =0;i<result?.length;i++){
+        if((result[i].Tipo_persona =="empresa")){
+            const totalwith = parseInt(result[i].Valor_habitacion ) *19/100
+            const total = totalwith + parseInt(result[i].Valor_habitacion )
+            count += total
+        }else  if((result[i].Iva ==1)){
+            const totalwith = parseInt(result[i].Valor_habitacion ) *19/100
+            const total = totalwith + parseInt(result[i].Valor_habitacion )
+            count += total
+        } else{
+            count += parseInt(result[i].Valor_habitacion)
+        }
+    }
+
+
+        const priceInformeStore = queryTwo?.reduce((acum,current) => {
+          return acum  +   parseInt(current.total) 
+      },0)
+
+      const priceInformeStoreOne = queryOne?.reduce((acum,current) => {
+          return acum  +   parseInt(current.total) 
+      },0)
+
+      console.log(queryOne)
+
+
+    const totalDay = count + priceInformeStore +priceInformeStoreOne
+
+
+    res.status(201).json({
+      ok:true,
+      RoomBusyById,
+      RoomReservationbyId,
+      TotalHuespedById,
+      totalDay:{
+        totalDay
+      }
+      
+    })
+
+  } catch (error) {
+    
+    res.status(201).json({
+      ok:false
+    })
+
+  }
+
+}
 
 module.exports = {
   GetRooms,
@@ -1619,4 +1733,5 @@ module.exports = {
   handRoomToSell,
   handPayStoreReservation,
   updateDetailReservaTypeRoom,
+  handAlltotalReservation
 };

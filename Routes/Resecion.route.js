@@ -33,6 +33,7 @@ const {
   handRoomToSell,
   handPayStoreReservation,
   updateDetailReservaTypeRoom,
+  handAlltotalReservation,
 
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
@@ -138,6 +139,8 @@ router.post("/informeroomtosell/:id",handRoomToSell)
 router.post("/handstorereservation/:id",handPayStoreReservation)
 
 router.post("/updatedetailReservaTypeRoom",updateDetailReservaTypeRoom)
+
+router.post("/handAlltotalReservationBiId/:id",handAlltotalReservation)
 
 module.exports = { router };
 
