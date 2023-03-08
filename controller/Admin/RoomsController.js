@@ -120,14 +120,16 @@ const  GetroomsAdmin =async(req,res=response)=>{
 
 const InsertIntoStoreAdmin =async(req,res=response) =>{
 
-    const  {ID_Tipo_categoria,ID_Hoteles,Nombre,Cantidad,Precio} = req.body
+    const  {ID_Tipo_categoria,ID_Hoteles,Nombre,Cantidad,Precio,Fecha_registro} = req.body
 
     const date ={
         ID_Tipo_categoria,
         ID_Hoteles,
         Nombre,
         Cantidad,
-        Precio
+        Precio,
+        Cantidad_inicial:Cantidad,
+        Fecha_registro
     }
 
     try {
