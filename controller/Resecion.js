@@ -952,7 +952,7 @@ const updateDetailReservation = async (req, res = response) => {
 
   try {
 
-    
+
     await pool.query("UPDATE web_checking set ? WHERE ID = ?", [data, id]);
 
     res.status(201).json({
@@ -1205,6 +1205,8 @@ const handAddHuespe = async (req, res = response) => {
   const { id } = req.params;
   const { huespe, data, dataPay } = req.body;
 
+
+
   try {
     const huep = {
       ID_Reserva: id,
@@ -1220,26 +1222,38 @@ const handAddHuespe = async (req, res = response) => {
       ID_Prefijo: huespe.Nacionalidad,
     };
 
-    const totwo = pool.query("INSERT INTO  Huespedes  set ?", huep);
+
+
+    const totwo = await pool.query("INSERT INTO  Huespedes  set ?", huep);
 
     let isEmpty = Object.entries(data).length === 0;
 
     if (!isEmpty) {
-      await pool.query("UPDATE Reservas set ? WHERE Reservas.ID  = ?", [
+      return await pool.query("UPDATE Reservas set ? WHERE Reservas.ID  = ?", [
         data,
         id,
       ]);
+    } 
+
+
+    if(!dataPay) {
+      const insertUdaete = await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva  = ?", [
+        dataPay,
+        id,
+      ]);
+      return insertUdaete
     }
 
-    await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva  = ?", [
-      dataPay,
-      id,
-    ]);
+   
+
+    
 
     res.status(201).json({
       ok: true,
     });
   } catch (error) {
+
+    console.log("error")
     res.status(401).json({
       ok: false,
     });
@@ -1861,7 +1875,26 @@ const handCleanRoom= async(req, res = response) =>{
 
 }
 
+const handInformaSotore = async(req, res = response) =>{
 
+  const {id} = req.params
+
+  try {
+
+    const query = await pool.query(" SELECT Precio_compra, Nombre, Cantidad, Cantidad_inicial, Precio, (Cantidad_inicial - Cantidad) AS ventas , (Cantidad * Precio) as Total  FROM Productos WHERE  ID_Hoteles = ? ",[id])
+
+    res.status(201).json({
+      ok:true,
+      query
+    })
+    
+  } catch (error) {
+     res.status(401).json({
+      ok:false
+     })
+  }
+
+}
 
 module.exports = {
   GetRooms,
@@ -1901,5 +1934,6 @@ module.exports = {
   updateDetailReservaTypeRoom,
   handAlltotalReservation,
   handChangeRoom,
-  handCleanRoom
+  handCleanRoom,
+  handInformaSotore
 };
