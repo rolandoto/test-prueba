@@ -1087,6 +1087,7 @@ const insertCartReservation = async (req, res = response) => {
         Precio: Cart[i]?.Precio,
         Cantidad: Cart[i]?.quantity,
         ID_Categoria: Cart[i]?.id_categoria,
+        ID_product: Cart[i]?.ID,
         ID_Hoteles,
         Fecha_compra,
         Forma_pago: 1,
@@ -1132,6 +1133,7 @@ const insertCartStore = async (req, res = response) => {
         Precio: Cart[i]?.Precio,
         Cantidad: Cart[i]?.quantity,
         ID_Categoria: Cart[i]?.id_categoria,
+        ID_product: Cart[i]?.ID,
         ID_hotel,
         Fecha_compra,
         Nombre_persona,
@@ -1802,9 +1804,7 @@ const handCleanRoom= async(req, res = response) =>{
 
       const to = await pool.query("INSERT INTO Reservas set ?", data);
       
-
       const query1 = await pool.query("SELECT MAX(ID) as max FROM Reservas");
-
 
       const result = query1.map((index) => {
         return index.max;
@@ -1891,7 +1891,7 @@ const handInformaSotore = async(req, res = response) =>{
 
   try {
 
-    const query = await pool.query(" SELECT Precio_compra, Nombre, Cantidad, Cantidad_inicial, Precio, (Cantidad_inicial - Cantidad) AS ventas , (Cantidad * Precio) as Total  FROM Productos WHERE  ID_Hoteles = ? ",[id])
+    const query = await pool.query(" SELECT ID_Tipo_categoria, ID, Precio_compra, Nombre, Cantidad, Cantidad_inicial, Precio, (Cantidad_inicial - Cantidad) AS ventas , (Cantidad * Precio) as Total  FROM Productos WHERE  ID_Hoteles = ? ",[id])
 
     res.status(201).json({
       ok:true,
@@ -1927,6 +1927,32 @@ const notiticar =(req, res) =>{
     res.status(201).json({  
       ok:true
 })
+}
+
+
+const  byIdProduct =async(req, res = response) =>{
+  const {id} =  req.params
+  const  {ID_producto} = req.body
+   
+   try {
+
+    const query   = await pool.query("SELECT carrito_tienda.Precio,   carrito_tienda.Fecha_compra, carrito_tienda.ID_product, carrito_tienda.Cantidad,carrito_tienda.Nombre FROM   carrito_tienda    WHERE carrito_tienda.ID_hotel=  ? AND  carrito_tienda.ID_product =?" ,[id,ID_producto])
+
+    const queryOne   = await pool.query("SELECT Carrito_reserva.Precio,  Carrito_reserva.Fecha_compra,Carrito_reserva.ID_product,Carrito_reserva.Cantidad , Carrito_reserva.Nombre FROM Carrito_reserva WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.ID_product = ?" ,[id,ID_producto])
+
+    res.status(201).json({
+      ok:true,
+      query,
+      queryOne
+    })
+
+   } catch (error) {
+    res.status(401).json({
+      ok:false
+    })
+    
+   }
+
 }
 
 module.exports = {
@@ -1970,5 +1996,6 @@ module.exports = {
   handCleanRoom,
   handInformaSotore,
   notiticar,
-  handUpdateCreateReservation
+  handUpdateCreateReservation,
+  byIdProduct
 };

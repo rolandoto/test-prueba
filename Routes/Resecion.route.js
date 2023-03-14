@@ -39,6 +39,7 @@ const {
   handInformaSotore,
   notiticar,
   handUpdateCreateReservation,
+  byIdProduct,
 
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
@@ -156,6 +157,8 @@ router.get("/handInformaSotreById/:id",handInformaSotore)
 router.post("/UpdateCreateReservation/",handUpdateCreateReservation)
 
 router.post("/notificar"  ,notiticar)
+
+router.post("/byIdProduct/:id",byIdProduct)
 
 module.exports = { router };
 
