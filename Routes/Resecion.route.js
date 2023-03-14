@@ -37,6 +37,8 @@ const {
   handChangeRoom,
   handCleanRoom,
   handInformaSotore,
+  notiticar,
+  handUpdateCreateReservation,
 
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
@@ -150,6 +152,10 @@ router.post("/handChangeRoomById/:id",handChangeRoom)
 router.post("/handCleanRoom/:id",handCleanRoom)
 
 router.get("/handInformaSotreById/:id",handInformaSotore)
+
+router.post("/UpdateCreateReservation/",handUpdateCreateReservation)
+
+router.post("/notificar"  ,notiticar)
 
 module.exports = { router };
 

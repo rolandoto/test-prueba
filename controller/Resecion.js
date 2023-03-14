@@ -4,6 +4,8 @@ const fetch = require("node-fetch");
 const moment = require("moment/moment");
 const { FechaFormato } = require("../middleweres/FechaFormato");
 const axios = require('axios');
+const { io } = require("..");
+
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -264,7 +266,12 @@ const validateAvaible = async (req, res = response) => {
       valor_dia_habitacion: valor_dia_habitacion,
     };
 
+   
+
     const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+
+
+ 
 
     return res.status(201).json({
       msg: "aceptado",
@@ -1070,7 +1077,7 @@ const uploadImage = async (req, res = response) => {
 };
 
 const insertCartReservation = async (req, res = response) => {
-  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra } = req.body;
+  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra ,Nombre_recepcion} = req.body;
 
   try {
     for (let i = 0; i < Cart.length; i++) {
@@ -1083,6 +1090,7 @@ const insertCartReservation = async (req, res = response) => {
         ID_Hoteles,
         Fecha_compra,
         Forma_pago: 1,
+        Nombre_recepcion
       };
 
       const id = Cart[i].ID;
@@ -1113,6 +1121,7 @@ const insertCartStore = async (req, res = response) => {
     Nombre_persona,
     Forma_pago,
     Num_documento,
+    Nombre_recepcion
   } = req.body;
 
   try {
@@ -1128,6 +1137,7 @@ const insertCartStore = async (req, res = response) => {
         Nombre_persona,
         Forma_pago,
         Num_documento,
+        Nombre_recepcion
       };
 
       const id = Cart[i].ID;
@@ -1154,7 +1164,7 @@ const getCartReservaction = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Tipo_Forma_pago.Nombre as  forma_pago,  Carrito_reserva.ID, Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre,Carrito_reserva.pago_deuda,Carrito_reserva.Forma_pago FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER JOIN Tipo_Forma_pago on  Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago  WHERE Carrito_reserva.ID_Reserva = ?",
+      "SELECT Tipo_Forma_pago.Nombre as  forma_pago,  Carrito_reserva.Nombre_recepcion, Carrito_reserva.ID, Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre,Carrito_reserva.pago_deuda,Carrito_reserva.Forma_pago FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER JOIN Tipo_Forma_pago on  Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago  WHERE Carrito_reserva.ID_Reserva = ?",
       id
     );
 
@@ -1887,13 +1897,36 @@ const handInformaSotore = async(req, res = response) =>{
       ok:true,
       query
     })
-    
   } catch (error) {
      res.status(401).json({
       ok:false
      })
   }
+}
 
+const handUpdateCreateReservation =(req, res = response) =>{
+  
+   try {
+
+    res.status(201).json({
+      ok:true
+    })
+    
+   } catch (error) {
+
+    res.status(401).json({
+      ok:false
+    })
+
+   }
+
+}
+
+const notiticar =(req, res) =>{
+
+    res.status(201).json({  
+      ok:true
+})
 }
 
 module.exports = {
@@ -1935,5 +1968,7 @@ module.exports = {
   handAlltotalReservation,
   handChangeRoom,
   handCleanRoom,
-  handInformaSotore
+  handInformaSotore,
+  notiticar,
+  handUpdateCreateReservation
 };

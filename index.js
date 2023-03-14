@@ -22,7 +22,6 @@ app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 
 // parse application/json
-
 var port_number = app.listen(process.env.PORT || 5000);
 
 //initial port
