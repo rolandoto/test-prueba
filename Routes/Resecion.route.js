@@ -40,7 +40,9 @@ const {
   notiticar,
   handUpdateCreateReservation,
   byIdProduct,
-
+  handValidDian,
+  handInsertPayAbono,
+  getpayABono
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -160,5 +162,10 @@ router.post("/notificar"  ,notiticar)
 
 router.post("/byIdProduct/:id",byIdProduct)
 
-module.exports = { router };
+router.post("/ValidDianById",handValidDian)
 
+router.post("/insertPayAbono",handInsertPayAbono)
+
+router.get("/getPayabono/:id",getpayABono)
+
+module.exports = { router };

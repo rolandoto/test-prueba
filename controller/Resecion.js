@@ -5,6 +5,11 @@ const moment = require("moment/moment");
 const { FechaFormato } = require("../middleweres/FechaFormato");
 const axios = require('axios');
 const { io } = require("..");
+const puppeteer = require('puppeteer');
+const cheerio =require ('cheerio')
+const {Builder, By, Key, until} = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 const GetRooms = async (req, res = response) => {
@@ -955,16 +960,22 @@ const updateDetailReservation = async (req, res = response) => {
 
   const data = req.body;
 
-  console.log(id)
-
   try {
 
+    await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [data, id], (err, customer) => {
+      if (err) {
+        return res.status(401).json({
+          ok: false,
+          msg: "Error al insertar datos"
+        })
+      } else {
+        return res.status(201).json({
+          ok: true
+        })
+      }
+    })
 
-    await pool.query("UPDATE web_checking set ? WHERE ID = ?", [data, id]);
-
-    res.status(201).json({
-      ok: true,
-    });
+   
   } catch (error) {
     res.status(401).json({
       ok: false,
@@ -1955,6 +1966,122 @@ const  byIdProduct =async(req, res = response) =>{
 
 }
 
+const handValidDian =async(req, res = response) =>{
+
+  const options = new chrome.Options();
+options.addArguments('--headless');  // Ejecutar en modo headless
+
+// Crear el driver de Selenium
+const driver = new Builder()
+  .forBrowser('chrome')
+  .setChromeOptions(options)
+  .build();
+
+// Maximizar ventana
+driver.manage().window().maximize();
+
+// Navegar a la página web
+driver.get('https://muisca.dian.gov.co/WebRutMuisca/DefConsultaEstadoRUT.faces');
+
+// Buscar un elemento por su id y almacenarlo en una variable
+const usuario = driver.findElement(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT:numNit"]'));
+
+usuario.sendKeys('890903938', Key.ENTER);
+
+// Esperar hasta que se carguen los resultados de la búsqueda
+driver.wait(until.elementLocated(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr[1]')), 5000);
+
+const datosObtenidos = await driver.findElements(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr'));
+
+
+const table = [];
+
+for (let i = 0; i < datosObtenidos.length; i += 3) {
+   const to =await datosObtenidos[i].getText()
+}
+
+console.log()
+
+console.log(table);
+
+// Cerrar el driver
+driver.quit();
+
+res.status(201).json({
+  ok:true
+})
+
+}
+
+
+const handInsertPayAbono =async(req, res = response) =>{
+
+  const {ID_Reserva,PayAbono,Fecha_pago,Tipo_forma_pago,Nombre_recepcion} = req.body.data
+
+
+  const data ={
+    ID_Reserva,
+    Abono:PayAbono,
+    Fecha_pago,
+    Tipo_forma_pago,
+    Nombre_recepcion
+}
+
+    try {
+
+      if(!Tipo_forma_pago){
+        return res.status(401).json({
+          ok:false
+        })
+      }
+
+
+      
+      await pool.query('INSERT INTO Pago_abono set ?', data, (err, customer) => {
+        if(err){
+            return res.status(401).json({
+                 ok:false,
+                 msg:"error al insertar datos"
+            })
+         }else{
+            return res.status(201).json({
+                ok:true
+            })
+         }
+      })
+
+    } catch (error) {
+      console.log(error)
+    return res.status(201).json({
+      ok:false
+    })      
+    }
+}
+
+
+const getpayABono =async(req, res = response) =>{
+
+  const {id} = req.params
+
+  try {
+
+    const query = await pool.query("SELECT Pago_abono.Nombre_recepcion, Pago_abono.ID_Reserva,Pago_abono.Abono,Pago_abono.Fecha_pago,Tipo_Forma_pago.Nombre FROM `Pago_abono` INNER JOIN Tipo_Forma_pago  on Pago_abono.Tipo_Forma_pago = Tipo_Forma_pago.ID  WHERE  Pago_abono.ID_Reserva = ?",[id])
+    
+    res.status(201).json({
+      ok:true,
+      query
+    })
+
+  } catch (error) {
+    res.status(401).json({
+      ok:false
+    })
+  }
+
+}
+
+
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -1997,5 +2124,8 @@ module.exports = {
   handInformaSotore,
   notiticar,
   handUpdateCreateReservation,
-  byIdProduct
+  byIdProduct,
+  handValidDian,
+  handInsertPayAbono,
+  getpayABono
 };

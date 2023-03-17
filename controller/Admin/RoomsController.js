@@ -216,6 +216,10 @@ const getStoreAdmin =async(req,res= response) =>{
 
 }
 
+
+
+
+
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
                 InsertIntoStoreAdmin,
