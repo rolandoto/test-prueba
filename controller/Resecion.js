@@ -962,6 +962,9 @@ const updateDetailReservation = async (req, res = response) => {
 
   try {
 
+    await pool.query("UPDATE web_checking SET ? WHERE ID = ?", [data, id])
+
+
     await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [data, id], (err, customer) => {
       if (err) {
         return res.status(401).json({
@@ -975,6 +978,8 @@ const updateDetailReservation = async (req, res = response) => {
       }
     })
 
+
+    
    
   } catch (error) {
     res.status(401).json({
@@ -1993,19 +1998,26 @@ driver.wait(until.elementLocated(By.xpath('//*[@id="vistaConsultaEstadoRUT:formC
 
 const datosObtenidos = await driver.findElements(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr'));
 
-
 const table = [];
 
 for (let i = 0; i < datosObtenidos.length; i += 3) {
-   const to =await datosObtenidos[i].getText()
-}
+  // Volver a buscar el elemento antes de obtener su texto
+  const nombreElement = await driver.findElement(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr['+(i+1)+']/td[1]'));
+  const fechaElement = await driver.findElement(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr['+(i+1)+']/td[2]'));
+  const plazoElement = await driver.findElement(By.xpath('//*[@id="vistaConsultaEstadoRUT:formConsultaEstadoRUT"]/table[2]/tbody/tr[2]/td/table/tbody/tr['+(i+1)+']/td[3]'));
 
-console.log()
+  table.push({
+    NOMBRE: await nombreElement.getText(),
+    FECHA_EFECTIVA: await fechaElement.getText(),
+    PLAZO_INHABILITACION: await plazoElement.getText()
+  });
+}
 
 console.log(table);
 
 // Cerrar el driver
 driver.quit();
+
 
 res.status(201).json({
   ok:true
