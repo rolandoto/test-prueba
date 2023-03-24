@@ -832,28 +832,15 @@ const updateDetailReservaTypeRoom = async (req, res = response) => {
             ok: true,
           });
         } else {
-          //cuando este ya en check in
-          const payByIdRoom = Reservation[0].Noches * RoomById.precio;
-
           const newCustomer = {
             ID_Habitaciones: ID_Habitaciones,
-          };
-
-          const newPay = {
-            valor_dia_habitacion: RoomById.precio,
-            Valor: payByIdRoom,
-            Valor_habitacion: payByIdRoom,
           };
 
           await pool.query("UPDATE Reservas set ? WHERE id = ?", [
             newCustomer,
             id,
           ]);
-          await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva = ?", [
-            newPay,
-            id,
-          ]);
-
+         
           return res.status(201).json({
             ok: true,
           });
@@ -1434,7 +1421,6 @@ const handInformeAuditoria = async (req, res = response) => {
           Habitacion:response[i].nombre
         })
       }
-
     }
 
     res.status(201).json({
