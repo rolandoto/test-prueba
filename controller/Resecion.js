@@ -1381,10 +1381,7 @@ const handInformeAuditoria = async (req, res = response) => {
   const fechaFiltrar = `${fecha} 15:00:00`;
 
   try {
-    const result = await pool.query(
-      "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
-      [fecha, id]
-    );
+   
 
     const queryOne = await pool.query(
       "SELECT  SUM(Carrito_reserva.Precio) as total, Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra = ? GROUP by Carrito_reserva.ID",
@@ -1396,11 +1393,53 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
 
-    
+    const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
+      headers: { "Content-type": "application/json" },
+      timeout: 1000 // tiempo de espera de 5 segundos
+    });
+  
+    const response = roomById.data;
+
+
+    const result = await pool.query(
+      "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
+      [fecha, id]
+    );
+
+    const groupedData = [];
+
+    for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion
+      const re = await pool.query(
+        "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
+        [id_habitacion, fecha, id]
+      );
+      
+      for (const date of re) {
+        groupedData.push({
+          ID:date.ID,
+          abono:date.abono,
+          Fecha_pago:date.Fecha_pago,
+          ID_reserva:date.ID_reserva,
+          Numero:date.Numero,
+          Nombre:date.Nombre,
+          Fecha_inicio:date.Fecha_inicio,
+          Valor_habitacion:date.Valor_habitacion,
+          Codigo_reserva:date.Codigo_reserva,
+          Num_documento:date.Num_documento,
+          Nombre_Person:date.Nombre_Person,
+          Apellido:date.Apellido,
+          Iva:date.Iva,
+          Tipo_persona:date.Tipo_persona,
+          Habitacion:response[i].nombre
+        })
+      }
+
+    }
 
     res.status(201).json({
       ok: true,
-      result,
+      result:groupedData,
       queryTwo,
       queryOne,
     });
@@ -1532,6 +1571,9 @@ const handRoomToSell = async (req, res = response) => {
     });
 
     const query = await Promise.all(groupedDataWithoutDates);
+
+
+    console.log(query)
 
 
     res.status(201).json({
@@ -1899,7 +1941,7 @@ const  byIdProduct =async(req, res = response) =>{
 
 const handValidDian =async(req, res = response) =>{
 
-  const options = new chrome.Options();
+const options = new chrome.Options();
 options.addArguments('--headless');  // Ejecutar en modo headless
 
 // Crear el driver de Selenium
@@ -1943,7 +1985,6 @@ console.log(table);
 
 // Cerrar el driver
 driver.quit();
-
 
 res.status(201).json({
   ok:true
