@@ -1435,7 +1435,7 @@ const handInformeCamarera = async (req, res = response) => {
     const FechaFinal = `${fecha} 13:00:00`;
 
     const query = await pool.query(
-      "SELECT Reservas.ID_Tipo_Estados_Habitaciones,Reservas.Fecha_final,Reservas.Adultos,Reservas.Fecha_final,Reservas.Ninos, Reservas.Noches, web_checking.nombre,web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON  web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR  (Fecha_inicio <= ? AND Fecha_final >= ?))",
+      "SELECT Reservas.ID_Tipo_Estados_Habitaciones,Reservas.Fecha_final,Reservas.Adultos,Reservas.Fecha_final,Reservas.Ninos, Reservas.Noches, web_checking.nombre,web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON  web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR  (Fecha_inicio <= ? AND Fecha_final >= ?) AND  Habitaciones.ID_Hotel =?)",
       [
         FechaInicio,
         FechaInicio,
@@ -1443,6 +1443,7 @@ const handInformeCamarera = async (req, res = response) => {
         FechaFinal,
         FechaInicio,
         FechaFinal,
+        id
       ]
     );
 
