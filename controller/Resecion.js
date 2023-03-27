@@ -374,8 +374,6 @@ const GetCanales = async (req, res = response) => {
 
 /*const avaibleRecection =async(req,res=response) =>{
 
-    
-    
     const  {desde,hasta,habitaciones} = req.body
 
     const date1 = new Date(desde)
@@ -392,10 +390,7 @@ const GetCanales = async (req, res = response) => {
     while(fechaFin.getTime() >= fechaInicio.getTime()){
         fechaInicio.setDate(fechaInicio.getDate() + 1);
            fecha_final.push(fechaInicio.getFullYear() + '/' + (fechaInicio.getMonth() + 1) + '/' + fechaInicio.getDate())
-
     }
-
-    
 
     try {
 
@@ -1177,8 +1172,6 @@ const handAddHuespe = async (req, res = response) => {
   const { id } = req.params;
   const { huespe, data, dataPay } = req.body;
 
-
-
   try {
     const huep = {
       ID_Reserva: id,
@@ -1194,8 +1187,6 @@ const handAddHuespe = async (req, res = response) => {
       ID_Prefijo: huespe.Nacionalidad,
     };
 
-
-
     const totwo = await pool.query("INSERT INTO  Huespedes  set ?", huep);
 
     let isEmpty = Object.entries(data).length === 0;
@@ -1207,7 +1198,6 @@ const handAddHuespe = async (req, res = response) => {
       ]);
     } 
 
-
     if(!dataPay) {
       const insertUdaete = await pool.query("UPDATE Pagos set ? WHERE Pagos.ID_Reserva  = ?", [
         dataPay,
@@ -1215,10 +1205,6 @@ const handAddHuespe = async (req, res = response) => {
       ]);
       return insertUdaete
     }
-
-   
-
-    
 
     res.status(201).json({
       ok: true,
@@ -1398,7 +1384,7 @@ const handInformeAuditoria = async (req, res = response) => {
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion
       const re = await pool.query(
-        "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
+        "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
         [id_habitacion, fecha, id]
       );
       
@@ -1423,6 +1409,8 @@ const handInformeAuditoria = async (req, res = response) => {
       }
     }
 
+    console.log(groupedData)
+
     res.status(201).json({
       ok: true,
       result:groupedData,
@@ -1439,6 +1427,8 @@ const handInformeAuditoria = async (req, res = response) => {
 const handInformeCamarera = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
+
+  console.log(id)
 
   try {
     const FechaInicio = `${fecha} 15:00:00`;
@@ -1506,7 +1496,6 @@ const handRoomToSell = async (req, res = response) => {
   
     const response = roomById.data;
     
-
     const FechaInicio = fechaInicio;
     const FechaFinal = fechaFinal;
 
@@ -1518,7 +1507,6 @@ const handRoomToSell = async (req, res = response) => {
     }
 
     const groupedData = {};
-
 
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
