@@ -229,12 +229,7 @@ const validateAvaible = async (req, res = response) => {
       valor_dia_habitacion: valor_dia_habitacion,
     };
 
-   
-
     const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
-
-
- 
 
     return res.status(201).json({
       msg: "aceptado",

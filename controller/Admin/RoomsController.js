@@ -60,7 +60,7 @@ const  GetroomsAdmin =async(req,res=response)=>{
 
         for( let count = 0; count < response?.length; count++ ) {
 
-            const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?",[response[count].id_tipoHabitacion])
+            const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?  and Habitaciones.ID_Hotel = ? ",[response[count].id_tipoHabitacion,id])
             
             query.forEach(element => {
                 ray.push({
@@ -104,6 +104,9 @@ const  GetroomsAdmin =async(req,res=response)=>{
             })
         }
         */
+
+
+        console.log(ray)
     
         res.status(201).json({
             ok:true,
