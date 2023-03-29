@@ -10,8 +10,6 @@ const cheerio =require ('cheerio')
 const {Builder, By, Key, until} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 
-
-
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
@@ -497,15 +495,12 @@ const GetCanales = async (req, res = response) => {
 const roomAvaible = async (req, res = response) => {
   const { desde, hasta, habitaciones, ID_Habitaciones } = req.body;
 
-
-
   try {
     
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
-
 
     if (resultado[0].Num_Reservas === 0) {
       return res.status(201).json({
@@ -905,7 +900,6 @@ const updateDetailReservation = async (req, res = response) => {
 
     await pool.query("UPDATE web_checking SET ? WHERE ID = ?", [data, id])
 
-
     await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [data, id], (err, customer) => {
       if (err) {
         return res.status(401).json({
@@ -918,9 +912,6 @@ const updateDetailReservation = async (req, res = response) => {
         })
       }
     })
-
-
-    
    
   } catch (error) {
     res.status(401).json({
@@ -1003,6 +994,7 @@ const getRoomdetalle = async (req, res = response) => {
   const { id } = req.params;
 
   try {
+
     const avaible = await pool.query(
       "SELECT ID,Numero  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
       [id]
@@ -1279,6 +1271,7 @@ const handUpdateResoluction = async (req, res = response) => {
       ok: true,
       query,
     });
+
   } catch (error) {
     res.status(401).json({
       ok: false,
@@ -1408,8 +1401,6 @@ const handInformeAuditoria = async (req, res = response) => {
         })
       }
     }
-
-    console.log(groupedData)
 
     res.status(201).json({
       ok: true,
@@ -1547,10 +1538,6 @@ const handRoomToSell = async (req, res = response) => {
 
     const query = await Promise.all(groupedDataWithoutDates);
 
-
-    console.log(query)
-
-
     res.status(201).json({
       ok: true,
       groupedDataWithoutDates:query,
@@ -1633,7 +1620,6 @@ const handAlltotalReservation =async(req, res = response) =>{
       [fecha, id]
     );
 
-
     const promise = [];
 
     const groupedById = {};
@@ -1671,7 +1657,6 @@ const handAlltotalReservation =async(req, res = response) =>{
             count += parseInt(result[i].Valor_habitacion)
         }
     }
-
 
         const priceInformeStore = queryTwo?.reduce((acum,current) => {
           return acum  +   parseInt(current.total) 
@@ -1787,7 +1772,6 @@ const handCleanRoom= async(req, res = response) =>{
       const toone = await pool.query(
         "INSERT INTO  web_checking set ?",date);
 
-  
         const huep = {
           ID_Reserva: parseInt(result.toString()),
           ID_Tipo_documento: 2,
@@ -1997,9 +1981,7 @@ const handInsertPayAbono =async(req, res = response) =>{
     const dataOne = {
       Abono:  acum + parseInt(PayAbono)
     }
-    console.log(acum)
-    console.log(dataOne)
-      
+    
    await pool.query('INSERT INTO Pago_abono SET ?', data, (err, customer) => {
       if (err) {
           return res.status(401).json({
@@ -2040,7 +2022,7 @@ const getpayABono =async(req, res = response) =>{
 
   try {
 
-    const query = await pool.query("SELECT Pago_abono.Nombre_recepcion, Pago_abono.ID_Reserva,Pago_abono.Abono,Pago_abono.Fecha_pago,Tipo_Forma_pago.Nombre FROM `Pago_abono` INNER JOIN Tipo_Forma_pago  on Pago_abono.Tipo_Forma_pago = Tipo_Forma_pago.ID  WHERE  Pago_abono.ID_Reserva = ?",[id])
+    const query = await pool.query("SELECT web_checking.Iva,web_checking.Tipo_persona, Pago_abono.Nombre_recepcion, Pago_abono.ID_Reserva,Pago_abono.Abono,Pago_abono.Fecha_pago,Tipo_Forma_pago.Nombre FROM `Pago_abono` INNER JOIN Tipo_Forma_pago  on Pago_abono.Tipo_Forma_pago = Tipo_Forma_pago.ID INNER JOIN web_checking ON Pago_abono.ID_Reserva = web_checking.ID_Reserva  WHERE  Pago_abono.ID_Reserva = ?",[id])
     
     res.status(201).json({
       ok:true,
@@ -2052,7 +2034,6 @@ const getpayABono =async(req, res = response) =>{
       ok:false
     })
   }
-
 }
 
 module.exports = {
