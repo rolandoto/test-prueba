@@ -42,7 +42,8 @@ const {
   byIdProduct,
   handValidDian,
   handInsertPayAbono,
-  getpayABono
+  getpayABono,
+  roomAvaibleInformeConsolidado
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -168,4 +169,6 @@ router.post("/insertPayAbono",handInsertPayAbono)
 
 router.get("/getPayabono/:id",getpayABono)
 
-module.exports = { router };
+router.get("/informeConsolidadoByHotel/:id",roomAvaibleInformeConsolidado)
+
+module.exports = { router };  

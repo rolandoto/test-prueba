@@ -176,6 +176,7 @@ const validateAvaible = async (req, res = response) => {
           Ciudad: huespe[i]?.Ciudad,
           ID_Prefijo: huespe[i]?.Nacionalidad,
           Tipo_persona,
+          Firma:0
         };
 
         const toone = pool.query(
@@ -1661,9 +1662,7 @@ const handAlltotalReservation =async(req, res = response) =>{
           return acum  +   parseInt(current.total) 
       },0)
 
-
     const totalDay = count + priceInformeStore +priceInformeStoreOne
-
 
     res.status(201).json({
       ok:true,
@@ -1792,7 +1791,6 @@ const handCleanRoom= async(req, res = response) =>{
               });
           }
         );
-
 
         const pay = {
           ID_Reserva: parseInt(result.toString()),
@@ -2031,6 +2029,39 @@ const getpayABono =async(req, res = response) =>{
   }
 }
 
+const roomAvaibleInformeConsolidado = async(req, res = response) =>{
+
+  const {id} = req.params
+
+  const fecha = "2023-03-29"
+  
+  try {
+
+    const FechaInicio = `${fecha} 15:00:00`;  
+
+    const RoomBusyById = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [id, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
+    );
+
+    const RoomAvaible = await pool.query(
+      "SELECT COUNT(*) AS Num_Disponibles FROM Habitaciones WHERE Habitaciones.ID_Hotel = ? AND Habitaciones.ID NOT IN ( SELECT Habitaciones.ID FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3 AND Habitaciones.ID_Hotel = ? AND ( (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ?  AND Fecha_final <=  ?) ) )",
+      [id,id, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
+    );
+
+    res.status(201).json({
+      ok:true,
+      RoomBusyById,
+      RoomAvaible
+    })
+    
+  } catch (error) {
+    res.status(400).json({
+      ok:false
+    })
+  }
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -2076,5 +2107,6 @@ module.exports = {
   byIdProduct,
   handValidDian,
   handInsertPayAbono,
-  getpayABono
+  getpayABono,
+  roomAvaibleInformeConsolidado
 };
