@@ -2033,7 +2033,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
 
   const {id} = req.params
 
-  const fecha = "2023-03-29"
+  const fecha = "2023-04-3"
   
   try {
 
@@ -2049,8 +2049,41 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       [id,id, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
     );
 
+    const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
+      headers: { "Content-type": "application/json" },
+      timeout: 1000 // tiempo de espera de 5 segundos
+    });
+    
+    const response = roomById.data;
+    
+    const roomByIdIDtypeRoom = [];
+    
+    for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion;
+    
+      const roomPay = await pool.query(
+        "SELECT Habitaciones.ID_Tipo_habitaciones, SUM(Pago_abono.Abono) AS Total_Abono, COUNT(*) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3 AND Habitaciones.ID_Hotel = ?  AND Pago_abono.Fecha_pago = ? AND Habitaciones.ID_Tipo_habitaciones = ?",
+        [id,fecha, id_habitacion]
+      );
+    
+      const abono = roomPay[0].Total_Abono || 0;
+
+      const room = roomPay[0].Cantidad_Habitaciones || 0;
+
+      roomByIdIDtypeRoom.push({
+        room: response[i].nombre,
+        abono,
+        cantidad:room
+      });
+    }
+
+    const  totalEfectivo = await  pool.query("SELECT  Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID  INNER JOIN Reservas  on Pago_abono.ID_Reserva = Reservas.id  INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID  WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? ",[id,fecha])
+    
+    console.log(totalEfectivo)
+
     res.status(201).json({
       ok:true,
+      roomByIdIDtypeRoom,
       RoomBusyById,
       RoomAvaible
     })
@@ -2061,6 +2094,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
     })
   }
 }
+
 
 module.exports = {
   GetRooms,
