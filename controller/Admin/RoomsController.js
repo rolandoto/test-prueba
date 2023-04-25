@@ -26,6 +26,7 @@ const InsertIntoRoomsAdmin =async (req,res=response) =>{
                 })
              }
           })
+
           res.status(201).json({
               ok:true,
               msg:"exictoso"
@@ -105,8 +106,6 @@ const  GetroomsAdmin =async(req,res=response)=>{
         }
         */
 
-
-        console.log(ray)
     
         res.status(201).json({
             ok:true,
@@ -123,7 +122,7 @@ const  GetroomsAdmin =async(req,res=response)=>{
 
 const InsertIntoStoreAdmin =async(req,res=response) =>{
 
-    const  {ID_Tipo_categoria,ID_Hoteles,Nombre,Cantidad,Precio,Fecha_registro,Precio_compra} = req.body
+    const  {ID_Tipo_categoria,ID_Hoteles,Nombre,Cantidad,Precio,Fecha_registro,Precio_compra,Nombre_Recepcion} = req.body
 
     const date ={
         ID_Tipo_categoria,
@@ -138,18 +137,47 @@ const InsertIntoStoreAdmin =async(req,res=response) =>{
 
     try {
 
-        await pool.query('INSERT INTO Productos set ?', date, (err, customer) => {
+        const query =  await pool.query('INSERT INTO Productos set ?', date, (err, customer) => {
             if(err){
                 return res.status(401).json({
                      ok:false,
                      msg:"error al insertar datos"
                 })
              }else{
-                return res.status(201).json({
-                    ok:true
-                })
+                
+                const insertSecondQuery = async() => {
+                    const query1 = await pool.query("SELECT MAX(ID) as max FROM Productos where Productos.ID_Hoteles = ?",[ID_Hoteles]);
+                    console.log(query1)
+
+                    const result = query1.map((index) => {
+                        return index.max;
+                    });
+                  
+                    const dateOne = {
+                        ID_Product: parseInt(result.toString()),
+                        Cantidad_total:Cantidad,
+                        Nombre_Recepcion
+                    }
+
+                   await  pool.query('INSERT INTO cantidad_product set ?',dateOne, (err, customer) => {
+                        if (err) {
+                            return res.status(401).json({
+                                ok: false,
+                                msg: "error al insertar datos"
+                            });
+                        } else {
+                            return res.status(201).json({
+                                ok: true
+                            });
+                        }
+                    });
+        
+                }
+                insertSecondQuery();
              }
           })
+
+       
 
     } catch (error) {
 
@@ -174,8 +202,7 @@ const GetCategoryAdmin  = async(req,res=response) =>{
             res.status(401).json({
                 ok:false
             })
-        }
-        
+    }
 }
 
 const GetListProductAdmin = async( req, res=response ) =>{
@@ -184,8 +211,30 @@ const GetListProductAdmin = async( req, res=response ) =>{
 
     try {
 
-        const  query = await  pool.query("SELECT Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID_Hoteles = ?", [id])
+        const  query = await  pool.query("SELECT Productos.Cantidad, Productos.ID, Productos.Nombre,Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria INNER JOIN cantidad_product on Productos.ID = cantidad_product.ID_Product WHERE Productos.ID_Hoteles = ? GROUP BY Productos.ID ORDER BY cantidad_product.ID;", [id])
         
+        res.status(201).json({
+            ok:true,
+            query
+        })
+
+    } catch (error) {
+
+        res.status(201).json({
+            ok:false,
+            msg:"comuniquese con el administrador"
+        })   
+    }   
+}
+
+const GetListProductAdminById = async( req, res=response ) =>{
+
+    const {id} = req.params;
+
+    try {
+
+        const  query = await  pool.query("SELECT cantidad_product.Nombre_Recepcion,cantidad_product.Cantidad_total,  Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria   INNER JOIN cantidad_product on cantidad_product.ID_Product = Productos.ID  WHERE Productos.ID = ?",[id])
+
         res.status(201).json({
             ok:true,
             query
@@ -199,6 +248,77 @@ const GetListProductAdmin = async( req, res=response ) =>{
         })   
     }
 }
+
+
+const postListProductAdminById  =async( req, res=response) => {
+
+    const {id} = req.params
+
+    const  {Cantidad,Nombre_Recepcion} = req.body
+    
+    const dateOne = {
+        ID_Product:id,
+        Cantidad_total:Cantidad,
+        Nombre_Recepcion
+    }
+
+    
+
+    try {
+
+        if(Cantidad <=0){
+            return res.status(401).json({
+                ok:false
+            })
+        }
+
+        await pool.query('INSERT INTO cantidad_product set ?', dateOne, (err, customer) => {
+            if(err){
+                return res.status(401).json({
+                     ok:false,
+                     msg:"error al insertar datos"
+                })
+             }else{
+                const insertSecondQuery = async() => {
+                   const query = await pool.query("SELECT * FROM Productos  WHERE  Productos.ID =?",[id])
+
+                  for(let i =0;i<query.length;i++){
+                    const data = {
+                        Cantidad:parseInt(query[i].Cantidad ) + parseInt(Cantidad)
+                    }
+                    pool.query('UPDATE Productos set ? WHERE ID = ?', [data,id], (err, customer) => {
+                        if (err) {
+                            return res.status(401).json({
+                                ok: false,
+                                msg: "error al insertar datos"
+                            });
+                        } else {
+                            return res.status(201).json({
+                                ok: true
+                            });
+                        }
+                    });
+                    
+                  }
+                }
+
+               
+                insertSecondQuery();
+             }
+          })
+
+        res.status(201).json({
+            ok:true
+        })
+        
+    } catch (error) {
+        res.status(401).json({
+            ok:false
+        })
+    }
+
+}
+
 
 const getStoreAdmin =async(req,res= response) =>{
 
@@ -214,13 +334,34 @@ const getStoreAdmin =async(req,res= response) =>{
         return res.status(401).json({
             ok:false
         })
-
     }
-
 }
 
+const getSubProduct =async(req, res = response) => {
 
+    try {   
 
+        const query=  await pool.query("SELECT ID,Product,Tipo_categoria FROM sub_categorias")
+
+        if(query.length==0){
+            res.status(401).json({
+                ok:true
+            })
+        }
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+      
+    } catch (error) {
+      
+            res.status(401).json({
+                ok:false
+            })
+      
+    }
+}
 
 
 module.exports ={InsertIntoRoomsAdmin,
@@ -228,5 +369,8 @@ module.exports ={InsertIntoRoomsAdmin,
                 InsertIntoStoreAdmin,
                 GetCategoryAdmin,
                 GetListProductAdmin,
-                getStoreAdmin
-}
+                getStoreAdmin,
+                GetListProductAdminById,
+                postListProductAdminById,
+                getSubProduct
+}   

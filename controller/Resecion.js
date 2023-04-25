@@ -876,6 +876,8 @@ const getDetailReservation = async (req, res = response) => {
   }
 };
 
+
+
 const postCleanlineRooms = (req, res = response) => {};
 
 const getCountry = async (req, res = response) => {
@@ -1017,7 +1019,7 @@ const uploadImage = async (req, res = response) => {
       ok: false,
     });
   }
-};
+}
 
 const insertCartReservation = async (req, res = response) => {
   const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra ,Nombre_recepcion} = req.body;
@@ -1054,7 +1056,8 @@ const insertCartReservation = async (req, res = response) => {
       ok: false,
     });
   }
-};
+}
+
 
 const insertCartStore = async (req, res = response) => {
   const {
@@ -1414,8 +1417,6 @@ const handInformeAuditoria = async (req, res = response) => {
 const handInformeCamarera = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
-
-  console.log(id)
 
   try {
     const FechaInicio = `${fecha} 15:00:00`;
@@ -1881,14 +1882,11 @@ const  byIdProduct =async(req, res = response) =>{
       query,
       queryOne
     })
-
    } catch (error) {
     res.status(401).json({
       ok:false
     })
-    
    }
-
 }
 
 const handValidDian =async(req, res = response) =>{
@@ -2025,13 +2023,12 @@ const getpayABono =async(req, res = response) =>{
     })
   }
 }
-
+ 
 const roomAvaibleInformeConsolidado = async(req, res = response) =>{
 
   const {id} = req.params
 
-  const fecha = "2023-04-12"
-  
+  const fecha  ="2023-04-19"  
   try {
 
     const FechaInicio = `${fecha} 15:00:00`;  
@@ -2044,7 +2041,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
     const RoomAvaible = await pool.query(
       "SELECT COUNT(*) AS Num_Disponibles FROM Habitaciones WHERE Habitaciones.ID_Hotel = ? AND Habitaciones.ID NOT IN ( SELECT Habitaciones.ID FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3 AND Habitaciones.ID_Hotel = ? AND ( (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ?  AND Fecha_final <=  ?) ) )",
       [id,id, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
-    );
+    );  
 
 
     const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
@@ -2081,17 +2078,34 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       });
     }
 
-    const  totalEfectivo = await  pool.query("SELECT  SUM(Pago_abono.Abono) AS Total_Abono,Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID  INNER JOIN Reservas  on Pago_abono.ID_Reserva = Reservas.id  INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID  WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ?  and Pago_abono.Tipo_forma_pago =1  ",[id,fecha])
+    const  totalEfectivo = await  pool.query("SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago =1;  ",[id,fecha])
 
-    const  tarjetadebito = await  pool.query("SELECT  SUM(Pago_abono.Abono) AS Total_Abono,Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID  INNER JOIN Reservas  on Pago_abono.ID_Reserva = Reservas.id  INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID  WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ?  and Pago_abono.Tipo_forma_pago =6  ",[id,fecha])
+    const  tarjetadebito = await  pool.query("SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago =6 ",[id,fecha])
 
-    const  tarjetaCredito = await  pool.query("SELECT  SUM(Pago_abono.Abono) AS Total_Abono,Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID  INNER JOIN Reservas  on Pago_abono.ID_Reserva = Reservas.id  INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID  WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ?  and Pago_abono.Tipo_forma_pago =7  ",[id,fecha])
+    const  tarjetaCredito = await  pool.query("SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago =7",[id,fecha])
 
-    const totalOtherMedios =  await  pool.query("SELECT SUM(Pago_abono.Abono) AS Total_Abono , Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago !=1",[id,fecha])
+    const totalOtherMedios =  await  pool.query("SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago !=1; ",[id,fecha])
 
+    const carrtoTendaEfectivo =  await pool.query("SELECT sum(Precio)  AS Total_Abono , Tipo_Forma_pago.Nombre as forma_pago , Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, carrito_tienda.Nombre ,carrito_tienda.ID_Categoria from carrito_tienda INNER JOIN Tipo_categoria on Tipo_categoria.ID = carrito_tienda.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = carrito_tienda.Forma_pago WHERE carrito_tienda.ID_hotel = ? AND carrito_tienda.Fecha_compra = ? and carrito_tienda.Forma_pago =1;",[id,fecha])
+
+    const carrtoTendaEfectivoOne =  await pool.query("SELECT sum(Precio)  AS Total_Abono , Tipo_Forma_pago.Nombre as forma_pago , Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, carrito_tienda.Nombre ,carrito_tienda.ID_Categoria from carrito_tienda INNER JOIN Tipo_categoria on Tipo_categoria.ID = carrito_tienda.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = carrito_tienda.Forma_pago WHERE carrito_tienda.ID_hotel = ? AND carrito_tienda.Fecha_compra = ? and carrito_tienda.Forma_pago !=1;",[id,fecha])
+
+    const carrtoTendaEfectivoTwo =  await pool.query("SELECT sum(Precio)  AS Total_Abono , Tipo_Forma_pago.Nombre as forma_pago , Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, carrito_tienda.Nombre ,carrito_tienda.ID_Categoria from carrito_tienda INNER JOIN Tipo_categoria on Tipo_categoria.ID = carrito_tienda.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = carrito_tienda.Forma_pago WHERE carrito_tienda.ID_hotel = ? AND carrito_tienda.Fecha_compra = ? and carrito_tienda.Forma_pago =6;",[id,fecha])
+
+    const carrtoTendaEfectivoThree =  await pool.query("SELECT sum(Precio)  AS Total_Abono , Tipo_Forma_pago.Nombre as forma_pago , Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, carrito_tienda.Nombre ,carrito_tienda.ID_Categoria from carrito_tienda INNER JOIN Tipo_categoria on Tipo_categoria.ID = carrito_tienda.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = carrito_tienda.Forma_pago WHERE carrito_tienda.ID_hotel = ? AND carrito_tienda.Fecha_compra = ? and carrito_tienda.Forma_pago =7;",[id,fecha])
+
+    
     const carrtoTenda =  await pool.query("SELECT Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, carrito_tienda.Nombre ,carrito_tienda.ID_Categoria from carrito_tienda INNER JOIN  Tipo_categoria on Tipo_categoria.ID  = carrito_tienda.ID_Categoria  WHERE carrito_tienda.ID_hotel = ? AND carrito_tienda.Fecha_compra = ?",[id,fecha])
 
     const carroReserva = await pool.query("SELECT Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 ",[id,fecha])
+
+    const carroReservaEfectivo = await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago = 1; ",[id,fecha])
+
+    const carroReservaEfectivoOne = await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago != 1; ",[id,fecha])
+
+    const carroReservaEfectivoTwo= await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago =6; ",[id,fecha])
+
+    const carroReservaEfectivoThree= await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago =7; ",[id,fecha])
 
     res.status(201).json({
       ok:true,
@@ -2103,7 +2117,16 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       tarjetadebito,
       tarjetaCredito,
       carrtoTenda,
-      carroReserva
+      carroReserva,
+      carrtoTendaEfectivo,
+      carrtoTendaEfectivoOne,
+      carroReservaEfectivo,
+      carroReservaEfectivoOne,
+
+      carrtoTendaEfectivoTwo,
+      carrtoTendaEfectivoThree,
+      carroReservaEfectivoTwo,
+      carroReservaEfectivoThree
     })
     
   } catch (error) {
@@ -2173,6 +2196,7 @@ const AccountErrings = async(req, res = response) => {
   }
 
 }
+
 
 module.exports = {
   GetRooms,

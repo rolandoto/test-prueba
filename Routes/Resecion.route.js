@@ -170,7 +170,7 @@ router.post("/insertPayAbono",handInsertPayAbono)
 
 router.get("/getPayabono/:id",getpayABono)
 
-router.get("/informeConsolidadoByHotel/:id",roomAvaibleInformeConsolidado)
+router.post("/informeConsolidadoByHotel/:id",roomAvaibleInformeConsolidado)
 
 router.post("/informeAccount/:id",AccountErrings)
 
