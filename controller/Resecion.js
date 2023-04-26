@@ -2028,7 +2028,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
 
   const {id} = req.params
 
-  const fecha  ="2023-04-19"  
+  const fecha  ="2023-04-25"  
   try {
 
     const FechaInicio = `${fecha} 15:00:00`;  
