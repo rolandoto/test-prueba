@@ -10,6 +10,8 @@ const cheerio =require ('cheerio')
 const {Builder, By, Key, until} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 
+
+
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
@@ -17,6 +19,8 @@ const GetRooms = async (req, res = response) => {
       "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title FROM Habitaciones WHERE ID_Hotel = ?",
       [id]
     );
+  
+    
 
     /* id: 116,
             ID_Tipo_habitaciones: 1,
@@ -2043,7 +2047,6 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       [id,id, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
     );  
 
-
     const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
       headers: { "Content-type": "application/json" },
       timeout: 1000 // tiempo de espera de 5 segundos
@@ -2197,6 +2200,23 @@ const AccountErrings = async(req, res = response) => {
 
 }
 
+const informationByIdHotel = async(req, res = response) =>{
+
+    try {
+
+        const query =  await  pool.query("SELECT * FROM `Information_hotels` WHERE Information_hotels.id_hotel = 13;")
+
+        res.status(201).json({
+          ok:true,
+          query
+        })
+      
+    } catch (error) {
+
+      res.status(401)
+    }
+
+}
 
 module.exports = {
   GetRooms,
@@ -2245,5 +2265,6 @@ module.exports = {
   handInsertPayAbono,
   getpayABono,
   roomAvaibleInformeConsolidado,
-  AccountErrings
+  AccountErrings,
+  informationByIdHotel
 };

@@ -1,8 +1,9 @@
-const {response, json} = require('express')
+const {response, json, query} = require('express')
 const bcryptjs = require('bcryptjs')
 const Usuario = require('../model/Usuario')
 const { GenerarJwt } = require('../helper/Jwt')
 const fetch  = require('node-fetch')
+const { pool } = require('../database/connection')
 
 const LoginUsuario =async(req,res=response) =>{
     
@@ -34,6 +35,11 @@ const LoginUsuario =async(req,res=response) =>{
            }    
 
            const token = await GenerarJwt(response.id_hotel,response.user_name)
+
+           const logo  =  await pool.query("SELECT logo FROM hotels WHERE id = ?" ,[body.hotel])
+
+           const totaLogo =  logo[0]?.logo
+
     
             return res.status(201).json({
                 ok:true,
@@ -44,7 +50,8 @@ const LoginUsuario =async(req,res=response) =>{
                     id_user:response.id_user,
                     id_permissions:response.id_permissions,
                     photo:response.foto,
-                    token
+                    token,
+                    logo:totaLogo
                 }
             })
 

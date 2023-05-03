@@ -44,7 +44,8 @@ const {
   handInsertPayAbono,
   getpayABono,
   roomAvaibleInformeConsolidado,
-  AccountErrings
+  AccountErrings,
+  informationByIdHotel
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -173,5 +174,7 @@ router.get("/getPayabono/:id",getpayABono)
 router.post("/informeConsolidadoByHotel/:id",roomAvaibleInformeConsolidado)
 
 router.post("/informeAccount/:id",AccountErrings)
+
+router.get("/informationByIdHotel/:id",informationByIdHotel)
 
 module.exports = { router };  
