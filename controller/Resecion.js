@@ -2130,7 +2130,6 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       carrtoTendaEfectivoOne,
       carroReservaEfectivo,
       carroReservaEfectivoOne,
-
       carrtoTendaEfectivoTwo,
       carrtoTendaEfectivoThree,
       carroReservaEfectivoTwo,
@@ -2225,6 +2224,79 @@ const informationByIdHotel = async(req, res = response) =>{
 
 }
 
+
+
+const InformeMovimiento =async(req, res = response) =>{
+
+  const {id} = req.params
+
+  const {Nombre_recepcion,Fecha,Movimiento} = req.body
+
+  const data = {
+    Nombre_recepcion,
+    Fecha,
+    ID_hotel:id,
+    Movimiento
+  }
+
+  try {
+
+    await pool.query('INSERT INTO Informe_movimiento set ?', data, (err, customer) => {
+      if(err){
+          return res.status(401).json({
+               ok:false,
+               msg:"error al insertar datos"
+          })
+       }else{
+        return res.status(201).json({
+          ok:true
+        })
+      }   
+    })
+    res.status(201).json({
+      ok:true
+    })
+
+  } catch (error) {
+    
+    res.status(401).json({
+      ok:false
+    })
+  }
+}
+
+const PostInformeMovimiento= async (req, res = response) =>{
+
+  const {id}  = req.params
+
+  const {fecha} = req.body
+
+  try {
+
+    const query =  await pool.query("SELECT * FROM Informe_movimiento WHERE ID_hotel = ? AND DATE(Fecha) = ? ORDER BY ID DESC",[id,fecha])
+
+    if(query.length ==0){
+      return res.status(401).json({
+        ok:false
+      })
+    }
+
+    res.status(201).json({
+      ok:true,
+      query
+    })
+
+  } catch (error) {
+    
+    res.status(401).json({
+      ok:false
+    })
+
+  }
+
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -2273,5 +2345,7 @@ module.exports = {
   getpayABono,
   roomAvaibleInformeConsolidado,
   AccountErrings,
-  informationByIdHotel
+  informationByIdHotel,
+  InformeMovimiento,
+  PostInformeMovimiento
 };

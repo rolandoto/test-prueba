@@ -45,7 +45,9 @@ const {
   getpayABono,
   roomAvaibleInformeConsolidado,
   AccountErrings,
-  informationByIdHotel
+  informationByIdHotel,
+  InformeMovimiento,
+  PostInformeMovimiento
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -176,5 +178,9 @@ router.post("/informeConsolidadoByHotel/:id",roomAvaibleInformeConsolidado)
 router.post("/informeAccount/:id",AccountErrings)
 
 router.get("/informationByIdHotel/:id",informationByIdHotel)
+
+router.post("/informeMovimiento/:id",InformeMovimiento)
+
+router.post("/PostInformeMovimiento/:id",PostInformeMovimiento)
 
 module.exports = { router };  
