@@ -98,24 +98,6 @@ const validateAvaible = async (req, res = response) => {
       return index.ID;
     });
 
-    /*const ray = []
-
-            for(let i =0;i<avaible.length;i++){
-                for(let e =0;e<avaible.length;e++){
-                    if( avaible[i]?.ID  != reservation[i]?.ID_Habitaciones){
-                        ray.push(avaible[i].ID)
-                    }else{
-                    
-                    }
-                }
-            }
-
-            var unique = ray.filter((x, i) => ray.indexOf(x) === i);
-            console.log(unique);
-
-            let id_disponible = Math.min(...ray);
-            */
-
     var n1 = 2000;
     var n2 = 1000;
     var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
@@ -151,12 +133,6 @@ const validateAvaible = async (req, res = response) => {
       return index.max;
     });
 
-    var prueba = desde.split(" ", 1).toString();
-    var pruebaone = hasta.split(" ", 1).toString();
-
-    var fechaInicio = new Date(prueba);
-    var fechaFin = new Date(pruebaone);
-
     const newReservation = {
       ID_Tipo_estados: 2,
     };
@@ -179,7 +155,7 @@ const validateAvaible = async (req, res = response) => {
           Correo: huespe[i]?.Correo,
           Ciudad: huespe[i]?.Ciudad,
           ID_Prefijo: huespe[i]?.Nacionalidad,
-          Tipo_persona,
+          Tipo_persona:"",
           Firma:0
         };
 
@@ -222,7 +198,7 @@ const validateAvaible = async (req, res = response) => {
       );
     }
 
-    //https://codesandbox.io/s/add-remove-dynamic-input-fields-ho226?file=/src/App.js:1830-2096
+  
 
     const pay = {
       ID_Reserva: parseInt(result.toString()),
@@ -240,6 +216,8 @@ const validateAvaible = async (req, res = response) => {
       msg: "aceptado",
       ok: true,
     });
+
+
   } catch (error) {
     console.log(error);
     res.status(401).json({
@@ -857,7 +835,7 @@ const getDetailReservation = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC",
+      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC;",
       [id]
     );
 
@@ -1312,7 +1290,7 @@ const handDeleteReserva = async (req, res = response) => {
     await pool.query("DELETE FROM Pago_abono WHERE ID_Reserva = ?", [id]);
     await pool.query("DELETE FROM Reservas WHERE ID = ?", [id]);
     await pool.query("DELETE FROM Huespedes WHERE ID_Reserva = ?", [id]);
-   
+
     res.status(201).json({
       ok: true,
     });
