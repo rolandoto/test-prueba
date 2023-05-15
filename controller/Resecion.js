@@ -127,6 +127,7 @@ const validateAvaible = async (req, res = response) => {
 
     const to = await pool.query("INSERT INTO Reservas set ?", data);
 
+
     const query1 = await pool.query("SELECT MAX(ID) as max FROM Reservas");
 
     const result = query1.map((index) => {
