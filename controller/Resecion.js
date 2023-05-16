@@ -10,8 +10,6 @@ const cheerio =require ('cheerio')
 const {Builder, By, Key, until} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 
-
-
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
@@ -1404,18 +1402,21 @@ const handInformeCamarera = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
-  try {
-    const FechaInicio = `${fecha} 15:00:00`;
-    const FechaFinal = `${fecha} 13:00:00`;
 
-    const query = await pool.query(
-      "SELECT Reservas.ID_Tipo_Estados_Habitaciones,Reservas.Fecha_final,Reservas.Adultos,Reservas.Fecha_final,Reservas.Ninos, Reservas.Noches, web_checking.nombre,web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON  web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR  (Fecha_inicio <= ? AND Fecha_final >= ?) AND  Habitaciones.ID_Hotel =?)",
+
+  try {
+
+    const FechaIncio = `${fecha}`;
+    const FechaFinal = `${fecha}`;
+
+    const queryOne = await pool.query(
+      "SELECT Reservas.ID_Tipo_Estados_Habitaciones, Reservas.Fecha_final, Reservas.Adultos, Reservas.Fecha_final, Reservas.Ninos, Reservas.Noches, web_checking.nombre, web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) ) AND Habitaciones.ID_Hotel = ?",
       [
-        FechaInicio,
-        FechaInicio,
+        FechaIncio,
+        FechaIncio,
         FechaFinal,
         FechaFinal,
-        FechaInicio,
+        FechaIncio,
         FechaFinal,
         id
       ]
@@ -1429,7 +1430,7 @@ const handInformeCamarera = async (req, res = response) => {
     const groupedById = {};
 
     // Agrupar array1 por ID
-    query.forEach((item) => {
+    queryOne.forEach((item) => {
       if (!groupedById[item.id_habitaciones]) {
         groupedById[item.id_habitaciones] = {};
       }
@@ -1447,9 +1448,11 @@ const handInformeCamarera = async (req, res = response) => {
 
     const result = Object.values(groupedById);
 
+    console.log(result)
+
     res.status(201).json({
       ok: true,
-      result,
+      result
     });
   } catch (error) {
     res.status(401).json({

@@ -37,6 +37,7 @@
     "reverse-md5": "^0.0.5",
     "selenium-webdriver": "^4.8.1",
     "socket.io": "^4.6.1",
+    "twilio": "^3.30.0",
     "util": "^0.12.4",
     "ws": "^8.12.1"
   }
