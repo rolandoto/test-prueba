@@ -14,20 +14,13 @@ const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
     const query = await pool.query(
-      "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title FROM Habitaciones WHERE ID_Hotel = ?",
+      "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title,ID_estado_habitacion FROM Habitaciones WHERE ID_Hotel = ?",
       [id]
     );
   
-    
-
-    /* id: 116,
-            ID_Tipo_habitaciones: 1,
-            ID_Tipo_estados: 1,
-            title: '71'
-        */
     if (query.length == 0) {
       return res.status(401).json({
-        ok: false,
+        ok: false,c
       });
     }
 
@@ -42,6 +35,37 @@ const GetRooms = async (req, res = response) => {
     });
   }
 };
+
+const PostRoomDetailUpdate = async(req, res = response) => {
+
+  const  {ID_estado_habitacion,id} = req.body
+  
+  try {
+
+    const data ={
+      ID_estado_habitacion
+    }
+
+    await pool.query("UPDATE Habitaciones SET ? WHERE ID = ?", [data, id], (err, customer) => {
+      if (err) {
+        return res.status(401).json({
+          ok: false,
+          msg: "Error al insertar datos"
+        })
+      } else {
+        return res.status(201).json({
+          ok: true
+        })
+      }
+    })
+    
+  } catch (error) {
+      return res.status(401).json({
+        ok:true
+      })
+  }
+
+}
 
 const validateAvaible = async (req, res = response) => {
   const {
@@ -1305,7 +1329,7 @@ const handReservationChekin = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Reservas.id ,web_checking.Apellido , web_checking.Nombre as title,Habitaciones.Numero FROM `Reservas` INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id   INNER join  Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3  and Habitaciones.ID_Hotel = ?",
+      " ",
       [id]
     );
 
@@ -2329,5 +2353,6 @@ module.exports = {
   AccountErrings,
   informationByIdHotel,
   InformeMovimiento,
-  PostInformeMovimiento
+  PostInformeMovimiento,
+  PostRoomDetailUpdate
 };
