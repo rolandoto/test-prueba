@@ -1372,7 +1372,6 @@ const handInformeAuditoria = async (req, res = response) => {
   
     const response = roomById.data;
 
-
     const result = await pool.query(
       "SELECT Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
       [fecha, id]
@@ -1518,10 +1517,10 @@ const handRoomToSell = async (req, res = response) => {
         const FechaInicio = `${date} 15:00:00`;
 
         const query = await pool.query(
-          "SELECT GREATEST((SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ) -  (SELECT COUNT(*)  FROM Reservas  INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE Habitaciones.ID_Tipo_habitaciones = ?   AND ((Fecha_inicio >= ? AND Fecha_inicio <  ? )  OR (Fecha_final > ? AND Fecha_final <=  ?)  OR (Fecha_inicio <= ? AND Fecha_final >=  ?))), 0) AS total_disponible",
+          "SELECT GREATEST( (SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? AND ID_estado_habitacion != 2) - (SELECT COUNT(*) FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = 66 AND Habitaciones.ID_estado_habitacion != 2 AND ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final >? AND Fecha_final <=?) OR (Fecha_inicio <= ? AND Fecha_final >=?) )), 0) AS total_disponible;",
           [id_habitacion, id_habitacion, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio, FechaInicio]
         );
-
+        
         const availableRooms = query[0].total_disponible;
 
         if (!groupedData[date]) {
@@ -1715,7 +1714,6 @@ const handChangeRoom =(req, res = response) =>{
   }
 
 }
-
 
 const handCleanRoom= async(req, res = response) =>{
 
