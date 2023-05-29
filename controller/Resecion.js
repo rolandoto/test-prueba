@@ -1329,7 +1329,7 @@ const handReservationChekin = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      " ",
+      "SELECT web_checking.Nombre as title, web_checking.ID_Reserva as id, web_checking.Apellido as Apellido,Habitaciones.Numero from Reservas INNER JOIN web_checking on Reservas.ID = web_checking.ID_Reserva INNER join Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Reservas.ID_Tipo_Estados_Habitaciones = 3 and Habitaciones.ID_Hotel =?",
       [id]
     );
 
