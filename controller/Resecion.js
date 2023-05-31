@@ -495,18 +495,25 @@ const GetCanales = async (req, res = response) => {
 
 const roomAvaible = async (req, res = response) => {
   const { desde, hasta, habitaciones, ID_Habitaciones } = req.body;
-
+  
   try {
     
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
 
+
+    if(resultado[0].ID_estado_habitacion === 2){
+        return res.status(401).json({
+          ok:res.status(401)
+      })
+    }
     if (resultado[0].Num_Reservas === 0) {
       return res.status(201).json({
         ok: true,
       });
+   
     } else {
       return res.status(401).json({
         ok: false,
@@ -1425,8 +1432,6 @@ const handInformeCamarera = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
-
-
   try {
 
     const FechaIncio = `${fecha}`;
@@ -1446,7 +1451,7 @@ const handInformeCamarera = async (req, res = response) => {
     );
 
     const room = await pool.query(
-      "SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero from Habitaciones WHERE Habitaciones.ID_Hotel = ?",
+      "SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero ,ID_estado_habitacion from Habitaciones WHERE Habitaciones.ID_Hotel = ?",
       [id]
     );
 
