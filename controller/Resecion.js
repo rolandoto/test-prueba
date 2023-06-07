@@ -300,9 +300,7 @@ const validateAvaible = async (req, res = response) => {
 
       try {
         const response = await postApiWhasatapp(parametros);
-        return res.status(201).json({
-          ok:true
-        })
+       
         // Realizar acciones adicionales según sea necesario
       } catch (error) {
         return res.status(401).json({
@@ -311,6 +309,10 @@ const validateAvaible = async (req, res = response) => {
         // Manejar el error según sea necesario
       }
     }
+
+    return res.status(201).json({
+      ok:true
+    })
 
   } catch (error) {
     console.log(error);
