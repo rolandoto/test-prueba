@@ -67,6 +67,43 @@ const PostRoomDetailUpdate = async(req, res = response) => {
 
 }
 
+
+async function postApiWhasatapp({to,nombre,codigo,link,resepcion,addres}) {
+  const formData = new URLSearchParams();
+  formData.append('body', 'reserva');
+  formData.append('token', '1c38cf1f1b92656924501747a458e4a6b5ac30306d29ed668f9bd8f99f2832fc6ee451');
+  formData.append('instance', '268');
+  formData.append('to', to);
+  formData.append('language', "es");
+  formData.append('type', 'text');
+
+  const parametros = [
+    { type: 'text', text: `${nombre}` },
+    { type: 'text', text:  `${codigo}` },
+    { type: 'text', text: `${link}` },
+    { type: 'text', text: `${resepcion}` },
+    { type: 'text', text: `${addres}` }
+  ];
+
+  formData.append('parameters', JSON.stringify(parametros));
+  try {
+    const response = await fetch('https://whatslight.com/manager/ajax/chat_api.ajax.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Response is not ok');
+    }
+
+    const jsonResponse = await response.json();
+    return jsonResponse;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 const validateAvaible = async (req, res = response) => {
   const {
     desde,
@@ -88,6 +125,9 @@ const validateAvaible = async (req, res = response) => {
     valor_habitacion,
     Tipo_persona,
     valor_dia_habitacion,
+    resepcion,
+    link,
+    id_hotel
   } = req.body;
  
   const date1 = new Date(desde);
@@ -221,8 +261,6 @@ const validateAvaible = async (req, res = response) => {
       );
     }
 
-  
-
     const pay = {
       ID_Reserva: parseInt(result.toString()),
       ID_Motivo: 1,
@@ -233,13 +271,46 @@ const validateAvaible = async (req, res = response) => {
       valor_dia_habitacion: valor_dia_habitacion,
     };
 
-    const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+    const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);  
 
-    return res.status(201).json({
-      msg: "aceptado",
-      ok: true,
-    });
+    const queryOne = await pool.query("SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",[parseInt(result.toString())])
 
+    const queryAddres = await pool.query("SELECT dir , adress FROM `hotels` WHERE id =  ?",[id_hotel])
+
+    const itemAddres =  queryAddres[0]
+
+    for (let i = 0; i < queryOne?.length; i++) {
+
+      const item = queryOne[i];
+
+      const numberPhone=  item.codigo +""+item.Celular
+
+      const totalNumberPhone = numberPhone.replace("+","")
+        
+      const parametros = {
+        to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
+        nombre:`${item.Nombre} ${item.Apellido}`,
+        codigo:`X14A-${item.Num_documento}${parseInt(result.toString())}`,
+        link,
+        resepcion:resepcion,
+        addres:`${itemAddres.dir} ${itemAddres.adress}`
+      };
+
+      console.log(id_hotel)
+
+      try {
+        const response = await postApiWhasatapp(parametros);
+        return res.status(201).json({
+          ok:true
+        })
+        // Realizar acciones adicionales según sea necesario
+      } catch (error) {
+        return res.status(401).json({
+          ok:false
+        })
+        // Manejar el error según sea necesario
+      }
+    }
 
   } catch (error) {
     console.log(error);
@@ -497,6 +568,16 @@ const roomAvaible = async (req, res = response) => {
   const { desde, hasta, habitaciones, ID_Habitaciones } = req.body;
   
   try {
+
+    const date1 = new Date(desde);
+    const date2 = new Date(hasta);
+
+    if (date1 > date2) {
+      return res.status(401).json({
+        msg: "no puede ser mayor de la fecha",
+        ok: false,
+      });
+    }
     
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
@@ -865,7 +946,7 @@ const getDetailReservation = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC;",
+      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC;",
       [id]
     );
 
@@ -1634,6 +1715,7 @@ const handAlltotalReservation =async(req, res = response) =>{
       [fecha, id]
     );
 
+      
     const promise = [];
 
     const groupedById = {};
@@ -1682,14 +1764,17 @@ const handAlltotalReservation =async(req, res = response) =>{
 
     const totalDay = count + priceInformeStore +priceInformeStoreOne
 
+    
+
     res.status(201).json({
       ok:true,
       RoomBusyById,
       RoomReservationbyId,
       TotalHuespedById,
       totalDay:{
-        totalDay
-      }
+        totalDay,
+        priceInformeStore
+      },
       
     })
 
