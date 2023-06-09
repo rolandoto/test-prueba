@@ -1577,6 +1577,7 @@ const handRoomToSell = async (req, res = response) => {
   const { fechaInicio, fechaFinal } = req.body;
 
   
+
   try {
     const roomById = await axios.post(`https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`, {}, {
       headers: { "Content-type": "application/json" },
