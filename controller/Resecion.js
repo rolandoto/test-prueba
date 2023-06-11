@@ -4,11 +4,12 @@ const fetch = require("node-fetch");
 const moment = require("moment/moment");
 const { FechaFormato } = require("../middleweres/FechaFormato");
 const axios = require('axios');
-const { io } = require("..");
+
 const puppeteer = require('puppeteer');
 const cheerio =require ('cheerio')
 const {Builder, By, Key, until} = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
+const socket = require('socket.io-client')('http://localhost:3001');
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -17,7 +18,7 @@ const GetRooms = async (req, res = response) => {
       "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title,ID_estado_habitacion FROM Habitaciones WHERE ID_Hotel = ?",
       [id]
     );
-  
+
     if (query.length == 0) {
       return res.status(401).json({
         ok: false,c
@@ -26,6 +27,7 @@ const GetRooms = async (req, res = response) => {
 
     res.status(201).json({
       ok: true,
+      ro:"dsadas",
       query,
     });
   } catch (error) {
@@ -310,6 +312,7 @@ const validateAvaible = async (req, res = response) => {
       }
     }
 
+   
     return res.status(201).json({
       ok:true
     })
@@ -2161,7 +2164,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
       const id_habitacion = response[i].id_tipoHabitacion;
     
       const roomPay = await pool.query(
-        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 +  Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono, COUNT(*) AS Cantidad_Habitaciones  FROM Reservas  INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID   INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva    INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id  WHERE Habitaciones.ID_Hotel = ?  AND Pago_abono.Fecha_pago = ? AND Habitaciones.ID_Tipo_habitaciones =?",
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE Habitaciones.ID_Hotel = ? AND Pago_abono.Fecha_pago = ? AND Habitaciones.ID_Tipo_habitaciones = ?",
         [id,fecha, id_habitacion]
       );
 
@@ -2204,7 +2207,7 @@ const roomAvaibleInformeConsolidado = async(req, res = response) =>{
 
     const carroReserva = await pool.query("SELECT Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 ",[id,fecha])
 
-    const carroReservaEfectivo = await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago = 1; ",[id,fecha])
+    const carroReservaEfectivo = await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago !=1; ",[id,fecha])
 
     const carroReservaEfectivoOne = await pool.query("SELECT sum(Precio) AS Total_Abono, Fecha_compra, Precio , Cantidad ,Tipo_categoria.Nombre as nombre_categoria, Carrito_reserva.Nombre ,Carrito_reserva.ID_Categoria from Carrito_reserva INNER JOIN Tipo_categoria on Tipo_categoria.ID = Carrito_reserva.ID_Categoria INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Hoteles = ? AND Carrito_reserva.Fecha_compra = ? and Carrito_reserva.pago_deuda = 1 and Carrito_reserva.Forma_pago != 1; ",[id,fecha])
 
