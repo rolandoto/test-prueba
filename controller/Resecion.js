@@ -2393,8 +2393,37 @@ const PostInformeMovimiento= async (req, res = response) =>{
     })
 
   }
+}
 
 
+const updateReservationPunter =async(req, res = response)=>{
+
+  const {Fecha_final,id}=  req.body
+
+  let data ={
+    Fecha_final:`${Fecha_final} 13:00:00`
+  }
+
+  try {
+  
+
+    await pool.query("UPDATE Reservas SET ? WHERE ID = ?", [data, id], (err, customer) => {
+      if (err) {
+        return res.status(401).json({
+          ok: false,
+          msg: "Error al insertar datos"
+        })
+      } else {
+        return res.status(201).json({
+          ok: true
+        })
+      }
+    })
+  } catch (error) {
+    res.status(401).json({
+      ok: false,
+    });
+  }
 }
 
 module.exports = {
@@ -2448,5 +2477,6 @@ module.exports = {
   informationByIdHotel,
   InformeMovimiento,
   PostInformeMovimiento,
-  PostRoomDetailUpdate
+  PostRoomDetailUpdate,
+  updateReservationPunter
 };
