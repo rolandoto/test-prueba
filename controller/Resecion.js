@@ -587,6 +587,7 @@ const roomAvaible = async (req, res = response) => {
     );
 
 
+
     if(resultado[0].ID_estado_habitacion === 2){
         return res.status(401).json({
           ok:res.status(401)
@@ -595,7 +596,7 @@ const roomAvaible = async (req, res = response) => {
     if (resultado[0].Num_Reservas === 0) {
       return res.status(201).json({
         ok: true,
-      });
+    });
    
     } else {
       return res.status(401).json({
