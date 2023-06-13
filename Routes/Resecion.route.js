@@ -48,7 +48,8 @@ const {
   informationByIdHotel,
   InformeMovimiento,
   PostInformeMovimiento,
-  PostRoomDetailUpdate
+  PostRoomDetailUpdate,
+  updateReservationPunter
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -185,5 +186,7 @@ router.post("/informeMovimiento/:id",InformeMovimiento)
 router.post("/PostInformeMovimiento/:id",PostInformeMovimiento)
 
 router.post("/RoomDetail",PostRoomDetailUpdate)
+
+router.post("/UpdatePonter",updateReservationPunter)
 
 module.exports = { router };  
