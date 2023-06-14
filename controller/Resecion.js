@@ -142,6 +142,7 @@ const validateAvaible = async (req, res = response) => {
     resepcion,
     link,
     id_hotel,
+    nowOne
   } = req.body;
 
   const date1 = new Date(desde);
@@ -285,6 +286,20 @@ const validateAvaible = async (req, res = response) => {
     };
 
     const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+
+    const dataPayAbono ={
+      ID_Reserva: parseInt(result.toString()),
+      Abono:abono,
+      Fecha_pago:nowOne,
+      Tipo_forma_pago:ID_Tipo_Forma_pago,
+      Nombre_recepcion:resepcion
+    }
+
+    if(abono>0){
+      const payAbono =  pool.query("INSERT INTO  Pago_abono  set ?", dataPayAbono)
+    }
+
+  
 
     const queryOne = await pool.query(
       "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
@@ -2667,6 +2682,60 @@ const updateReservationPunter = async (req, res = response) => {
   }
 };
 
+
+const updateChangeTypreRange =async(req, res = response) =>{
+
+  const {desde, hasta, ID_Habitaciones, id} = req.body
+
+  try {
+
+    let data = {
+      ID_Habitaciones,
+      Fecha_inicio:desde,
+      Fecha_final:hasta
+    }
+
+
+    const resultado = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
+    );
+
+    if (resultado[0].ID_estado_habitacion === 2) {
+      return res.status(401).json({
+        ok: false
+      });
+    }
+    if (resultado[0].Num_Reservas === 0) {
+      await pool.query(
+        "UPDATE Reservas SET ? WHERE ID = ?",
+        [data, id],
+        (err, customer) => {
+          if (err) {
+            return res.status(401).json({
+              ok: false,
+              msg: "Error al insertar datos",
+            });
+          } else {
+            return res.status(201).json({
+              ok:true
+            })
+          }
+        }
+      );
+    } else {
+      return res.status(401).json({
+        ok: false,
+      });
+    }
+  } catch (e) {
+    return res.status(401).json({
+      ok: false,
+    });
+  }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -2720,4 +2789,5 @@ module.exports = {
   PostInformeMovimiento,
   PostRoomDetailUpdate,
   updateReservationPunter,
+  updateChangeTypreRange
 };

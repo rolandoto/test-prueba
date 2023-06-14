@@ -49,7 +49,8 @@ const {
   InformeMovimiento,
   PostInformeMovimiento,
   PostRoomDetailUpdate,
-  updateReservationPunter
+  updateReservationPunter,
+  updateChangeTypreRange
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -188,5 +189,7 @@ router.post("/PostInformeMovimiento/:id",PostInformeMovimiento)
 router.post("/RoomDetail",PostRoomDetailUpdate)
 
 router.post("/UpdatePonter",updateReservationPunter)
+
+router.post("/UpdatePonterRange",updateChangeTypreRange)
 
 module.exports = { router };  
