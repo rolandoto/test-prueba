@@ -14,22 +14,44 @@ const socket = require("socket.io-client")("http://localhost:3001");
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
-    const query = await pool.query(
-      "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title,ID_estado_habitacion FROM Habitaciones WHERE ID_Hotel = ?",
-      [id]
+    const response = await fetch(
+      `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
+      {
+        method: "post",
+        headers: { "Content-type": "application/json" },
+      }
+    );
+    const data = await response.json();
+
+    const rayRoom = await Promise.all(
+      data.map(async (room) => {
+        const query = await pool.query(
+          "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title, ID_estado_habitacion FROM Habitaciones WHERE ID_Tipo_habitaciones = ?   GROUP BY Habitaciones.id ASC ORDER BY Habitaciones.ID ASC",
+          [room.id_tipoHabitacion, id]
+        );
+
+        return query.map((element) => ({
+          title: `${element.title} ${room.nombre}`,
+          id: element.id,
+          ID_Tipo_estados: element.ID_Tipo_estados,
+          ID_Tipo_habitaciones: element.ID_Tipo_habitaciones,
+          ID_estado_habiatcion: element.ID_estado_habitacion,
+        }));
+      })
     );
 
-    if (query.length == 0) {
+    const flattenedRooms = rayRoom.flat().sort((a, b) => a.id - b.id);
+
+
+    if (flattenedRooms.length === 0) {
       return res.status(401).json({
         ok: false,
-        c,
       });
     }
 
     res.status(201).json({
       ok: true,
-      ro: "dsadas",
-      query,
+      query: flattenedRooms,
     });
   } catch (error) {
     res.status(401).json({
@@ -38,7 +60,6 @@ const GetRooms = async (req, res = response) => {
     });
   }
 };
-
 const PostRoomDetailUpdate = async (req, res = response) => {
   const { ID_estado_habitacion, id } = req.body;
 
@@ -142,7 +163,7 @@ const validateAvaible = async (req, res = response) => {
     resepcion,
     link,
     id_hotel,
-    nowOne
+    nowOne,
   } = req.body;
 
   const date1 = new Date(desde);
@@ -287,19 +308,20 @@ const validateAvaible = async (req, res = response) => {
 
     const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
 
-    const dataPayAbono ={
+    const dataPayAbono = {
       ID_Reserva: parseInt(result.toString()),
-      Abono:abono,
-      Fecha_pago:nowOne,
-      Tipo_forma_pago:ID_Tipo_Forma_pago,
-      Nombre_recepcion:resepcion
-    }
+      Abono: abono,
+      Fecha_pago: nowOne,
+      Tipo_forma_pago: ID_Tipo_Forma_pago,
+      Nombre_recepcion: resepcion,
+    };
 
-    if(abono>0){
-      const payAbono =  pool.query("INSERT INTO  Pago_abono  set ?", dataPayAbono)
+    if (abono > 0) {
+      const payAbono = pool.query(
+        "INSERT INTO  Pago_abono  set ?",
+        dataPayAbono
+      );
     }
-
-  
 
     const queryOne = await pool.query(
       "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
@@ -1949,10 +1971,10 @@ const handCleanRoom = async (req, res = response) => {
         ID_Reserva: parseInt(result.toString()),
         ID_Motivo: 1,
         ID_Tipo_Forma_pago: 1,
-        Valor: 00,
-        Abono: 00,
-        Valor_habitacion: 00,
-        valor_dia_habitacion: 00,
+        Valor: 0,
+        Abono: 0,
+        Valor_habitacion: 0,
+        valor_dia_habitacion: 0,
       };
 
       const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
@@ -2534,7 +2556,7 @@ const PostInformeMovimiento = async (req, res = response) => {
 };
 
 const updateReservationPunter = async (req, res = response) => {
-  const { Fecha_final, id  ,countSeguro} = req.body;
+  const { Fecha_final, id, countSeguro } = req.body;
 
   let data = {
     Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
@@ -2570,8 +2592,6 @@ const updateReservationPunter = async (req, res = response) => {
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
 
-   
-
     var fecha1 = new Date(desde);
     var fecha2 = new Date(hasta);
     var fecha3 = new Date(desdeONe);
@@ -2581,17 +2601,24 @@ const updateReservationPunter = async (req, res = response) => {
     var diasdif = fechafin.getTime() - fechaini.getTime();
     var contdias = Math.round(diasdif / (1000 * 60 * 60 * 24));
 
-    const queryPay = await pool.query("SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =?",[id])
+    const queryPay = await pool.query(
+      "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =?",
+      [id]
+    );
 
-    const Payinform =  queryPay[0]
+    const Payinform = queryPay[0];
 
-    const totalHuespedCount =  (parseInt(datainform.Adultos) + parseInt(datainform.Ninos)) * parseInt(countSeguro)
+    const totalHuespedCount =
+      (parseInt(datainform.Adultos) + parseInt(datainform.Ninos)) *
+      parseInt(countSeguro);
 
-    const totalPay = (parseInt(Payinform.valor_dia_habitacion) + parseInt(totalHuespedCount)) * contdias
+    const totalPay =
+      (parseInt(Payinform.valor_dia_habitacion) + parseInt(totalHuespedCount)) *
+      contdias;
 
-    const dataPay ={
-      Valor_habitacion:totalPay
-    }
+    const dataPay = {
+      Valor_habitacion: totalPay,
+    };
 
     if (fecha3 == fecha2) {
       res.status(401).json({
@@ -2682,30 +2709,28 @@ const updateReservationPunter = async (req, res = response) => {
   }
 };
 
-
-const updateChangeTypreRange =async(req, res = response) =>{
-
-  const {desde, hasta, ID_Habitaciones, id} = req.body
+const updateChangeTypreRange = async (req, res = response) => {
+  const { desde, hasta, ID_Habitaciones, id } = req.body;
 
   try {
-
     let data = {
       ID_Habitaciones,
-      Fecha_inicio:desde,
-      Fecha_final:hasta
-    }
-
+      Fecha_inicio: desde,
+      Fecha_final: hasta,
+    };
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
 
     if (resultado[0].ID_estado_habitacion === 2) {
       return res.status(401).json({
-        ok: false
+        ok: false,
+        message: "No se puede mover la reserva en ninguna dirección",
       });
     }
+
     if (resultado[0].Num_Reservas === 0) {
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
@@ -2714,27 +2739,59 @@ const updateChangeTypreRange =async(req, res = response) =>{
           if (err) {
             return res.status(401).json({
               ok: false,
-              msg: "Error al insertar datos",
+              message: "Error al insertar datos",
             });
           } else {
             return res.status(201).json({
-              ok:true
-            })
+              ok: true,
+              message: "Se actualizó la reserva",
+            });
           }
         }
       );
     } else {
-      return res.status(401).json({
-        ok: false,
+      const existingReservations = await pool.query(
+        "SELECT Fecha_inicio, Fecha_final FROM Reservas WHERE ID_Habitaciones = ?",
+        [ID_Habitaciones]
+      );
+
+      const isAdjacent = existingReservations.some((reservation) => {
+        const reservationStartDate = moment(reservation.Fecha_inicio).startOf(
+          "day"
+        );
+        const reservationEndDate = moment(reservation.Fecha_final).startOf(
+          "day"
+        );
+        const selectedStartDate = moment(desde).startOf("day");
+        const selectedEndDate = moment(hasta).startOf("day");
+
+        return (
+          (reservationEndDate.diff(selectedStartDate, "days") === 1 &&
+            reservationEndDate.diff(selectedEndDate, "days") === 0) ||
+          (reservationStartDate.diff(selectedEndDate, "days") === -1 &&
+            reservationStartDate.diff(selectedStartDate, "days") === 0)
+        );
       });
+
+      if (isAdjacent) {
+        return res.status(200).json({
+          ok: true,
+          message: "Puede mover la reserva en cualquier dirección",
+        });
+      } else {
+        return res.status(401).json({
+          ok: false,
+          message: "No se puede mover la reserva a ninguna dirección",
+        });
+      }
     }
   } catch (e) {
     return res.status(401).json({
       ok: false,
+      message: "Error al procesar la solicitud",
     });
   }
-
-}
+};
 
 module.exports = {
   GetRooms,
@@ -2789,5 +2846,5 @@ module.exports = {
   PostInformeMovimiento,
   PostRoomDetailUpdate,
   updateReservationPunter,
-  updateChangeTypreRange
+  updateChangeTypreRange,
 };
