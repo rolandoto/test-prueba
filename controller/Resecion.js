@@ -64,7 +64,7 @@ const PostRoomDetailUpdate = async (req, res = response) => {
   const { ID_estado_habitacion, id } = req.body;
 
   try {
-    const data = {
+    let data = {
       ID_estado_habitacion,
     };
 
@@ -84,9 +84,13 @@ const PostRoomDetailUpdate = async (req, res = response) => {
         }
       }
     );
+
+
   } catch (error) {
+
     return res.status(401).json({
-      ok: true,
+      ok: false,
+      
     });
   }
 };
@@ -255,6 +259,7 @@ const validateAvaible = async (req, res = response) => {
           ID_Prefijo: huespe[i]?.Nacionalidad,
           Tipo_persona: "",
           Firma: 0,
+          Iva:2
         };
 
         const toone = pool.query(
