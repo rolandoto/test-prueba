@@ -1546,7 +1546,7 @@ const handInformeAuditoria = async (req, res = response) => {
           Iva: date.Iva,
           Tipo_persona: date.Tipo_persona,
           Habitacion: response[i].nombre,
-          Tipo_forma_pago: date.Tipo_forma_pago,
+          Forma_pago: date.Tipo_forma_pago,
         });
       }
     }
