@@ -416,7 +416,7 @@ const getReserva = async (req, res = response) => {
 
   try {
     const response = await pool.query(
-      "SELECT web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos,  Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking  on web_checking.ID_Reserva = Reservas.id WHERE Habitaciones.ID_Hotel = ?",
+      "SELECT web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER  join  Prefijo_number on Prefijo_number.ID  = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =?",
       [id]
     );
 
@@ -453,6 +453,12 @@ const getReserva = async (req, res = response) => {
         Nombre: response[i].Nombre,
         Document: response[i].Num_documento,
         Last_name: response[i].Apellido,
+        Valor_habitacion:response[i].Valor_habitacion,
+        abono:response[i].Abono,
+        Celular:response[i].Celular,
+        codigo:response[i].codigo,
+        nacionalidad :response[i].nacionalidad
+
       });
     }
 
@@ -1497,12 +1503,13 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
 
+   
+    
+
     const queryTwo = await pool.query(
       "SELECT  SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
       [fecha, id]
     );
-
-    console.log(queryTwo);
 
     const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
@@ -1551,6 +1558,8 @@ const handInformeAuditoria = async (req, res = response) => {
       }
     }
 
+
+    console.log(groupedData)
     res.status(201).json({
       ok: true,
       result: groupedData,
