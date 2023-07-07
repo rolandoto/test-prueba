@@ -4,12 +4,13 @@ const fetch = require("node-fetch");
 const moment = require("moment/moment");
 const { FechaFormato } = require("../middleweres/FechaFormato");
 const axios = require("axios");
-
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 const socket = require("socket.io-client")("http://localhost:3001");
+const fs = require('fs');
+
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -438,7 +439,7 @@ const getReserva = async (req, res = response) => {
 
       promises.push({
         Num_Room: response[i].Numero,
-        Codigo_reservaOne: `X14A-${response[i].Num_documento}`,
+        Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
         Observation: response[i].Observacion,
         Noches: response[i].Noches,
         Adultos: response[i].Adultos,
@@ -458,7 +459,6 @@ const getReserva = async (req, res = response) => {
         Celular:response[i].Celular,
         codigo:response[i].codigo,
         nacionalidad :response[i].nacionalidad
-
       });
     }
 
@@ -1503,9 +1503,7 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
 
-   
-    
-
+  
     const queryTwo = await pool.query(
       "SELECT  SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
       [fecha, id]
@@ -2807,6 +2805,152 @@ const updateChangeTypreRange = async (req, res = response) => {
   }
 };
 
+
+const handChangeFormapago =async(req, res = response) =>{
+
+  const {ID,Tipo_forma_pago} = req.body
+
+  let data = {
+    Tipo_forma_pago
+  } 
+
+  try { 
+
+    await pool.query(
+      "UPDATE Pago_abono SET ? WHERE ID = ?",
+      [data, ID],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+            msg: "Error al actualizar datos",
+          });
+        } else {
+          return res.status(201).json({
+            ok: true,
+          });
+        }
+      }
+    );
+    
+  } catch (error) {
+
+    res.status(401).json({
+      ok:false
+    })
+
+  }
+}
+
+
+const getReservationSearch =async(req, res = response) =>{
+
+  try { 
+
+    const response = await pool.query(
+      "SELECT web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0;",
+    );
+
+    const promises = [];
+
+    
+    for (let i = 0; i < response.length; i++) {
+
+        promises.push({
+          Num_Room: response[i].Numero,
+          Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
+          Observation: response[i].Observacion,
+          Noches: response[i].Noches,
+          Adultos: response[i].Adultos,
+          Ninos: response[i].Ninos,
+          Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
+          ID: response[i].ID,
+          ID_Habitaciones: response[i].ID_Habitaciones,
+          Codigo_reserva: response[i].Codigo_reserva,
+          Fecha_inicio: response[i].Fecha_inicio,
+          Fecha_final: response[i].Fecha_final,
+          ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
+          Nombre: response[i].Nombre,
+          Document: response[i].Num_documento,
+          Last_name: response[i].Apellido,
+          Valor_habitacion:response[i].Valor_habitacion,
+          abono:response[i].Abono,
+          Celular:response[i].Celular,
+          codigo:response[i].codigo,
+          nacionalidad :response[i].nacionalidad,
+          ID_document:response[i].ID_documento,
+          ID_hotel:response[i].ID_Hotel
+        });
+    }
+
+    const query = await Promise.all(promises);
+
+    res.status(201).json({
+      ok:true,
+      query
+    })
+    
+  } catch (error) {
+    console.log("error")
+    res.status(401).json({
+      ok:false
+    })
+    
+  }
+
+}
+
+
+const UploadFile = async(req, res=response) =>{  
+
+  try {
+
+    if(!req.file){
+      return res.status(401).json({
+        ok:false
+      })
+    }
+
+    const ruta = "public/" +req.file.filename
+
+    const ID =3802 
+
+    let data ={
+      Foto_documento_adelante:ruta
+    }
+
+    await pool.query(
+      "UPDATE web_checking SET ? WHERE ID_Reserva = ?",
+      [data, ID],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+            msg: "Error al actualizar datos",
+          });
+        } else {
+          return res.status(201).json({
+            ok: true,
+          });
+        }
+      }
+    );
+
+    
+  } catch (error) {
+    res.status(401).json({
+      ok:false
+    })
+  }
+
+ 
+
+  res.status(201).json({
+    ok:true,
+    ruta
+  })
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -2861,4 +3005,7 @@ module.exports = {
   PostRoomDetailUpdate,
   updateReservationPunter,
   updateChangeTypreRange,
+  handChangeFormapago,
+  getReservationSearch,
+  UploadFile
 };

@@ -1,4 +1,19 @@
 const { check } = require("express-validator");
+const { response, query } = require("express");
+var path = require('path')
+const multer = require('multer');
+
+var storage = multer.diskStorage({
+  destination: function (req, file, callback) {
+      callback(null, './public')
+  },
+  filename: function (req, file, callback) {
+      callback(null, file.fieldname + Date.now() + path.extname(file.originalname))
+  }
+})
+
+var uploads = multer({ storage: storage })
+
 const {
   GetRooms,
   insertReservaRecepcion,
@@ -50,7 +65,10 @@ const {
   PostInformeMovimiento,
   PostRoomDetailUpdate,
   updateReservationPunter,
-  updateChangeTypreRange
+  updateChangeTypreRange,
+  handChangeFormapago,
+  getReservationSearch,
+  UploadFile
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -191,5 +209,11 @@ router.post("/RoomDetail",PostRoomDetailUpdate)
 router.post("/UpdatePonter",updateReservationPunter)
 
 router.post("/UpdatePonterRange",updateChangeTypreRange)
+
+router.post("/updateformapago",handChangeFormapago)
+
+router.get("/getReservationSearch",getReservationSearch)
+
+router.post('/uploadfile',uploads.single("myFile"),UploadFile)
 
 module.exports = { router };  
