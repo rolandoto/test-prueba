@@ -2903,30 +2903,34 @@ const getReservationSearch =async(req, res = response) =>{
 
 const UploadFile = async(req, res=response) =>{  
 
+  const  {id} =  req.body
+
   try {
 
-    if(!req.file){
+    const files = req.files;
+
+    if (!files || files.length !== 2) {
       return res.status(401).json({
-        ok:false
-      })
+        ok: false,
+        msg: 'Debe seleccionar dos imágenes',
+      });
     }
+    const rutaAdelante = 'public/' + files[0].filename;
+    const rutaAtras = 'public/' + files[1].filename;
 
-    const ruta = "public/" +req.file.filename
-
-    const ID =3802 
-
-    let data ={
-      Foto_documento_adelante:ruta
-    }
-
+    let data = {
+      Foto_documento_adelante: rutaAdelante,
+      Foto_documento_atras: rutaAtras,
+    };
+    
     await pool.query(
-      "UPDATE web_checking SET ? WHERE ID_Reserva = ?",
-      [data, ID],
+      'UPDATE web_checking SET ? WHERE ID_Reserva = ?',
+      [data, id],
       (err, customer) => {
         if (err) {
           return res.status(401).json({
             ok: false,
-            msg: "Error al actualizar datos",
+            msg: 'Error al actualizar datos',
           });
         } else {
           return res.status(201).json({
@@ -2936,19 +2940,12 @@ const UploadFile = async(req, res=response) =>{
       }
     );
 
-    
   } catch (error) {
+    console.log(error)
     res.status(401).json({
       ok:false
     })
   }
-
- 
-
-  res.status(201).json({
-    ok:true,
-    ruta
-  })
 }
 
 module.exports = {

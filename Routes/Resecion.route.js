@@ -214,6 +214,6 @@ router.post("/updateformapago",handChangeFormapago)
 
 router.get("/getReservationSearch",getReservationSearch)
 
-router.post('/uploadfile',uploads.single("myFile"),UploadFile)
+router.post('/uploadfile',uploads.array("myFile",2),UploadFile)
 
 module.exports = { router };  
