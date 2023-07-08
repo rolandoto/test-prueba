@@ -2848,7 +2848,7 @@ const getReservationSearch =async(req, res = response) =>{
   try { 
 
     const response = await pool.query(
-      "SELECT web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0;",
+      "SELECT Habitaciones.ID_Tipo_habitaciones, web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0",
     );
 
     const promises = [];
@@ -2879,7 +2879,8 @@ const getReservationSearch =async(req, res = response) =>{
           codigo:response[i].codigo,
           nacionalidad :response[i].nacionalidad,
           ID_document:response[i].ID_documento,
-          ID_hotel:response[i].ID_Hotel
+          ID_hotel:response[i].ID_Hotel,
+          ID_tipo_habitaciones:response[i].ID_Tipo_habitaciones
         });
     }
 
@@ -2915,8 +2916,8 @@ const UploadFile = async(req, res=response) =>{
         msg: 'Debe seleccionar dos imágenes',
       });
     }
-    const rutaAdelante = 'public/' + files[0].filename;
-    const rutaAtras = 'public/' + files[1].filename;
+    const rutaAdelante = 'https://test-prueba-production.up.railway.app/public/' + files[0].filename;
+    const rutaAtras = 'https://test-prueba-production.up.railway.app/public/' + files[1].filename;
 
     let data = {
       Foto_documento_adelante: rutaAdelante,
