@@ -1045,33 +1045,16 @@ const getCountry = async (req, res = response) => {
 };
 
 const updateDetailReservation = async (req, res = response) => {
-  const { id } = req.params;
-
-  const data = req.body;
-
   try {
-    await pool.query("UPDATE web_checking SET ? WHERE ID = ?", [data, id]);
+    const { id } = req.params;
+    const data = req.body;
 
-    await pool.query(
-      "UPDATE web_checking SET ? WHERE ID_Reserva = ?",
-      [data, id],
-      (err, customer) => {
-        if (err) {
-          return res.status(401).json({
-            ok: false,
-            msg: "Error al insertar datos",
-          });
-        } else {
-          return res.status(201).json({
-            ok: true,
-          });
-        }
-      }
-    );
+    await pool.query("UPDATE web_checking SET ? WHERE ID = ?", [data, id]);
+    await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [data, id]);
+
+    res.status(201).json({ ok: true });
   } catch (error) {
-    res.status(401).json({
-      ok: false,
-    });
+    res.status(500).json({ ok: false });
   }
 };
 
