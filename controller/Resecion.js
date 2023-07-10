@@ -1015,7 +1015,7 @@ const getDetailReservation = async (req, res = response) => {
     );
 
     if (query.length == 0) {
-      return res.status(201).json({
+      return res.status(401).json({
         ok: false,
         msg: "no se encontro ninguna informacion",
       });

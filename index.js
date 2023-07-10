@@ -27,8 +27,6 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // parse application/json
 var port_number = app.listen(process.env.PORT || 5000);
 
-
-
 //initial port
 app.listen(port_number);
 
