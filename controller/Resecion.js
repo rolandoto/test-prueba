@@ -2797,9 +2797,13 @@ const handChangeFormapago =async(req, res = response) =>{
     Tipo_forma_pago
   } 
 
-  console.log(req.body)
-
   try { 
+
+  if(!Tipo_forma_pago){
+      return res.status(401).json({
+        ok:false
+      })
+    }
 
     await pool.query(
       "UPDATE Pago_abono SET ? WHERE ID = ?",
