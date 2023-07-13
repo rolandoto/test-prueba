@@ -1176,6 +1176,7 @@ const insertCartReservation = async (req, res = response) => {
         Fecha_compra,
         Forma_pago: 1,
         Nombre_recepcion,
+        img_product:Cart[i]?.img
       };
 
       const id = Cart[i].ID;
@@ -1250,7 +1251,7 @@ const getCartReservaction = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Tipo_Forma_pago.Nombre as  forma_pago,  Carrito_reserva.Nombre_recepcion, Carrito_reserva.ID, Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre,Carrito_reserva.pago_deuda,Carrito_reserva.Forma_pago FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER JOIN Tipo_Forma_pago on  Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago  WHERE Carrito_reserva.ID_Reserva = ?",
+      "SELECT Tipo_Forma_pago.Nombre as forma_pago, Carrito_reserva.Nombre_recepcion, Carrito_reserva.ID, Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre,Carrito_reserva.pago_deuda,Carrito_reserva.Forma_pago , Carrito_reserva.img_product FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER JOIN Tipo_Forma_pago on Tipo_Forma_pago.ID = Carrito_reserva.Forma_pago WHERE Carrito_reserva.ID_Reserva = ?",
       id
     );
 
