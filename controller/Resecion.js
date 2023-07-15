@@ -260,7 +260,7 @@ const validateAvaible = async (req, res = response) => {
           ID_Prefijo: huespe[i]?.Nacionalidad,
           Tipo_persona: "",
           Firma: 0,
-          Iva:1
+          Iva:2
         };
 
         const toone = pool.query(
@@ -2940,10 +2940,18 @@ const UploadFile = async(req, res=response) =>{
 }
 
 
-const ValidCheckingAll  =(req, res=response) => {
+const ValidCheckingAll  =async (req, res=response) => {
 
   const {id} = req.params
-  console.log(id)
+  
+  const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[id])
+
+  if(query.length > 0){
+    return res.status(401).json({
+      ok:false
+    })
+  }
+
   return res.status(201).json({
     ok:true
   })
