@@ -2713,13 +2713,8 @@ const updateChangeTypreRange = async (req, res = response) => {
   console.log(ID_Habitaciones)
   console.log(ID_estado_habiatcion)
 
-  const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
+  //const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
 
-  if(ID_estado_habiatcion ==3){
-    return res.status(401).json({
-      ok:false
-    })
-  }
   
   try {
     let data = {
