@@ -260,7 +260,7 @@ const validateAvaible = async (req, res = response) => {
           ID_Prefijo: huespe[i]?.Nacionalidad,
           Tipo_persona: "",
           Firma: 0,
-          Iva:2
+          Iva:1
         };
 
         const toone = pool.query(
@@ -1165,6 +1165,7 @@ const insertCartReservation = async (req, res = response) => {
 
   try {
     for (let i = 0; i < Cart.length; i++) {
+
       let data = {
         ID_Reserva: ID_Reserva,
         Nombre: Cart[i]?.Nombre,
@@ -2708,6 +2709,10 @@ const updateReservationPunter = async (req, res = response) => {
 const updateChangeTypreRange = async (req, res = response) => {
   const { desde, hasta, ID_Habitaciones, id } = req.body;
 
+
+  console.log(id)
+  console.log(ID_Habitaciones)
+
   try {
     let data = {
       ID_Habitaciones,
@@ -2884,11 +2889,8 @@ const getReservationSearch =async(req, res = response) =>{
     res.status(401).json({
       ok:false
     })
-    
   }
-
 }
-
 
 const UploadFile = async(req, res=response) =>{  
 
@@ -2935,6 +2937,17 @@ const UploadFile = async(req, res=response) =>{
       ok:false
     })
   }
+}
+
+
+const ValidCheckingAll  =(req, res=response) => {
+
+  const {id} = req.params
+  console.log(id)
+  return res.status(201).json({
+    ok:true
+  })
+
 }
 
 module.exports = {
@@ -2993,5 +3006,6 @@ module.exports = {
   updateChangeTypreRange,
   handChangeFormapago,
   getReservationSearch,
-  UploadFile
+  UploadFile,
+  ValidCheckingAll
 };

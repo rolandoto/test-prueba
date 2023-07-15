@@ -68,7 +68,8 @@ const {
   updateChangeTypreRange,
   handChangeFormapago,
   getReservationSearch,
-  UploadFile
+  UploadFile,
+  ValidCheckingAll
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -215,5 +216,7 @@ router.post("/updateformapago",handChangeFormapago)
 router.get("/getReservationSearch",getReservationSearch)
 
 router.post('/uploadfile',uploads.array("myFile",2),UploadFile)
+
+router.post("/validChecking/:id",ValidCheckingAll)
 
 module.exports = { router };  
