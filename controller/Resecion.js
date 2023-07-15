@@ -2707,18 +2707,28 @@ const updateReservationPunter = async (req, res = response) => {
 };
 
 const updateChangeTypreRange = async (req, res = response) => {
-  const { desde, hasta, ID_Habitaciones, id } = req.body;
-
+  const { desde, hasta, ID_Habitaciones, id,ID_estado_habiatcion } = req.body;
 
   console.log(id)
   console.log(ID_Habitaciones)
+  console.log(ID_estado_habiatcion)
 
+  const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
+
+  if(ID_estado_habiatcion ==3){
+    return res.status(401).json({
+      ok:false
+    })
+  }
+  
   try {
     let data = {
       ID_Habitaciones,
       Fecha_inicio: desde,
       Fecha_final: hasta,
     };
+
+  
 
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))",
