@@ -69,7 +69,8 @@ const {
   handChangeFormapago,
   getReservationSearch,
   UploadFile,
-  ValidCheckingAll
+  ValidCheckingAll,
+  UploadFileSignature
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -216,6 +217,8 @@ router.post("/updateformapago",handChangeFormapago)
 router.get("/getReservationSearch",getReservationSearch)
 
 router.post('/uploadfile',uploads.array("myFile",2),UploadFile)
+
+router.post('/uploadfileSignature',uploads.array("myFile",1),UploadFileSignature)
 
 router.post("/validChecking/:id",ValidCheckingAll)
 

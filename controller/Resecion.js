@@ -1010,7 +1010,7 @@ const getDetailReservation = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC;",
+      "SELECT Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo  FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? ORDER  by web_checking.ID DESC;",
       [id]
     );
 
@@ -2709,26 +2709,37 @@ const updateReservationPunter = async (req, res = response) => {
 const updateChangeTypreRange = async (req, res = response) => {
   const { desde, hasta, ID_Habitaciones, id,ID_estado_habiatcion } = req.body;
 
-  console.log(id)
-  console.log(ID_Habitaciones)
-  console.log(ID_estado_habiatcion)
-
   const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
 
-  if(ID_estado_habiatcion ==3){
+  const idhabitacionesEstado = valid[0].ID_Tipo_Estados_Habitaciones
+  const idhabtiaciones = valid[0].ID_Habitaciones
+
+  if(idhabitacionesEstado==3){
+    let data = {
+      ID_estado_habitacion:0
+    }
+    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [data, idhabtiaciones]);
+
+    let dataOne = {
+      ID_estado_habitacion:3
+    }
+    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [dataOne, ID_Habitaciones]);
+  }
+
+  const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[ID_Habitaciones])
+
+  if(query.length > 0){
     return res.status(401).json({
       ok:false
     })
   }
-  
+
   try {
     let data = {
       ID_Habitaciones,
       Fecha_inicio: desde,
       Fecha_final: hasta,
     };
-
-  
 
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))",
@@ -2804,7 +2815,6 @@ const updateChangeTypreRange = async (req, res = response) => {
   }
 };
 
-
 const handChangeFormapago =async(req, res = response) =>{
 
   const {ID,Tipo_forma_pago} = req.body
@@ -2813,7 +2823,7 @@ const handChangeFormapago =async(req, res = response) =>{
     Tipo_forma_pago
   } 
 
-  try { 
+  try {   
 
   if(!Tipo_forma_pago){
       return res.status(401).json({
@@ -2916,6 +2926,7 @@ const UploadFile = async(req, res=response) =>{
         msg: 'Debe seleccionar dos imágenes',
       });
     }
+
     const rutaAdelante = 'https://test-prueba-production.up.railway.app/public/' + files[0].filename;
     const rutaAtras = 'https://test-prueba-production.up.railway.app/public/' + files[1].filename;
 
@@ -2949,6 +2960,50 @@ const UploadFile = async(req, res=response) =>{
   }
 }
 
+
+const UploadFileSignature = async(req, res=response) =>{  
+
+  const  {id} = req.body
+
+  try {
+
+    const {myFile} = req.body;
+
+    if (!myFile) {
+      return res.status(401).json({
+        ok: false,
+        msg: 'Debe seleccionar una imagen',
+      });
+    }
+
+    let data = {
+      Pasaporte: myFile,
+    };
+    
+    await pool.query(
+      'UPDATE web_checking SET ? WHERE ID_Reserva = ?',
+      [data, id],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+            msg: 'Error al actualizar datos',
+          });
+        } else {
+          return res.status(201).json({
+            ok: true,
+          });
+        }
+      }
+    );
+
+  } catch (error) {
+    console.log(error)
+    res.status(401).json({
+      ok:false
+    })
+  }
+}
 
 const ValidCheckingAll  =async (req, res=response) => {
 
@@ -3025,5 +3080,7 @@ module.exports = {
   handChangeFormapago,
   getReservationSearch,
   UploadFile,
+  UploadFileSignature,
   ValidCheckingAll
+
 };
