@@ -116,14 +116,15 @@ async function postApiWhasatapp({
   formData.append("type", "text");
 
   const parametros = [
-    { type: "text", text: `${nombre}` },
-    { type: "text", text: `${codigo}` },
-    { type: "text", text: `${link}` },
-    { type: "text", text: `${resepcion}` },
-    { type: "text", text: `${addres}` },
+    { type: "text", text: nombre },
+    { type: "text", text: codigo },
+    { type: "text", text: link },
+    { type: "text", text: resepcion },
+    { type: "text", text: addres },
   ];
 
   formData.append("parameters", JSON.stringify(parametros));
+
   try {
     const response = await fetch(
       "https://whatslight.com/manager/ajax/chat_api.ajax.php",
@@ -140,7 +141,8 @@ async function postApiWhasatapp({
     const jsonResponse = await response.json();
     return jsonResponse;
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    throw error;
   }
 }
 
@@ -357,10 +359,9 @@ const validateAvaible = async (req, res = response) => {
         addres: `${itemAddres.dir} ${itemAddres.adress}`,
       };
 
-      console.log(id_hotel);
 
       try {
-        const response = await postApiWhasatapp(parametros);
+        await postApiWhasatapp(parametros);
 
         // Realizar acciones adicionales según sea necesario
       } catch (error) {
