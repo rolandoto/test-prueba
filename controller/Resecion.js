@@ -2734,6 +2734,7 @@ const updateChangeTypreRange = async (req, res = response) => {
     })
   }
 
+
   try {
     let data = {
       ID_Habitaciones,
