@@ -96,53 +96,6 @@ const PostRoomDetailUpdate = async (req, res = response) => {
   }
 };
 
-async function postApiWhasatapp({
-  to,
-  nombre,
-  codigo,
-  link,
-  resepcion,
-  addres,
-}) {
-  const formData = new URLSearchParams();
-  formData.append("body", "reserva");
-  formData.append(
-    "token",
-    "1c38cf1f1b92656924501747a458e4a6b5ac30306d29ed668f9bd8f99f2832fc6ee451"
-  );
-  formData.append("instance", "268");
-  formData.append("to", to);
-  formData.append("language", "es");
-  formData.append("type", "text");
-
-  const parametros = [
-    { type: "text", text: `${nombre}` },
-    { type: "text", text: `${codigo}` },
-    { type: "text", text: `${link}` },
-    { type: "text", text: `${resepcion}` },
-    { type: "text", text: `${addres}` },
-  ];
-
-  formData.append("parameters", JSON.stringify(parametros));
-  try {
-    const response = await fetch(
-      "https://whatslight.com/manager/ajax/chat_api.ajax.php",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Response is not ok");
-    }
-
-    const jsonResponse = await response.json();
-    return jsonResponse;
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 const validateAvaible = async (req, res = response) => {
   const {
@@ -360,7 +313,8 @@ const validateAvaible = async (req, res = response) => {
       console.log(id_hotel);
 
       try {
-        const response = await postApiWhasatapp(parametros);
+        
+       await postApiWhasatapp(parametros);
 
         // Realizar acciones adicionales según sea necesario
       } catch (error) {
@@ -382,6 +336,56 @@ const validateAvaible = async (req, res = response) => {
     });
   }
 };
+
+
+async function postApiWhasatapp({
+  to,
+  nombre,
+  codigo,
+  link,
+  resepcion,
+  addres,
+}) {
+  const formData = new URLSearchParams();
+  formData.append("body", "reserva");
+  formData.append(
+    "token",
+    "1c38cf1f1b92656924501747a458e4a6b5ac30306d29ed668f9bd8f99f2832fc6ee451"
+  );
+  formData.append("instance", "268");
+  formData.append("to", to);
+  formData.append("language", "es");
+  formData.append("type", "text");
+
+  const parametros = [
+    { type: "text", text: `${nombre}` },
+    { type: "text", text: `${codigo}` },
+    { type: "text", text: `${link}` },
+    { type: "text", text: `${resepcion}` },
+    { type: "text", text: `${addres}` },
+  ];
+
+  formData.append("parameters", JSON.stringify(parametros));
+  try {
+    const response = await fetch(
+      "https://whatslight.com/manager/ajax/chat_api.ajax.php",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Response is not ok");
+    }
+
+    const jsonResponse = await response.json();
+    return jsonResponse;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 
 const insertReservaRecepcion = async (req, res = response) => {
   try {
