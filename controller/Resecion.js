@@ -116,15 +116,14 @@ async function postApiWhasatapp({
   formData.append("type", "text");
 
   const parametros = [
-    { type: "text", text: nombre },
-    { type: "text", text: codigo },
-    { type: "text", text: link },
-    { type: "text", text: resepcion },
-    { type: "text", text: addres },
+    { type: "text", text: `${nombre}` },
+    { type: "text", text: `${codigo}` },
+    { type: "text", text: `${link}` },
+    { type: "text", text: `${resepcion}` },
+    { type: "text", text: `${addres}` },
   ];
 
   formData.append("parameters", JSON.stringify(parametros));
-
   try {
     const response = await fetch(
       "https://whatslight.com/manager/ajax/chat_api.ajax.php",
@@ -141,8 +140,7 @@ async function postApiWhasatapp({
     const jsonResponse = await response.json();
     return jsonResponse;
   } catch (error) {
-    console.error(error);
-    throw error;
+    console.log(error);
   }
 }
 
@@ -359,9 +357,10 @@ const validateAvaible = async (req, res = response) => {
         addres: `${itemAddres.dir} ${itemAddres.adress}`,
       };
 
+      console.log(id_hotel);
 
       try {
-        await postApiWhasatapp(parametros);
+        const response = await postApiWhasatapp(parametros);
 
         // Realizar acciones adicionales según sea necesario
       } catch (error) {
@@ -2709,6 +2708,7 @@ const updateReservationPunter = async (req, res = response) => {
 
 const updateChangeTypreRange = async (req, res = response) => {
   const { desde, hasta, ID_Habitaciones, id,ID_estado_habiatcion } = req.body;
+
 
   const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
 
