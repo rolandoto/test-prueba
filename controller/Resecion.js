@@ -313,7 +313,10 @@ const validateAvaible = async (req, res = response) => {
       console.log(id_hotel);
 
       try {
-        
+
+        return res.status(201).json({
+          ok: true
+        });
        
         // Realizar acciones adicionales según sea necesario
       } catch (error) {
