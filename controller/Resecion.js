@@ -310,8 +310,6 @@ const validateAvaible = async (req, res = response) => {
         addres: `${itemAddres.dir} ${itemAddres.adress}`,
       };
 
-      console.log(id_hotel);
-
       try {
         
        await postApiWhasatapp(parametros);
@@ -2739,7 +2737,6 @@ const updateChangeTypreRange = async (req, res = response) => {
     })
   }
 
-
   try {
     let data = {
       ID_Habitaciones,
@@ -2807,6 +2804,7 @@ const updateChangeTypreRange = async (req, res = response) => {
           message: "Puede mover la reserva en cualquier dirección",
         });
       } else {
+        console.log("error")
         return res.status(401).json({
           ok: false,
           message: "No se puede mover la reserva a ninguna dirección",
