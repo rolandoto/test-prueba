@@ -2733,13 +2733,14 @@ const updateChangeTypreRange = async (req, res = response) => {
     await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [dataOne, ID_Habitaciones]);
   }
 
-  const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[ID_Habitaciones])
+ const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[ID_Habitaciones])
 
-  if(query.length > 0){
-    return res.status(401).json({
-      ok:false
-    })
-  }
+//  if(query.length > 0){
+//    console.log("error")
+//    return res.status(401).json({
+//      ok:false
+//    })
+//  }
 
   try {
     let data = {
