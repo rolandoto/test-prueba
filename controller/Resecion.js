@@ -312,6 +312,8 @@ const validateAvaible = async (req, res = response) => {
 
       try {
 
+        await postApiWhasatapp(parametros)
+
         return res.status(201).json({
           ok: true
         });
