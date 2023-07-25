@@ -349,7 +349,7 @@ async function postApiWhasatapp({
   addres,
 }) {
   const formData = new URLSearchParams();
-  formData.append("body", "reserva");
+  formData.append("body", "check_reserva_v2");
   formData.append(
     "token",
     "1c38cf1f1b92656924501747a458e4a6b5ac30306d29ed668f9bd8f99f2832fc6ee451"
