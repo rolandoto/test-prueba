@@ -134,202 +134,215 @@ const validateAvaible = async (req, res = response) => {
         ok: false,
       });
     }
-    //reservas
-    let desdeSinHora = desde.split(" ", 1);
-    let hastaSinHora = hasta.split(" ", 1);
 
-    //const reservation = await pool.query("SELECT Reservas.ID_Habitaciones,  Reservas.ID, Reservas.Codigo_reserva FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones =? AND Reservas.Fecha_inicio BETWEEN ? AND ? OR Reservas.Fecha_final BETWEEN ? AND ?",[habitaciones, desde, hasta, desde, hasta])
-    const reservation = await pool.query(
-      "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
-      [habitaciones, desdeSinHora, hastaSinHora]
+    const resultado = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
     );
+  
+    if (resultado[0].Num_Reservas == 0) {
+        let desdeSinHora = desde.split(" ", 1);
+        let hastaSinHora = hasta.split(" ", 1);
 
-    //disponibilidad
-    const avaible = await pool.query(
-      "SELECT ID  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
-      [habitaciones]
-    );
+        //const reservation = await pool.query("SELECT Reservas.ID_Habitaciones,  Reservas.ID, Reservas.Codigo_reserva FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones =? AND Reservas.Fecha_inicio BETWEEN ? AND ? OR Reservas.Fecha_final BETWEEN ? AND ?",[habitaciones, desde, hasta, desde, hasta])
+        const reservation = await pool.query(
+          "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
+          [habitaciones, desdeSinHora, hastaSinHora]
+        );
 
-    let result1 = avaible.map((index) => {
-      return index.ID;
-    });
+        //disponibilidad
+        const avaible = await pool.query(
+          "SELECT ID  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
+          [habitaciones]
+        );
 
-    var n1 = 2000;
-    var n2 = 1000;
-    var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
+        let result1 = avaible.map((index) => {
+          return index.ID;
+        });
 
-    let id_disponible = disponibilidad;
+        var n1 = 2000;
+        var n2 = 1000;
+        var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
 
-    if (reservation.length == 0) {
-      id_disponible = id_disponible;
-    }
+        let id_disponible = disponibilidad;
 
-    const data = {
-      ID_Usuarios: 1,
-      ID_Habitaciones: parseInt(id_disponible.toString()),
-      ID_Talla_mascota: ID_Talla_mascota,
-      Codigo_reserva: numero,
-      Adultos: Adultos,
-      Ninos: Ninos,
-      Infantes: Infantes,
-      Fecha_inicio: desde,
-      Fecha_final: hasta,
-      Noches: Noches,
-      Descuento: 0,
-      ID_Canal: ID_Canal,
-      ID_Tipo_Estados_Habitaciones: id_estados_habitaciones,
-      Observacion: Observacion,
-    };
+        if (reservation.length == 0) {
+          id_disponible = id_disponible;
+        }
 
-    const to = await pool.query("INSERT INTO Reservas set ?", data);
-
-    const query1 = await pool.query("SELECT MAX(ID) as max FROM Reservas");
-
-    const result = query1.map((index) => {
-      return index.max;
-    });
-
-    const newReservation = {
-      ID_Tipo_estados: 2,
-    };
-
-    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
-      newReservation,
-      data.ID_Habitaciones,
-    ]);
-
-    for (let i = 0; i < huespe?.length; i++) {
-      if (i == 0) {
-        const date = {
-          ID_Reserva: parseInt(result.toString()),
-          ID_Tipo_documento: huespe[i]?.Tipo_documento,
-          Num_documento: huespe[i]?.Num_documento,
-          Nombre: huespe[i]?.Nombre,
-          Apellido: huespe[i]?.Apellido,
-          Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
-          Celular: huespe[i]?.Celular,
-          Correo: huespe[i]?.Correo,
-          Ciudad: huespe[i]?.Ciudad,
-          ID_Prefijo: huespe[i]?.Nacionalidad,
-          Tipo_persona: "",
-          Firma: 0,
-          Iva:2
+        const data = {
+          ID_Usuarios: 1,
+          ID_Habitaciones: parseInt(id_disponible.toString()),
+          ID_Talla_mascota: ID_Talla_mascota,
+          Codigo_reserva: numero,
+          Adultos: Adultos,
+          Ninos: Ninos,
+          Infantes: Infantes,
+          Fecha_inicio: desde,
+          Fecha_final: hasta,
+          Noches: Noches,
+          Descuento: 0,
+          ID_Canal: ID_Canal,
+          ID_Tipo_Estados_Habitaciones: id_estados_habitaciones,
+          Observacion: Observacion,
         };
 
-        const toone = pool.query(
-          "INSERT INTO  web_checking set ?",
-          date,
-          (q_err, q_res) => {
-            if (q_err)
-              return res.status(401).json({
-                ok: false,
-              });
+        const to = await pool.query("INSERT INTO Reservas set ?", data);
+
+        const query1 = await pool.query("SELECT MAX(ID) as max FROM Reservas");
+
+        const result = query1.map((index) => {
+          return index.max;
+        });
+
+        const newReservation = {
+          ID_Tipo_estados: 2,
+        };
+
+        await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+          newReservation,
+          data.ID_Habitaciones,
+        ]);
+
+        for (let i = 0; i < huespe?.length; i++) {
+          if (i == 0) {
+            const date = {
+              ID_Reserva: parseInt(result.toString()),
+              ID_Tipo_documento: huespe[i]?.Tipo_documento,
+              Num_documento: huespe[i]?.Num_documento,
+              Nombre: huespe[i]?.Nombre,
+              Apellido: huespe[i]?.Apellido,
+              Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
+              Celular: huespe[i]?.Celular,
+              Correo: huespe[i]?.Correo,
+              Ciudad: huespe[i]?.Ciudad,
+              ID_Prefijo: huespe[i]?.Nacionalidad,
+              Tipo_persona: "persona",
+              Firma: 0,
+              Iva:2
+            };
+
+            const toone = pool.query(
+              "INSERT INTO  web_checking set ?",
+              date,
+              (q_err, q_res) => {
+                if (q_err)
+                  return res.status(401).json({
+                    ok: false,
+                  });
+              }
+            );
           }
+
+          const huep = {
+            ID_Reserva: parseInt(result.toString()),
+            ID_Tipo_documento: huespe[i]?.Tipo_documento,
+            ID_Tipo_genero: 1,
+            Num_documento: huespe[i]?.Num_documento,
+            Nombre: huespe[i]?.Nombre,
+            Apellido: huespe[i]?.Apellido,
+            Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
+            Celular: huespe[i]?.Celular,
+            Correo: huespe[i]?.Correo,
+            Ciudad: huespe[i]?.Ciudad,
+            ID_Prefijo: huespe[i]?.Nacionalidad,
+          };
+
+          const totwo = pool.query(
+            "INSERT INTO  Huespedes  set ?",
+            huep,
+            (q_err, q_res) => {
+              if (q_err)
+                return res.status(401).json({
+                  ok: false,
+                  msg: "error de web huespedes",
+                });
+            }
+          );
+        }
+
+        const pay = {
+          ID_Reserva: parseInt(result.toString()),
+          ID_Motivo: 1,
+          ID_Tipo_Forma_pago,
+          Valor: valor,
+          Abono: abono,
+          Valor_habitacion: valor_habitacion,
+          valor_dia_habitacion: valor_dia_habitacion,
+        };
+
+        const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+
+        const dataPayAbono = {
+          ID_Reserva: parseInt(result.toString()),
+          Abono: abono,
+          Fecha_pago: nowOne,
+          Tipo_forma_pago: ID_Tipo_Forma_pago,
+          Nombre_recepcion: resepcion,
+        };
+
+        if (abono > 0) {
+          const payAbono = pool.query(
+            "INSERT INTO  Pago_abono  set ?",
+            dataPayAbono
+          );
+        }
+
+        const queryOne = await pool.query(
+          "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
+          [parseInt(result.toString())]
         );
-      }
 
-      const huep = {
-        ID_Reserva: parseInt(result.toString()),
-        ID_Tipo_documento: huespe[i]?.Tipo_documento,
-        ID_Tipo_genero: 1,
-        Num_documento: huespe[i]?.Num_documento,
-        Nombre: huespe[i]?.Nombre,
-        Apellido: huespe[i]?.Apellido,
-        Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
-        Celular: huespe[i]?.Celular,
-        Correo: huespe[i]?.Correo,
-        Ciudad: huespe[i]?.Ciudad,
-        ID_Prefijo: huespe[i]?.Nacionalidad,
-      };
+        const queryAddres = await pool.query(
+          "SELECT dir , adress FROM `hotels` WHERE id =  ?",
+          [id_hotel]
+        );
 
-      const totwo = pool.query(
-        "INSERT INTO  Huespedes  set ?",
-        huep,
-        (q_err, q_res) => {
-          if (q_err)
+        const itemAddres = queryAddres[0];
+
+        for (let i = 0; i < queryOne?.length; i++) {
+          const item = queryOne[i];
+
+          const numberPhone = item.codigo + "" + item.Celular;
+
+          const totalNumberPhone = numberPhone.replace("+", "");
+
+          const parametros = {
+            to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
+            nombre: `${item.Nombre} ${item.Apellido}`,
+            codigo: `X14A-${item.Num_documento}${parseInt(result.toString())}`,
+            link,
+            resepcion: resepcion,
+            addres: `${itemAddres.dir} ${itemAddres.adress}`,
+          };
+
+          try {
+
+            await postApiWhasatapp(parametros)
+
+            return res.status(201).json({
+              ok: true
+            });
+          
+            // Realizar acciones adicionales según sea necesario
+          } catch (error) {
             return res.status(401).json({
               ok: false,
-              msg: "error de web huespedes",
             });
+            // Manejar el error según sea necesario
+          }
         }
-      );
-    }
-
-    const pay = {
-      ID_Reserva: parseInt(result.toString()),
-      ID_Motivo: 1,
-      ID_Tipo_Forma_pago,
-      Valor: valor,
-      Abono: abono,
-      Valor_habitacion: valor_habitacion,
-      valor_dia_habitacion: valor_dia_habitacion,
-    };
-
-    const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
-
-    const dataPayAbono = {
-      ID_Reserva: parseInt(result.toString()),
-      Abono: abono,
-      Fecha_pago: nowOne,
-      Tipo_forma_pago: ID_Tipo_Forma_pago,
-      Nombre_recepcion: resepcion,
-    };
-
-    if (abono > 0) {
-      const payAbono = pool.query(
-        "INSERT INTO  Pago_abono  set ?",
-        dataPayAbono
-      );
-    }
-
-    const queryOne = await pool.query(
-      "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
-      [parseInt(result.toString())]
-    );
-
-    const queryAddres = await pool.query(
-      "SELECT dir , adress FROM `hotels` WHERE id =  ?",
-      [id_hotel]
-    );
-
-    const itemAddres = queryAddres[0];
-
-    for (let i = 0; i < queryOne?.length; i++) {
-      const item = queryOne[i];
-
-      const numberPhone = item.codigo + "" + item.Celular;
-
-      const totalNumberPhone = numberPhone.replace("+", "");
-
-      const parametros = {
-        to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
-        nombre: `${item.Nombre} ${item.Apellido}`,
-        codigo: `X14A-${item.Num_documento}${parseInt(result.toString())}`,
-        link,
-        resepcion: resepcion,
-        addres: `${itemAddres.dir} ${itemAddres.adress}`,
-      };
-
-      try {
-
-        await postApiWhasatapp(parametros)
 
         return res.status(201).json({
-          ok: true
+          ok: true,
         });
-       
-        // Realizar acciones adicionales según sea necesario
-      } catch (error) {
-        return res.status(401).json({
-          ok: false,
-        });
-        // Manejar el error según sea necesario
-      }
+      
+    }else {
+      return res.status(401).json({
+        ok:false
+      })
     }
-
-    return res.status(201).json({
-      ok: true,
-    });
+    
   } catch (error) {
     console.log(error);
     res.status(401).json({
