@@ -96,7 +96,6 @@ const PostRoomDetailUpdate = async (req, res = response) => {
   }
 };
 
-
 const validateAvaible = async (req, res = response) => {
   const {
     desde,
