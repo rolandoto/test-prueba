@@ -70,7 +70,8 @@ const {
   getReservationSearch,
   UploadFile,
   ValidCheckingAll,
-  UploadFileSignature
+  UploadFileSignature,
+  KPIgetUser
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -221,5 +222,7 @@ router.post('/uploadfile',uploads.array("myFile",2),UploadFile)
 router.post('/uploadfileSignature',uploads.array("myFile",1),UploadFileSignature)
 
 router.post("/validChecking/:id",ValidCheckingAll)
+
+router.post("/userIdKpi/",KPIgetUser)
 
 module.exports = { router };  

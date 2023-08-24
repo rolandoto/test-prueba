@@ -10,7 +10,7 @@ const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 const socket = require("socket.io-client")("http://localhost:3001");
 const fs = require('fs');
-
+const uuid = require('uuid')
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -163,6 +163,8 @@ const validateAvaible = async (req, res = response) => {
         var n2 = 1000;
         var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
 
+        const uniqueId = uuid.v4();
+
         let id_disponible = disponibilidad;
 
         if (reservation.length == 0) {
@@ -188,11 +190,8 @@ const validateAvaible = async (req, res = response) => {
 
         const to = await pool.query("INSERT INTO Reservas set ?", data);
 
-        const query1 = await pool.query("SELECT MAX(ID) as max FROM Reservas");
-
-        const result = query1.map((index) => {
-          return index.max;
-        });
+        const queryResult = await pool.query("SELECT MAX(ID) as max FROM Reservas");
+        const result = queryResult[0].max;
 
         const newReservation = {
           ID_Tipo_estados: 2,
@@ -1179,7 +1178,7 @@ const uploadImage = async (req, res = response) => {
 };
 
 const insertCartReservation = async (req, res = response) => {
-  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra, Nombre_recepcion } =
+  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra, Nombre_recepcion ,ID_user} =
     req.body;
 
   try {
@@ -1204,8 +1203,44 @@ const insertCartReservation = async (req, res = response) => {
       let dataone = {
         Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
       };
+
       await pool.query("INSERT INTO  Carrito_reserva  set ?", data);
 
+      const query1 = await pool.query("SELECT MAX(ID) as max FROM Carrito_reserva");
+
+      const result = query1.map((index) => {
+        return index.max;
+      });
+
+
+      if( Cart[i]?.id_categoria==3){
+        let dataKpi = {
+          ID_user:ID_user,
+          ID_hotel:ID_Hoteles,
+          Fecha_venta:Fecha_compra,
+          Nombre: Cart[i]?.Nombre,
+          Precio: Cart[i]?.Precio,
+          Cantidad: Cart[i]?.quantity,
+          ID_Categoria: Cart[i]?.id_categoria,
+          ID_product:  parseInt(result.toString()),
+          Cantidad_comision:Cart[i]?.quantity *1500
+        };
+          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      }else if( Cart[i]?.id_categoria==8){
+        let dataKpi = {
+          ID_user:ID_user,
+          ID_hotel:ID_Hoteles,
+          Fecha_venta:Fecha_compra,
+          Nombre: Cart[i]?.Nombre,
+          Precio: Cart[i]?.Precio,
+          Cantidad: Cart[i]?.quantity,
+          ID_Categoria: Cart[i]?.id_categoria,
+          ID_product:  parseInt(result.toString()),
+          Cantidad_comision:Cart[i]?.quantity *3500
+        };
+          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      }
+     
       await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
     }
     return res.status(201).json({
@@ -1228,6 +1263,7 @@ const insertCartStore = async (req, res = response) => {
     Forma_pago,
     Num_documento,
     Nombre_recepcion,
+    ID_user
   } = req.body;
 
   try {
@@ -1252,7 +1288,39 @@ const insertCartStore = async (req, res = response) => {
       let dataone = {
         Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
       };
+
+
       await pool.query("INSERT INTO  carrito_tienda  set ?", data);
+
+      if( Cart[i]?.id_categoria==3){
+        let dataKpi = {
+          ID_user:ID_user,
+          ID_hotel:ID_hotel,
+          Fecha_venta:Fecha_compra,
+          Nombre: Cart[i]?.Nombre,
+          Precio: Cart[i]?.Precio,
+          Cantidad: Cart[i]?.quantity,
+          ID_Categoria: Cart[i]?.id_categoria,
+          ID_product:Cart[i]?.ID,
+          Cantidad_comision:Cart[i]?.quantity *1500,
+          Pago_deuda:1
+        };
+          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      }else if( Cart[i]?.id_categoria==8){
+        let dataKpi = {
+          ID_user:ID_user,
+          ID_hotel:ID_hotel,
+          Fecha_venta:Fecha_compra,
+          Nombre: Cart[i]?.Nombre,
+          Precio: Cart[i]?.Precio,
+          Cantidad: Cart[i]?.quantity,
+          ID_Categoria: Cart[i]?.id_categoria,
+          ID_product:Cart[i]?.ID,
+          Cantidad_comision:Cart[i]?.quantity *3500,
+          Pago_deuda:1
+        };
+          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      }
 
       await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
     }
@@ -1660,7 +1728,7 @@ const handRoomToSell = async (req, res = response) => {
       dates.push(currentDate.format("YYYY-MM-DD"));
       currentDate = currentDate.add(1, "days");
     }
-
+ 
     const groupedData = {};
 
     for (let i = 0; i < response?.length; i++) {
@@ -1733,9 +1801,18 @@ const handPayStoreReservation = async (req, res = response) => {
     pago_deuda: 1,
   };
 
+  const dataThree = {
+    Pago_deuda: 1
+  }
+
   try {
     await pool.query("UPDATE Carrito_reserva set ? WHERE ID = ?", [
       dataOne,
+      id,
+    ]);
+
+    await pool.query("UPDATE KPI set ? WHERE ID_product = ?", [
+      dataThree,
       id,
     ]);
     res.status(201).json({
@@ -2574,9 +2651,7 @@ const PostInformeMovimiento = async (req, res = response) => {
 const updateReservationPunter = async (req, res = response) => {
   const { Fecha_final, id, countSeguro } = req.body;
 
-  let data = {
-    Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
-  };
+  
 
   try {
     const queryImnformation = await pool.query(
@@ -2616,6 +2691,11 @@ const updateReservationPunter = async (req, res = response) => {
     var fechafin = new Date(`${Fecha_final}`);
     var diasdif = fechafin.getTime() - fechaini.getTime();
     var contdias = Math.round(diasdif / (1000 * 60 * 60 * 24));
+
+    let data = {
+      Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
+      Noches:contdias
+    };
 
     const queryPay = await pool.query(
       "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =?",
@@ -3045,6 +3125,28 @@ const ValidCheckingAll  =async (req, res=response) => {
 
 }
 
+
+const KPIgetUser =async(req, res=response) =>{
+
+  const {month,year,idUser,ID_hotel} = req.body
+  
+  try {
+
+  const query  = await pool.query("SELECT * FROM KPI WHERE MONTH(Fecha_venta) = ? AND YEAR(Fecha_venta) = ? and ID_user =? and ID_hotel =?  and Pago_deuda =1",[month,year,idUser,ID_hotel])
+
+  return res.status(201).json({
+      ok:true,
+      query
+    })
+    
+  } catch (error) {
+    return res.status(401)({
+      ok:false
+    })
+  }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -3103,6 +3205,6 @@ module.exports = {
   getReservationSearch,
   UploadFile,
   UploadFileSignature,
-  ValidCheckingAll
-
+  ValidCheckingAll,
+  KPIgetUser
 };
