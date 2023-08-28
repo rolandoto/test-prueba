@@ -3147,6 +3147,26 @@ const KPIgetUser =async(req, res=response) =>{
 
 }
 
+
+const KpiTop = async(req, res=response) =>{
+
+  try {
+
+    const query  = await pool.query("SELECT APP_colaboradores.id, APP_colaboradores.name, APP_colaboradores.lastName, APP_colaboradores.foto AS APP, KPI.ID_user, users.id AS user_id, KPI.Cantidad, KPI.Precio, COALESCE(SUM(KPI.Cantidad_comision), 0) AS Total_Cantidad_comision FROM users INNER JOIN APP_colaboradores ON APP_colaboradores.id_user = users.id LEFT JOIN KPI ON KPI.ID_user = users.id WHERE APP_colaboradores.status = 0 AND users.id_permissions = 2 GROUP BY users.id ORDER BY Total_Cantidad_comision DESC;")
+
+    return res.status(201).json({
+        ok:true,
+        query
+      })
+      
+    } catch (error) {
+      return res.status(401)({
+        ok:false
+      })
+    }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -3206,5 +3226,6 @@ module.exports = {
   UploadFile,
   UploadFileSignature,
   ValidCheckingAll,
-  KPIgetUser
+  KPIgetUser,
+  KpiTop
 };

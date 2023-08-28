@@ -71,7 +71,8 @@ const {
   UploadFile,
   ValidCheckingAll,
   UploadFileSignature,
-  KPIgetUser
+  KPIgetUser,
+  KpiTop
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -224,5 +225,7 @@ router.post('/uploadfileSignature',uploads.array("myFile",1),UploadFileSignature
 router.post("/validChecking/:id",ValidCheckingAll)
 
 router.post("/userIdKpi/",KPIgetUser)
+
+router.get("/userKpiTop/",KpiTop)
 
 module.exports = { router };  
