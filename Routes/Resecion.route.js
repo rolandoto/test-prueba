@@ -73,7 +73,7 @@ const {
   UploadFileSignature,
   KPIgetUser,
   KpiTop,
-  getPublicidad
+  GetPublicidad
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -229,6 +229,6 @@ router.post("/userIdKpi/",KPIgetUser)
 
 router.get("/userKpiTop/",KpiTop)
 
-router.get("/getpublicidad",getPublicidad)
+router.get("/getpublicidad",GetPublicidad)
 
 module.exports = { router };  

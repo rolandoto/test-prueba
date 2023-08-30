@@ -3162,7 +3162,7 @@ const KpiTop = async(req, res=response) =>{
     }
 }
 
-const getPublicidad = async(req, res=response) =>{
+const GetPublicidad = async(req, res=response) =>{
 
   try {
 
@@ -3242,5 +3242,5 @@ module.exports = {
   ValidCheckingAll,
   KPIgetUser,
   KpiTop,
-  getPublicidad
+  GetPublicidad
 };
