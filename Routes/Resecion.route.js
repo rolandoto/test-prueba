@@ -72,7 +72,8 @@ const {
   ValidCheckingAll,
   UploadFileSignature,
   KPIgetUser,
-  KpiTop
+  KpiTop,
+  getPublicidad
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -227,5 +228,7 @@ router.post("/validChecking/:id",ValidCheckingAll)
 router.post("/userIdKpi/",KPIgetUser)
 
 router.get("/userKpiTop/",KpiTop)
+
+router.get("/getpublicidad",getPublicidad)
 
 module.exports = { router };  

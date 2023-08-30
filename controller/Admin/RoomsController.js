@@ -44,8 +44,6 @@ const  GetroomsAdmin =async(req,res=response)=>{
     const  {id}  = req.params;
  
     const ray =[]
-
-    //api de cristian 
   
     try {
 
@@ -118,6 +116,7 @@ const  GetroomsAdmin =async(req,res=response)=>{
               
             })
     }   
+
 }
 
 const InsertIntoStoreAdmin =async(req,res=response) =>{
@@ -147,7 +146,6 @@ const InsertIntoStoreAdmin =async(req,res=response) =>{
                 
                 const insertSecondQuery = async() => {
                     const query1 = await pool.query("SELECT MAX(ID) as max FROM Productos where Productos.ID_Hoteles = ?",[ID_Hoteles]);
-                    console.log(query1)
 
                     const result = query1.map((index) => {
                         return index.max;
@@ -261,8 +259,6 @@ const postListProductAdminById  =async( req, res=response) => {
         Cantidad_total:Cantidad,
         Nombre_Recepcion
     }
-
-    
 
     try {
 

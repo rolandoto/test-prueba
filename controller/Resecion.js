@@ -43,7 +43,6 @@ const GetRooms = async (req, res = response) => {
 
     const flattenedRooms = rayRoom.flat().sort((a, b) => a.id - b.id);
 
-
     if (flattenedRooms.length === 0) {
       return res.status(401).json({
         ok: false,
@@ -61,6 +60,7 @@ const GetRooms = async (req, res = response) => {
     });
   }
 };
+
 const PostRoomDetailUpdate = async (req, res = response) => {
   const { ID_estado_habitacion, id } = req.body;
 
@@ -667,8 +667,6 @@ const roomAvaible = async (req, res = response) => {
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
-
-    console.log(resultado);
 
     if (resultado[0].ID_estado_habitacion === 2) {
       return res.status(401).json({
@@ -3125,7 +3123,6 @@ const ValidCheckingAll  =async (req, res=response) => {
 
 }
 
-
 const KPIgetUser =async(req, res=response) =>{
 
   const {month,year,idUser,ID_hotel} = req.body
@@ -3147,7 +3144,6 @@ const KPIgetUser =async(req, res=response) =>{
 
 }
 
-
 const KpiTop = async(req, res=response) =>{
 
   try {
@@ -3164,7 +3160,25 @@ const KpiTop = async(req, res=response) =>{
         ok:false
       })
     }
+}
 
+const getPublicidad = async(req, res=response) =>{
+
+  try {
+
+    const query  = await pool.query("select * from PopUpPms")
+
+    return res.status(201).json({
+        ok:true,
+        query
+      })
+      
+    } catch (error) {
+      return res.status(401)({
+        ok:false
+      })
+    }
+  
 }
 
 module.exports = {
@@ -3227,5 +3241,6 @@ module.exports = {
   UploadFileSignature,
   ValidCheckingAll,
   KPIgetUser,
-  KpiTop
+  KpiTop,
+  getPublicidad
 };
