@@ -1,5 +1,5 @@
 const router =require('express').Router()
-const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin, getStoreAdmin, GetListProductAdminById, postListProductAdminById, getSubProduct } = require('../controller/Admin/RoomsController')
+const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin, getStoreAdmin, GetListProductAdminById, postListProductAdminById, getSubProduct, postUpdteTarifasReservation, getTarifasReservation, postInsetTarifaReservation } = require('../controller/Admin/RoomsController')
 const  {check} = require("express-validator")
 const { ValidarCampos } = require('../middleweres/middleweres')
 
@@ -39,5 +39,28 @@ router.get("/getstore",getStoreAdmin)
 
 router.get("/getSubProduct",getSubProduct)
 
+router.post("/posUpdateTarifasReservation/:id",[
+    check("valid_buy","es obligatorio").not().isEmpty(),
+    check("noches","es obligatorio").not().isEmpty(),
+    check("Abono","es obligatorio").not().isEmpty(),
+    check("ID_reservation","es obligatorio").not().isEmpty(),
+    check("valor","es obligatorio").not().isEmpty(),
+    ValidarCampos
+],postUpdteTarifasReservation)
+
+router.get("/getTarifasReservation/:id",getTarifasReservation) 
+
+router.post("/postInsetTarifaReservation",[
+    check("id_user","es obligatorio").not().isEmpty(),
+    check("valor","es obligatorio").not().isEmpty(),
+    check("Description","es obligatorio").not().isEmpty(),
+    check("Fecha","es obligatorio").not().isEmpty(),
+    check("ID_reservation","es obligatorio").not().isEmpty(),
+    check("name_reservation","es obligatorio").not().isEmpty(),
+    check("codigo_reserva","es obligatorio").not().isEmpty(),
+    check("noches","es obligatorio").not().isEmpty(),
+    check("Abono","es obligatorio").not().isEmpty(),
+    ValidarCampos
+],postInsetTarifaReservation)
 
 module.exports={router}

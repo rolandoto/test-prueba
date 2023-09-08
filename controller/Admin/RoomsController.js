@@ -360,6 +360,156 @@ const getSubProduct =async(req, res = response) => {
 }
 
 
+const postUpdteTarifasReservation =async(req, res = response) =>{
+
+    const  {id} =req.params
+    const {valid_buy,noches,Abono,ID_reservation,valor} =req.body
+
+    console.log(req.body)
+
+    let data = {
+        valid_buy
+    }
+
+    const totalDay =  valor / noches
+
+    let pay = {
+        ID_Reserva: parseInt(ID_reservation),
+        ID_Motivo: 1,
+        ID_Tipo_Forma_pago:1,
+        Valor: `${valor}`,
+        Abono: `${Abono}`,
+        Valor_habitacion: `${valor}`,
+        valor_dia_habitacion: `${totalDay}`,
+        pago_valid: 1,
+      };
+
+        try {
+
+           
+            if(!valid_buy){
+                return res.status(401).json({
+                    ok:false
+                })
+            }
+
+        
+            let dataPay = {
+                pago_valid:0
+            }
+
+
+            
+            pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
+                if(err){
+                    return res.status(401).json({
+                        ok:false
+                    })
+                }else{
+                    const insertSecondQuery = async() => {
+                        if(valid_buy ==1){
+
+                            await  pool.query('UPDATE Pagos set ? WHERE ID_Reserva = ?', [dataPay,ID_reservation] )
+                           await pool.query('INSERT INTO Pagos set ?', pay, (err, customer) => {
+                                if (err) {
+                                    return res.status(401).json({
+                                        ok: false,
+                                        msg: "error al insertar datos"
+                                    });
+                                } else {
+                                    return res.status(201).json({
+                                        ok: true
+                                    });
+                                }
+                            });
+                        }else{
+                            return res.status(201).json({
+                                ok:true
+                            })
+                        }   
+                     }
+     
+                     insertSecondQuery();
+                }
+            })
+
+    } catch (error) {
+           return  res.status(401).json({
+            ok:false
+           })
+    }
+}
+
+const getTarifasReservation =async(req, res = response) =>{
+
+    const {id} = req.params
+
+    try {
+
+        const query = await pool.query("SELECT  APP_colaboradores.name , APP_colaboradores.foto, TarifasReservation.ID, TarifasReservation.valor , TarifasReservation.Description,TarifasReservation.Fecha,TarifasReservation.valid_buy,TarifasReservation.id_hotel,TarifasReservation.ID_reservation,TarifasReservation.name_reservation,TarifasReservation.Fecha ,TarifasReservation.codigo_reserva,TarifasReservation.valid_buy,TarifasReservation.noches,TarifasReservation.Abono,TarifasReservation.ID_reservation   FROM `TarifasReservation`  inner join APP_colaboradores on APP_colaboradores.id_user = TarifasReservation.id_user WHERE  TarifasReservation.id_hotel = ? order by TarifasReservation.ID DESC ",[id])
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+    } catch (error) {
+            res.status(401).json({
+                ok:false
+            })
+    }
+}
+
+
+const postInsetTarifaReservation =async(req, res = response) =>{
+    
+    const  {id_user,
+            id_hotel,
+            valor,
+            Description,
+            Fecha,
+            ID_reservation,
+            name_reservation,
+            codigo_reserva,
+            noches,
+            Abono} = req.body
+
+    let data ={
+        id_user,
+        id_hotel,
+        valor,
+        Description,
+        Fecha,
+        ID_reservation,
+        name_reservation,
+        codigo_reserva,
+        noches,
+        Abono
+    }
+    
+    try {
+
+        await pool.query('INSERT INTO TarifasReservation set ?', data, (err, customer) => {
+            if(err){
+                return res.status(401).json({
+                     ok:false,
+                     msg:"error al insertar datos"
+                })
+             }else{
+                return res.status(201).json({
+                    ok:true
+                })
+             }
+        })
+        
+    } catch (error) {
+        
+        return res.status(401).json({
+            ok:false
+        })
+    }
+
+}
+
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
                 InsertIntoStoreAdmin,
@@ -368,5 +518,8 @@ module.exports ={InsertIntoRoomsAdmin,
                 getStoreAdmin,
                 GetListProductAdminById,
                 postListProductAdminById,
-                getSubProduct
+                getSubProduct,
+                postUpdteTarifasReservation,
+                getTarifasReservation,
+                postInsetTarifaReservation
 }   
