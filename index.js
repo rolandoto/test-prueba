@@ -22,7 +22,7 @@ app.use("/api", ListRoutes.router);
 app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 app.use('/public', express.static(path.join(__dirname, 'public')));
-    
+
 // parse application/json
 var port_number = app.listen(process.env.PORT || 5000);
 

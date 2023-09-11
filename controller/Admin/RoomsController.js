@@ -510,6 +510,27 @@ const postInsetTarifaReservation =async(req, res = response) =>{
 
 }
 
+const getHistialReservation =async(req, res = response) => {
+
+    const  {id} =  req.params
+    
+    try {   
+        
+        const query = await pool.query("SELECT APP_colaboradores.name , APP_colaboradores.foto, TarifasReservation.ID, TarifasReservation.valor , TarifasReservation.Description,TarifasReservation.Fecha,TarifasReservation.valid_buy,TarifasReservation.id_hotel,TarifasReservation.ID_reservation,TarifasReservation.name_reservation,TarifasReservation.Fecha ,TarifasReservation.codigo_reserva,TarifasReservation.valid_buy,TarifasReservation.noches,TarifasReservation.Abono,TarifasReservation.ID_reservation FROM `TarifasReservation` inner join APP_colaboradores on APP_colaboradores.id_user = TarifasReservation.id_user WHERE TarifasReservation.ID_reservation = ? order by TarifasReservation.ID DESC;",[id])
+
+        return res.status(201).json({
+            ok:true,
+            query
+        })
+        
+    } catch (error) {
+        res.status(401).json({
+            ok:false
+        })
+    }
+
+}
+
 module.exports ={InsertIntoRoomsAdmin,
                 GetroomsAdmin,
                 InsertIntoStoreAdmin,
@@ -521,5 +542,6 @@ module.exports ={InsertIntoRoomsAdmin,
                 getSubProduct,
                 postUpdteTarifasReservation,
                 getTarifasReservation,
-                postInsetTarifaReservation
+                postInsetTarifaReservation,
+                getHistialReservation
 }   

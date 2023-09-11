@@ -1,5 +1,5 @@
 const router =require('express').Router()
-const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin, getStoreAdmin, GetListProductAdminById, postListProductAdminById, getSubProduct, postUpdteTarifasReservation, getTarifasReservation, postInsetTarifaReservation } = require('../controller/Admin/RoomsController')
+const { InsertIntoRoomsAdmin, GetroomsAdmin, InsertIntoStoreAdmin, GetCategoryAdmin, GetListProductAdmin, getStoreAdmin, GetListProductAdminById, postListProductAdminById, getSubProduct, postUpdteTarifasReservation, getTarifasReservation, postInsetTarifaReservation, getHistialReservation } = require('../controller/Admin/RoomsController')
 const  {check} = require("express-validator")
 const { ValidarCampos } = require('../middleweres/middleweres')
 
@@ -62,5 +62,7 @@ router.post("/postInsetTarifaReservation",[
     check("Abono","es obligatorio").not().isEmpty(),
     ValidarCampos
 ],postInsetTarifaReservation)
+
+router.get("/getHistialReservationById/:id",getHistialReservation)
 
 module.exports={router}
