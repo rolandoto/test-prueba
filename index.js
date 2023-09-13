@@ -26,25 +26,7 @@ app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-  },
-});
 
-io.on("connection", (socket) => {
-  console.log("conectado")
-  socket.on("newUser", (username) => {
-    addNewUser(username, socket.id);
-  });
-
-  socket.on("sendNotification", (senderName) => {
-    io.emit("sendNotification", senderName);
-  });
-
-
-});
 
 server.listen(4000, () => {
   console.log("SERVER IS RUNNING");
