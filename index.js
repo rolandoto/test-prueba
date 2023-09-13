@@ -14,7 +14,7 @@ const { Server } = require("socket.io");
 dbConnection();
 //connection database
 
-const server = http.createServer(app);
+//const server = http.createServer(app);
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -27,7 +27,7 @@ app.use("/api/resecion", ResecionRoute.router);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 
+var port_number = app.listen(process.env.PORT || 5000);
 
-server.listen(4000, () => {
-  console.log("SERVER IS RUNNING");
-});
+//initial port
+app.listen(port_number);
