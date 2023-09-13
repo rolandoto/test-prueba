@@ -7,15 +7,18 @@ const cors = require("cors");
 require("dotenv").config();
 var path = require('path')
 const { dbConnection } = require("./database/Config");
+const app = require("express")();
+const http = require("http");
+const { Server } = require("socket.io");
 
 dbConnection();
 //connection database
-const app = express();
+
+const server = http.createServer(app);
 
 app.use(express.static('public'));
 app.use(express.json());
-
-app.use(cors());
+app.use(cors())
 
 app.use("/api/auth", AuthRoutes.router);
 app.use("/api", ListRoutes.router);
@@ -23,9 +26,26 @@ app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// parse application/json
-var port_number = app.listen(process.env.PORT || 5000);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
 
-//initial port
-app.listen(port_number);
+io.on("connection", (socket) => {
+  console.log("conectado")
+  socket.on("newUser", (username) => {
+    addNewUser(username, socket.id);
+  });
 
+  socket.on("sendNotification", (senderName) => {
+    io.emit("sendNotification", senderName);
+  });
+
+
+});
+
+server.listen(3001, () => {
+  console.log("SERVER IS RUNNING");
+});

@@ -8,9 +8,9 @@ const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
-const socket = require("socket.io-client")("http://localhost:3001");
 const fs = require('fs');
 const uuid = require('uuid')
+
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -2810,8 +2810,8 @@ const updateChangeTypreRange = async (req, res = response) => {
 
   const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
 
-  const idhabitacionesEstado = valid[0].ID_Tipo_Estados_Habitaciones
-  const idhabtiaciones = valid[0].ID_Habitaciones
+  const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones
+  const idhabtiaciones = valid[0]?.ID_Habitaciones
 
   if(idhabitacionesEstado==3){
     let data = {
