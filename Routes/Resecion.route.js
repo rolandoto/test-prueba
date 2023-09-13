@@ -83,23 +83,26 @@ router.get("/getroomsresecion/:id", GetRooms);
 router.post(
   "/validateavaible",
   [
-    check("abono", "el abono  es obligatorio").not().isEmpty(),
-    check("ID_Tipo_Forma_pago", "el ID_Tipo_Forma_pago  es obligatorio")
-      .not()
-      .isEmpty(),
-    check("Observacion", "el Observacion  es obligatorio").not().isEmpty(),
-    check("Noches", "el Noches  es obligatorio").not().isEmpty(),
-    check("Infantes", "el Infantes  es obligatorio").not().isEmpty(),
-    check("ID_Talla_mascota", "el ID_Talla_mascota  es obligatorio")
-      .not()
-      .isEmpty(),
-    check("Ninos", "el Ninos  es obligatorio").not().isEmpty(),
-    check("Adultos", "el Adultos  es obligatorio").not().isEmpty(),
-    check("ID_Canal", "el id canal es obligatorio").not().isEmpty(),
-    check("habitaciones", "la habitacion es obligatoria").not().isEmpty(),
-    check("desde", "la fecha inicial es obligatoria").not().isEmpty(),
-    check("hasta", "la fecha final es obligatoria").not().isEmpty(),
-    check("Tipo_persona", "la fecha final es obligatoria").not().isEmpty(),
+    check("desde", "es obligatorio").not().isEmpty(),
+    check("hasta", "es obligatorio").not().isEmpty(),
+    check("habitaciones", "es obligatorio").not().isEmpty(),
+    check("disponibilidad", "es obligatorio").not().isEmpty(),
+    check("id_estados_habitaciones", "es obligatorio").not().isEmpty(),
+    check("ID_Canal", "es obligatorio").not().isEmpty(),
+    check("Adultos", "es obligatorio").not().isEmpty(),
+    check("Ninos", "es obligatorio").not().isEmpty(),
+    check("Noches", "es obligatorio").not().isEmpty(),
+    check("Observacion", "es obligatorio").not().isEmpty(),
+    check("huespe", "es obligatorio").not().isEmpty(),
+    check("valor", "es obligatorio").not().isEmpty(),
+    check("ID_Tipo_Forma_pago", "es obligatorio").not().isEmpty(),
+    check("abono", "es obligatorio").not().isEmpty(),
+    check("valor_habitacion", "es obligatorio").not().isEmpty(),
+    check("valor_dia_habitacion", "es obligatorio").not().isEmpty(),
+    check("resepcion", "es obligatorio").not().isEmpty(),
+    check("link", "es obligatorio").not().isEmpty(),
+    check("id_hotel", "es obligatorio").not().isEmpty(),
+    
     ValidarCampos,
   ],
   validateAvaible
