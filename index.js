@@ -43,9 +43,6 @@ io.on("connection", (socket) => {
     io.emit("sendNotification", senderName);
   });
 
-  socket.on("ExitPms", (senderName) => {
-    io.emit("ExitPms", senderName);
-  });
 
 });
 
