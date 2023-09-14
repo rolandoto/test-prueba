@@ -28,7 +28,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 const io = new Server(server, {
   cors: {
-    origin: "https://test-prueba-production.up.railway.app",
+    origin: "https://railway.grupo-hoteles.com",
     methods: ["GET", "POST"],
   },
 });
