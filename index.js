@@ -28,7 +28,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 const io = new Server(server, {
   cors: {
-    origin: "https://railway.grupo-hoteles.com",
+    origin: "https://test-frontent-n9ec.vercel.app",
     methods: ["GET", "POST"],
   },
 });
