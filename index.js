@@ -11,6 +11,9 @@ const app = require("express")();
 const http = require("http");
 const { Server } = require("socket.io");
 
+
+
+
 dbConnection();
 //connection database
 
@@ -43,14 +46,12 @@ io.on("connection", (socket) => {
     io.emit("sendNotification", senderName);
   });
 
-
 });
 
 server.listen(app.listen(process.env.PORT || 5000, () => {
   console.log("SERVER IS RUNNING");
 }))
 
-
 //var port_number = app.listen(process.env.PORT || 5000);
 //initial port
-//app.listen(port_number);
+//app.listen(port_number);\https://codesandbox.io/s/silly-mayer-lls9hm?file=/src/App.js:860-912

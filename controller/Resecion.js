@@ -11,7 +11,6 @@ const chrome = require("selenium-webdriver/chrome");
 const fs = require('fs');
 const uuid = require('uuid')
 
-
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
@@ -25,6 +24,9 @@ const GetRooms = async (req, res = response) => {
 
     const data = await response.json();
 
+    const roomMap = new Map(); // Usamos un mapa para rastrear el parent de cada ID_Tipo_habitaciones
+    let parent = 1; // Inicializamos el valor de parent en 1
+
     const rayRoom = await Promise.all(
       data.map(async (room) => {
         const query = await pool.query(
@@ -32,17 +34,37 @@ const GetRooms = async (req, res = response) => {
           [room.id_tipoHabitacion, id]
         );
 
-        return query.map((element) => ({
-          title: `${element.title} ${room.nombre}`,
-          id: element.id,
-          ID_Tipo_estados: element.ID_Tipo_estados,
-          ID_Tipo_habitaciones: element.ID_Tipo_habitaciones,
-          ID_estado_habiatcion: element.ID_estado_habitacion,
-        }));
+        let isFirstInGroup = true; // Variable para rastrear el primer elemento en cada grupo
+
+        return query.map((element) => {
+          const idTipoHabitacion = element.ID_Tipo_habitaciones;
+
+          // Verificamos si ya tenemos un parent asignado para este ID_Tipo_habitaciones
+          if (!roomMap.has(idTipoHabitacion)) {
+            roomMap.set(idTipoHabitacion, parent); // Asignamos un nuevo parent si no existe uno para este ID_Tipo_habitaciones
+          }
+         
+          const roomObject = {
+            title: `${element.title} ${room.nombre}`,
+            id: element.id,
+            ID_Tipo_estados: element.ID_Tipo_estados,
+            ID_Tipo_habitaciones: idTipoHabitacion,
+            ID_estado_habiatcion: element.ID_estado_habitacion,
+            parent: roomMap.get(idTipoHabitacion), // Obtenemos el parent del mapa
+            root: isFirstInGroup, // Establecemos root: true en el primer elemento del grupo
+          };
+
+          if (isFirstInGroup) {
+            isFirstInGroup = false;
+            parent++
+          }
+          return roomObject;
+        });
       })
     );
 
-    const flattenedRooms = rayRoom.flat().sort((a, b) => a.id - b.id);
+    // Flatten y ordenar por ID_Tipo_habitaciones
+    const flattenedRooms = rayRoom.flat().sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
 
     if (flattenedRooms.length === 0) {
       return res.status(401).json({
@@ -61,6 +83,7 @@ const GetRooms = async (req, res = response) => {
     });
   }
 };
+
 
 const PostRoomDetailUpdate = async (req, res = response) => {
   const { ID_estado_habitacion, id } = req.body;
