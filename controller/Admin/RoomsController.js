@@ -402,8 +402,6 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
                 pago_valid:0
             }
 
-
-            if(queryAbono){
                 pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
                     if(err){
                         return res.status(401).json({
@@ -436,11 +434,7 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
                          insertSecondQuery();
                     }
                 })
-            }else{
-                return res.status(401).json({
-                    ok:false
-                })
-            }
+            
     } catch (error) {
            return  res.status(401).json({
             ok:false
