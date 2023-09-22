@@ -1,4 +1,4 @@
-const {response} = require('express')
+const {response, query} = require('express')
 const { pool } = require('../../database/connection')
 const fetch  = require('node-fetch')
 const { count } = require('../../model/Usuario')
@@ -368,26 +368,27 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
     const  {id} =req.params
     const {valid_buy,noches,Abono,ID_reservation,valor} =req.body
 
-    console.log(req.body)
-
     let data = {
         valid_buy
     }
 
     const totalDay =  valor / noches
 
-    let pay = {
-        ID_Reserva: parseInt(ID_reservation),
-        ID_Motivo: 1,
-        ID_Tipo_Forma_pago:1,
-        Valor: `${valor}`,
-        Abono: `${Abono}`,
-        Valor_habitacion: `${valor}`,
-        valor_dia_habitacion: `${totalDay}`,
-        pago_valid: 1,
-      };
-
         try {
+
+            const queryAbono = await pool.query("SELECT Abono from Pagos WHERE Pagos.ID_Reserva =? and pago_valid = 1;",[ID_reservation])
+            
+            let pay = {
+                ID_Reserva: parseInt(ID_reservation),
+                ID_Motivo: 1,
+                ID_Tipo_Forma_pago:1,
+                Valor: `${valor}`,
+                Abono: `${queryAbono[0]?.Abono}`,
+                Valor_habitacion: `${valor}`,
+                valor_dia_habitacion: `${totalDay}`,
+                pago_valid: 1,
+              };
+        
 
            
             if(!valid_buy){
@@ -402,40 +403,44 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
             }
 
 
-            
-            pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
-                if(err){
-                    return res.status(401).json({
-                        ok:false
-                    })
-                }else{
-                    const insertSecondQuery = async() => {
-                        if(valid_buy ==1){
-
-                            await  pool.query('UPDATE Pagos set ? WHERE ID_Reserva = ?', [dataPay,ID_reservation] )
-                           await pool.query('INSERT INTO Pagos set ?', pay, (err, customer) => {
-                                if (err) {
-                                    return res.status(401).json({
-                                        ok: false,
-                                        msg: "error al insertar datos"
-                                    });
-                                } else {
-                                    return res.status(201).json({
-                                        ok: true
-                                    });
-                                }
-                            });
-                        }else{
-                            return res.status(201).json({
-                                ok:true
-                            })
-                        }   
-                     }
-     
-                     insertSecondQuery();
-                }
-            })
-
+            if(queryAbono){
+                pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
+                    if(err){
+                        return res.status(401).json({
+                            ok:false
+                        })
+                    }else{
+                        const insertSecondQuery = async() => {
+                            if(valid_buy ==1){
+    
+                                await  pool.query('UPDATE Pagos set ? WHERE ID_Reserva = ?', [dataPay,ID_reservation] )
+                               await pool.query('INSERT INTO Pagos set ?', pay, (err, customer) => {
+                                    if (err) {
+                                        return res.status(401).json({
+                                            ok: false,
+                                            msg: "error al insertar datos"
+                                        });
+                                    } else {
+                                        return res.status(201).json({
+                                            ok: true
+                                        });
+                                    }
+                                });
+                            }else{
+                                return res.status(201).json({
+                                    ok:true
+                                })
+                            }   
+                         }
+         
+                         insertSecondQuery();
+                    }
+                })
+            }else{
+                return res.status(401).json({
+                    ok:false
+                })
+            }
     } catch (error) {
            return  res.status(401).json({
             ok:false
