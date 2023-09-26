@@ -11,6 +11,8 @@ const chrome = require("selenium-webdriver/chrome");
 const fs = require('fs');
 const uuid = require('uuid')
 
+
+
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
   try {
@@ -150,6 +152,7 @@ const validateAvaible = async (req, res = response) => {
   const date2 = new Date(hasta);
 
   try {
+
     if (date1 > date2) {
       return res.status(201).json({
         msg: "no puede ser mayor de la fecha",
@@ -182,12 +185,11 @@ const validateAvaible = async (req, res = response) => {
           return index.ID;
         });
 
-        var n1 = 2000;
-        var n2 = 1000;
+        var n1 = 20000;
+        var n2 = 10000;
         var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
 
-        const uniqueId = uuid.v4();
-
+      
         let id_disponible = disponibilidad;
 
         if (reservation.length == 0) {
@@ -215,7 +217,7 @@ const validateAvaible = async (req, res = response) => {
 
         const queryResult = await pool.query("SELECT MAX(ID) as max FROM Reservas");
         const result = queryResult[0].max;
-
+        console.log(result)
         const newReservation = {
           ID_Tipo_estados: 2,
         };
