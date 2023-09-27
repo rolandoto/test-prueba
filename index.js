@@ -43,6 +43,19 @@ io.on("connection", (socket) => {
     io.emit("sendNotification", senderName);
   });
 
+  socket.on("mousemove", (data) => {
+    const { userId, x, y ,Id_hotel} = data;
+
+   
+    
+    // Aquí puedes utilizar el identificador del usuario (userId) para identificar al usuario
+    // y realizar las acciones de seguimiento en tiempo real correspondientes.
+    
+    // Reenviar los datos del mouse a todos los clientes conectados
+    io.emit("clientmousemove", data);
+  });
+
+
 });
 
 server.listen(app.listen(process.env.PORT || 5000, () => {
