@@ -8,10 +8,8 @@ const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 const { Builder, By, Key, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
-const fs = require('fs');
-const uuid = require('uuid')
-
-
+const fs = require("fs");
+const uuid = require("uuid");
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
@@ -45,7 +43,7 @@ const GetRooms = async (req, res = response) => {
           if (!roomMap.has(idTipoHabitacion)) {
             roomMap.set(idTipoHabitacion, parent); // Asignamos un nuevo parent si no existe uno para este ID_Tipo_habitaciones
           }
-         
+
           const roomObject = {
             title: `${element.title} ${room.nombre}`,
             id: element.id,
@@ -58,7 +56,7 @@ const GetRooms = async (req, res = response) => {
 
           if (isFirstInGroup) {
             isFirstInGroup = false;
-            parent++
+            parent++;
           }
           return roomObject;
         });
@@ -66,7 +64,9 @@ const GetRooms = async (req, res = response) => {
     );
 
     // Flatten y ordenar por ID_Tipo_habitaciones
-    const flattenedRooms = rayRoom.flat().sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
+    const flattenedRooms = rayRoom
+      .flat()
+      .sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
 
     if (flattenedRooms.length === 0) {
       return res.status(401).json({
@@ -85,7 +85,6 @@ const GetRooms = async (req, res = response) => {
     });
   }
 };
-
 
 const PostRoomDetailUpdate = async (req, res = response) => {
   const { ID_estado_habitacion, id } = req.body;
@@ -111,12 +110,9 @@ const PostRoomDetailUpdate = async (req, res = response) => {
         }
       }
     );
-
   } catch (error) {
-
     return res.status(401).json({
       ok: false,
-      
     });
   }
 };
@@ -152,7 +148,6 @@ const validateAvaible = async (req, res = response) => {
   const date2 = new Date(hasta);
 
   try {
-
     if (date1 > date2) {
       return res.status(201).json({
         msg: "no puede ser mayor de la fecha",
@@ -164,103 +159,75 @@ const validateAvaible = async (req, res = response) => {
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
     );
-  
+
     if (resultado[0].Num_Reservas == 0) {
-        let desdeSinHora = desde.split(" ", 1);
-        let hastaSinHora = hasta.split(" ", 1);
+      let desdeSinHora = desde.split(" ", 1);
+      let hastaSinHora = hasta.split(" ", 1);
 
-        //const reservation = await pool.query("SELECT Reservas.ID_Habitaciones,  Reservas.ID, Reservas.Codigo_reserva FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones =? AND Reservas.Fecha_inicio BETWEEN ? AND ? OR Reservas.Fecha_final BETWEEN ? AND ?",[habitaciones, desde, hasta, desde, hasta])
-        const reservation = await pool.query(
-          "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
-          [habitaciones, desdeSinHora, hastaSinHora]
-        );
+      //const reservation = await pool.query("SELECT Reservas.ID_Habitaciones,  Reservas.ID, Reservas.Codigo_reserva FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones =? AND Reservas.Fecha_inicio BETWEEN ? AND ? OR Reservas.Fecha_final BETWEEN ? AND ?",[habitaciones, desde, hasta, desde, hasta])
+      const reservation = await pool.query(
+        "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
+        [habitaciones, desdeSinHora, hastaSinHora]
+      );
 
-        //disponibilidad
-        const avaible = await pool.query(
-          "SELECT ID  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
-          [habitaciones]
-        );
+      //disponibilidad
+      const avaible = await pool.query(
+        "SELECT ID  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
+        [habitaciones]
+      );
 
-        let result1 = avaible.map((index) => {
-          return index.ID;
-        });
+      let result1 = avaible.map((index) => {
+        return index.ID;
+      });
 
-        var n1 = 20000;
-        var n2 = 10000;
-        var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
+      var n1 = 20000;
+      var n2 = 10000;
+      var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
 
-      
-        let id_disponible = disponibilidad;
+      let id_disponible = disponibilidad;
 
-        if (reservation.length == 0) {
-          id_disponible = id_disponible;
-        }
+      if (reservation.length == 0) {
+        id_disponible = id_disponible;
+      }
 
-        const data = {
-          ID_Usuarios: 1,
-          ID_Habitaciones: parseInt(id_disponible.toString()),
-          ID_Talla_mascota: ID_Talla_mascota,
-          Codigo_reserva: numero,
-          Adultos: Adultos,
-          Ninos: Ninos,
-          Infantes: Infantes,
-          Fecha_inicio: desde,
-          Fecha_final: hasta,
-          Noches: Noches,
-          Descuento: 0,
-          ID_Canal: ID_Canal,
-          ID_Tipo_Estados_Habitaciones: id_estados_habitaciones,
-          Observacion: Observacion,
-        };
+      const data = {
+        ID_Usuarios: 1,
+        ID_Habitaciones: parseInt(id_disponible.toString()),
+        ID_Talla_mascota: ID_Talla_mascota,
+        Codigo_reserva: numero,
+        Adultos: Adultos,
+        Ninos: Ninos,
+        Infantes: Infantes,
+        Fecha_inicio: desde,
+        Fecha_final: hasta,
+        Noches: Noches,
+        Descuento: 0,
+        ID_Canal: ID_Canal,
+        ID_Tipo_Estados_Habitaciones: id_estados_habitaciones,
+        Observacion: Observacion,
+      };
 
-        const to = await pool.query("INSERT INTO Reservas set ?", data);
+      const to = await pool.query("INSERT INTO Reservas set ?", data);
 
-        const queryResult = await pool.query("SELECT MAX(ID) as max FROM Reservas");
-        const result = queryResult[0].max;
-        console.log(result)
-        const newReservation = {
-          ID_Tipo_estados: 2,
-        };
+      const queryResult = await pool.query(
+        "SELECT MAX(ID) as max FROM Reservas"
+      );
+      const result = queryResult[0].max;
+      console.log(result);
+      const newReservation = {
+        ID_Tipo_estados: 2,
+      };
 
-        await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
-          newReservation,
-          data.ID_Habitaciones,
-        ]);
+      await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+        newReservation,
+        data.ID_Habitaciones,
+      ]);
 
-        for (let i = 0; i < huespe?.length; i++) {
-          if (i == 0) {
-            const date = {
-              ID_Reserva: parseInt(result.toString()),
-              ID_Tipo_documento: huespe[i]?.Tipo_documento,
-              Num_documento: huespe[i]?.Num_documento,
-              Nombre: huespe[i]?.Nombre,
-              Apellido: huespe[i]?.Apellido,
-              Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
-              Celular: huespe[i]?.Celular,
-              Correo: huespe[i]?.Correo,
-              Ciudad: huespe[i]?.Ciudad,
-              ID_Prefijo: huespe[i]?.Nacionalidad,
-              Tipo_persona: "persona",
-              Firma: 0,
-              Iva:2
-            };
-
-            const toone = pool.query(
-              "INSERT INTO  web_checking set ?",
-              date,
-              (q_err, q_res) => {
-                if (q_err)
-                  return res.status(401).json({
-                    ok: false,
-                  });
-              }
-            );
-          }
-
-          const huep = {
+      for (let i = 0; i < huespe?.length; i++) {
+        if (i == 0) {
+          const date = {
             ID_Reserva: parseInt(result.toString()),
             ID_Tipo_documento: huespe[i]?.Tipo_documento,
-            ID_Tipo_genero: 1,
             Num_documento: huespe[i]?.Num_documento,
             Nombre: huespe[i]?.Nombre,
             Apellido: huespe[i]?.Apellido,
@@ -269,104 +236,130 @@ const validateAvaible = async (req, res = response) => {
             Correo: huespe[i]?.Correo,
             Ciudad: huespe[i]?.Ciudad,
             ID_Prefijo: huespe[i]?.Nacionalidad,
+            Tipo_persona: "persona",
+            Firma: 0,
+            Iva: 2,
           };
 
-          const totwo = pool.query(
-            "INSERT INTO  Huespedes  set ?",
-            huep,
+          const toone = pool.query(
+            "INSERT INTO  web_checking set ?",
+            date,
             (q_err, q_res) => {
               if (q_err)
                 return res.status(401).json({
                   ok: false,
-                  msg: "error de web huespedes",
                 });
             }
           );
         }
 
-        const pay = {
+        const huep = {
           ID_Reserva: parseInt(result.toString()),
-          ID_Motivo: 1,
-          ID_Tipo_Forma_pago,
-          Valor: valor,
-          Abono: abono,
-          Valor_habitacion: valor_habitacion,
-          valor_dia_habitacion: valor_dia_habitacion,
-          pago_valid: 1,
+          ID_Tipo_documento: huespe[i]?.Tipo_documento,
+          ID_Tipo_genero: 1,
+          Num_documento: huespe[i]?.Num_documento,
+          Nombre: huespe[i]?.Nombre,
+          Apellido: huespe[i]?.Apellido,
+          Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
+          Celular: huespe[i]?.Celular,
+          Correo: huespe[i]?.Correo,
+          Ciudad: huespe[i]?.Ciudad,
+          ID_Prefijo: huespe[i]?.Nacionalidad,
         };
 
-        const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
-
-        const dataPayAbono = {
-          ID_Reserva: parseInt(result.toString()),
-          Abono: abono,
-          Fecha_pago: nowOne,
-          Tipo_forma_pago: ID_Tipo_Forma_pago,
-          Nombre_recepcion: resepcion,
-        };
-
-        if (abono > 0) {
-          const payAbono = pool.query(
-            "INSERT INTO  Pago_abono  set ?",
-            dataPayAbono
-          );
-        }
-
-        const queryOne = await pool.query(
-          "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
-          [parseInt(result.toString())]
-        );
-
-        const queryAddres = await pool.query(
-          "SELECT dir , adress FROM `hotels` WHERE id =  ?",
-          [id_hotel]
-        );
-
-        const itemAddres = queryAddres[0];
-
-        for (let i = 0; i < queryOne?.length; i++) {
-          const item = queryOne[i];
-
-          const numberPhone = item.codigo + "" + item.Celular;
-
-          const totalNumberPhone = numberPhone.replace("+", "");
-
-          const parametros = {
-            to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
-            nombre: `${item.Nombre} ${item.Apellido}`,
-            codigo: `X14A-${item.Num_documento}${parseInt(result.toString())}`,
-            link,
-            resepcion: resepcion,
-            addres: `${itemAddres.dir} ${itemAddres.adress}`,
-          };
-
-          try {
-
-            await postApiWhasatapp(parametros)
-
-            return res.status(201).json({
-              ok: true
-            });
-          
-            // Realizar acciones adicionales según sea necesario
-          } catch (error) {
-            return res.status(401).json({
-              ok: false,
-            });
-            // Manejar el error según sea necesario
+        const totwo = pool.query(
+          "INSERT INTO  Huespedes  set ?",
+          huep,
+          (q_err, q_res) => {
+            if (q_err)
+              return res.status(401).json({
+                ok: false,
+                msg: "error de web huespedes",
+              });
           }
-        }
+        );
+      }
 
-        return res.status(201).json({
-          ok: true,
-        });
-      
-    }else {
+      const pay = {
+        ID_Reserva: parseInt(result.toString()),
+        ID_Motivo: 1,
+        ID_Tipo_Forma_pago,
+        Valor: valor,
+        Abono: abono,
+        Valor_habitacion: valor_habitacion,
+        valor_dia_habitacion: valor_dia_habitacion,
+        pago_valid: 1,
+      };
+
+      const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+
+      const dataPayAbono = {
+        ID_Reserva: parseInt(result.toString()),
+        Abono: abono,
+        Fecha_pago: nowOne,
+        Tipo_forma_pago: ID_Tipo_Forma_pago,
+        Nombre_recepcion: resepcion,
+      };
+
+      if (abono > 0) {
+        const payAbono = pool.query(
+          "INSERT INTO  Pago_abono  set ?",
+          dataPayAbono
+        );
+      }
+
+      const queryOne = await pool.query(
+        "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
+        [parseInt(result.toString())]
+      );
+
+      const queryAddres = await pool.query(
+        "SELECT dir , adress FROM `hotels` WHERE id =  ?",
+        [id_hotel]
+      );
+
+      const itemAddres = queryAddres[0];
+
+      for (let i = 0; i < queryOne?.length; i++) {
+        const item = queryOne[i];
+
+        const numberPhone = item.codigo + "" + item.Celular;
+
+        const totalNumberPhone = numberPhone.replace("+", "");
+
+        const parametros = {
+          to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
+          nombre: `${item.Nombre} ${item.Apellido}`,
+          codigo: `X14A-${item.Num_documento}${parseInt(result.toString())}`,
+          link,
+          resepcion: resepcion,
+          addres: `${itemAddres.dir} ${itemAddres.adress}`,
+        };
+
+        try {
+          await postApiWhasatapp(parametros);
+
+          return res.status(201).json({
+            ok: true,
+          });
+
+          // Realizar acciones adicionales según sea necesario
+        } catch (error) {
+          return res.status(401).json({
+            ok: false,
+          });
+          // Manejar el error según sea necesario
+        }
+      }
+
+      return res.status(201).json({
+        ok: true,
+      });
+    } else {
       return res.status(401).json({
-        ok:false
-      })
+        ok: false,
+      });
     }
-    
   } catch (error) {
     console.log(error);
     res.status(401).json({
@@ -422,7 +415,6 @@ async function postApiWhasatapp({
     console.log(error);
   }
 }
-
 
 const insertReservaRecepcion = async (req, res = response) => {
   try {
@@ -495,12 +487,12 @@ const getReserva = async (req, res = response) => {
         Nombre: response[i].Nombre,
         Document: response[i].Num_documento,
         Last_name: response[i].Apellido,
-        Valor_habitacion:response[i].Valor_habitacion,
-        abono:response[i].Abono,
-        Celular:response[i].Celular,
-        codigo:response[i].codigo,
-        nacionalidad :response[i].nacionalidad,
-        valor_dia_habitacion :response[i].valor_dia_habitacion
+        Valor_habitacion: response[i].Valor_habitacion,
+        abono: response[i].Abono,
+        Celular: response[i].Celular,
+        codigo: response[i].codigo,
+        nacionalidad: response[i].nacionalidad,
+        valor_dia_habitacion: response[i].valor_dia_habitacion,
       });
     }
 
@@ -1052,7 +1044,7 @@ const getDetailReservation = async (req, res = response) => {
     const query = await pool.query(
       "SELECT web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
       [id]
-    );  
+    );
 
     if (query.length == 0) {
       return res.status(401).json({
@@ -1090,7 +1082,10 @@ const updateDetailReservation = async (req, res = response) => {
     const data = req.body;
 
     await pool.query("UPDATE web_checking SET ? WHERE ID = ?", [data, id]);
-    await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [data, id]);
+    await pool.query("UPDATE web_checking SET ? WHERE ID_Reserva = ?", [
+      data,
+      id,
+    ]);
 
     res.status(201).json({ ok: true });
   } catch (error) {
@@ -1200,12 +1195,17 @@ const uploadImage = async (req, res = response) => {
 };
 
 const insertCartReservation = async (req, res = response) => {
-  const { Cart, ID_Reserva, ID_Hoteles, Fecha_compra, Nombre_recepcion ,ID_user} =
-    req.body;
+  const {
+    Cart,
+    ID_Reserva,
+    ID_Hoteles,
+    Fecha_compra,
+    Nombre_recepcion,
+    ID_user,
+  } = req.body;
 
   try {
     for (let i = 0; i < Cart.length; i++) {
-
       let data = {
         ID_Reserva: ID_Reserva,
         Nombre: Cart[i]?.Nombre,
@@ -1217,7 +1217,7 @@ const insertCartReservation = async (req, res = response) => {
         Fecha_compra,
         Forma_pago: 1,
         Nombre_recepcion,
-        img_product:Cart[i]?.img
+        img_product: Cart[i]?.img,
       };
 
       const id = Cart[i].ID;
@@ -1228,41 +1228,42 @@ const insertCartReservation = async (req, res = response) => {
 
       await pool.query("INSERT INTO  Carrito_reserva  set ?", data);
 
-      const query1 = await pool.query("SELECT MAX(ID) as max FROM Carrito_reserva");
+      const query1 = await pool.query(
+        "SELECT MAX(ID) as max FROM Carrito_reserva"
+      );
 
       const result = query1.map((index) => {
         return index.max;
       });
 
-
-      if( Cart[i]?.id_categoria==3){
+      if (Cart[i]?.id_categoria == 3) {
         let dataKpi = {
-          ID_user:ID_user,
-          ID_hotel:ID_Hoteles,
-          Fecha_venta:Fecha_compra,
+          ID_user: ID_user,
+          ID_hotel: ID_Hoteles,
+          Fecha_venta: Fecha_compra,
           Nombre: Cart[i]?.Nombre,
           Precio: Cart[i]?.Precio,
           Cantidad: Cart[i]?.quantity,
           ID_Categoria: Cart[i]?.id_categoria,
-          ID_product:  parseInt(result.toString()),
-          Cantidad_comision:Cart[i]?.quantity *1500
+          ID_product: parseInt(result.toString()),
+          Cantidad_comision: Cart[i]?.quantity * 1500,
         };
-          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
-      }else if( Cart[i]?.id_categoria==8){
+        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      } else if (Cart[i]?.id_categoria == 8) {
         let dataKpi = {
-          ID_user:ID_user,
-          ID_hotel:ID_Hoteles,
-          Fecha_venta:Fecha_compra,
+          ID_user: ID_user,
+          ID_hotel: ID_Hoteles,
+          Fecha_venta: Fecha_compra,
           Nombre: Cart[i]?.Nombre,
           Precio: Cart[i]?.Precio,
           Cantidad: Cart[i]?.quantity,
           ID_Categoria: Cart[i]?.id_categoria,
-          ID_product:  parseInt(result.toString()),
-          Cantidad_comision:Cart[i]?.quantity *3500
+          ID_product: parseInt(result.toString()),
+          Cantidad_comision: Cart[i]?.quantity * 3500,
         };
-          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
       }
-     
+
       await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
     }
     return res.status(201).json({
@@ -1285,7 +1286,7 @@ const insertCartStore = async (req, res = response) => {
     Forma_pago,
     Num_documento,
     Nombre_recepcion,
-    ID_user
+    ID_user,
   } = req.body;
 
   try {
@@ -1311,37 +1312,36 @@ const insertCartStore = async (req, res = response) => {
         Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
       };
 
-
       await pool.query("INSERT INTO  carrito_tienda  set ?", data);
 
-      if( Cart[i]?.id_categoria==3){
+      if (Cart[i]?.id_categoria == 3) {
         let dataKpi = {
-          ID_user:ID_user,
-          ID_hotel:ID_hotel,
-          Fecha_venta:Fecha_compra,
+          ID_user: ID_user,
+          ID_hotel: ID_hotel,
+          Fecha_venta: Fecha_compra,
           Nombre: Cart[i]?.Nombre,
           Precio: Cart[i]?.Precio,
           Cantidad: Cart[i]?.quantity,
           ID_Categoria: Cart[i]?.id_categoria,
-          ID_product:Cart[i]?.ID,
-          Cantidad_comision:Cart[i]?.quantity *1500,
-          Pago_deuda:1
+          ID_product: Cart[i]?.ID,
+          Cantidad_comision: Cart[i]?.quantity * 1500,
+          Pago_deuda: 1,
         };
-          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
-      }else if( Cart[i]?.id_categoria==8){
+        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+      } else if (Cart[i]?.id_categoria == 8) {
         let dataKpi = {
-          ID_user:ID_user,
-          ID_hotel:ID_hotel,
-          Fecha_venta:Fecha_compra,
+          ID_user: ID_user,
+          ID_hotel: ID_hotel,
+          Fecha_venta: Fecha_compra,
           Nombre: Cart[i]?.Nombre,
           Precio: Cart[i]?.Precio,
           Cantidad: Cart[i]?.quantity,
           ID_Categoria: Cart[i]?.id_categoria,
-          ID_product:Cart[i]?.ID,
-          Cantidad_comision:Cart[i]?.quantity *3500,
-          Pago_deuda:1
+          ID_product: Cart[i]?.ID,
+          Cantidad_comision: Cart[i]?.quantity * 3500,
+          Pago_deuda: 1,
         };
-          await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
       }
 
       await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
@@ -1649,8 +1649,7 @@ const handInformeAuditoria = async (req, res = response) => {
       }
     }
 
-
-    console.log(groupedData)
+    console.log(groupedData);
     res.status(201).json({
       ok: true,
       result: groupedData,
@@ -1749,7 +1748,7 @@ const handRoomToSell = async (req, res = response) => {
       dates.push(currentDate.format("YYYY-MM-DD"));
       currentDate = currentDate.add(1, "days");
     }
- 
+
     const groupedData = {};
 
     for (let i = 0; i < response?.length; i++) {
@@ -1823,8 +1822,8 @@ const handPayStoreReservation = async (req, res = response) => {
   };
 
   const dataThree = {
-    Pago_deuda: 1
-  }
+    Pago_deuda: 1,
+  };
 
   try {
     await pool.query("UPDATE Carrito_reserva set ? WHERE ID = ?", [
@@ -1832,10 +1831,7 @@ const handPayStoreReservation = async (req, res = response) => {
       id,
     ]);
 
-    await pool.query("UPDATE KPI set ? WHERE ID_product = ?", [
-      dataThree,
-      id,
-    ]);
+    await pool.query("UPDATE KPI set ? WHERE ID_product = ?", [dataThree, id]);
     res.status(201).json({
       ok: true,
     });
@@ -2265,7 +2261,6 @@ const handInsertPayAbono = async (req, res = response) => {
     Fecha_pago,
     Tipo_forma_pago,
     Nombre_recepcion,
-
   } = req.body.data;
 
   const data = {
@@ -2283,10 +2278,9 @@ const handInsertPayAbono = async (req, res = response) => {
       });
     }
 
-    const ByIdReserva = await pool.query(
-      "SELECT * FROM `Pagos` WHERE ID = ?",
-      [ID_pago]
-    );
+    const ByIdReserva = await pool.query("SELECT * FROM `Pagos` WHERE ID = ?", [
+      ID_pago,
+    ]);
 
     let acum = 0;
 
@@ -2674,8 +2668,6 @@ const PostInformeMovimiento = async (req, res = response) => {
 const updateReservationPunter = async (req, res = response) => {
   const { Fecha_final, id, countSeguro } = req.body;
 
-  
-
   try {
     const queryImnformation = await pool.query(
       "SELECT ID_Habitaciones,Fecha_final ,Fecha_inicio,Adultos,Ninos from  Reservas  WHERE ID = ?",
@@ -2717,7 +2709,7 @@ const updateReservationPunter = async (req, res = response) => {
 
     let data = {
       Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
-      Noches:contdias
+      Noches: contdias,
     };
 
     const queryPay = await pool.query(
@@ -2829,34 +2821,45 @@ const updateReservationPunter = async (req, res = response) => {
 };
 
 const updateChangeTypreRange = async (req, res = response) => {
-  const { desde, hasta, ID_Habitaciones, id,ID_estado_habiatcion } = req.body;
+  const { desde, hasta, ID_Habitaciones, id, ID_estado_habiatcion } = req.body;
 
+  const valid = await pool.query(
+    "SELECT  * from Reservas WHERE Reservas.ID =?",
+    [id]
+  );
 
-  const valid = await pool.query("SELECT  * from Reservas WHERE Reservas.ID =?",[id])
+  const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones;
+  const idhabtiaciones = valid[0]?.ID_Habitaciones;
 
-  const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones
-  const idhabtiaciones = valid[0]?.ID_Habitaciones
-
-  if(idhabitacionesEstado==3){
+  if (idhabitacionesEstado == 3) {
     let data = {
-      ID_estado_habitacion:0
-    }
-    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [data, idhabtiaciones]);
+      ID_estado_habitacion: 0,
+    };
+    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+      data,
+      idhabtiaciones,
+    ]);
 
     let dataOne = {
-      ID_estado_habitacion:3
-    }
-    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [dataOne, ID_Habitaciones]);
+      ID_estado_habitacion: 3,
+    };
+    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+      dataOne,
+      ID_Habitaciones,
+    ]);
   }
 
- const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[ID_Habitaciones])
+  const query = await pool.query(
+    "SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",
+    [ID_Habitaciones]
+  );
 
-//  if(query.length > 0){
-//    console.log("error")
-//    return res.status(401).json({
-//      ok:false
-//    })
-//  }
+  //  if(query.length > 0){
+  //    console.log("error")
+  //    return res.status(401).json({
+  //      ok:false
+  //    })
+  //  }
 
   try {
     let data = {
@@ -2925,7 +2928,7 @@ const updateChangeTypreRange = async (req, res = response) => {
           message: "Puede mover la reserva en cualquier dirección",
         });
       } else {
-        console.log("error")
+        console.log("error");
         return res.status(401).json({
           ok: false,
           message: "No se puede mover la reserva a ninguna dirección",
@@ -2940,20 +2943,18 @@ const updateChangeTypreRange = async (req, res = response) => {
   }
 };
 
-const handChangeFormapago =async(req, res = response) =>{
-
-  const {ID,Tipo_forma_pago} = req.body
+const handChangeFormapago = async (req, res = response) => {
+  const { ID, Tipo_forma_pago } = req.body;
 
   let data = {
-    Tipo_forma_pago
-  } 
+    Tipo_forma_pago,
+  };
 
-  try {   
-
-  if(!Tipo_forma_pago){
+  try {
+    if (!Tipo_forma_pago) {
       return res.status(401).json({
-        ok:false
-      })
+        ok: false,
+      });
     }
 
     await pool.query(
@@ -2972,102 +2973,97 @@ const handChangeFormapago =async(req, res = response) =>{
         }
       }
     );
-    
   } catch (error) {
-
     res.status(401).json({
-      ok:false
-    })
-
+      ok: false,
+    });
   }
-}
+};
 
-const getReservationSearch =async(req, res = response) =>{
-
-  try { 
-
+const getReservationSearch = async (req, res = response) => {
+  try {
     const response = await pool.query(
-      "SELECT Habitaciones.ID_Tipo_habitaciones, web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0",
+      "SELECT Habitaciones.ID_Tipo_habitaciones, web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0"
     );
 
     const promises = [];
 
     for (let i = 0; i < response.length; i++) {
-
-        promises.push({
-          Num_Room: response[i].Numero,
-          Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
-          Observation: response[i].Observacion,
-          Noches: response[i].Noches,
-          Adultos: response[i].Adultos,
-          Ninos: response[i].Ninos,
-          Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
-          ID: response[i].ID,
-          ID_Habitaciones: response[i].ID_Habitaciones,
-          Codigo_reserva: response[i].Codigo_reserva,
-          Fecha_inicio: response[i].Fecha_inicio,
-          Fecha_final: response[i].Fecha_final,
-          ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
-          Nombre: response[i].Nombre,
-          Document: response[i].Num_documento,
-          Last_name: response[i].Apellido,
-          Valor_habitacion:response[i].Valor_habitacion,
-          abono:response[i].Abono,
-          Celular:response[i].Celular,
-          codigo:response[i].codigo,
-          nacionalidad :response[i].nacionalidad,
-          ID_document:response[i].ID_documento,
-          ID_hotel:response[i].ID_Hotel,
-          ID_tipo_habitaciones:response[i].ID_Tipo_habitaciones
-        });
+      promises.push({
+        Num_Room: response[i].Numero,
+        Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
+        Observation: response[i].Observacion,
+        Noches: response[i].Noches,
+        Adultos: response[i].Adultos,
+        Ninos: response[i].Ninos,
+        Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
+        ID: response[i].ID,
+        ID_Habitaciones: response[i].ID_Habitaciones,
+        Codigo_reserva: response[i].Codigo_reserva,
+        Fecha_inicio: response[i].Fecha_inicio,
+        Fecha_final: response[i].Fecha_final,
+        ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
+        Nombre: response[i].Nombre,
+        Document: response[i].Num_documento,
+        Last_name: response[i].Apellido,
+        Valor_habitacion: response[i].Valor_habitacion,
+        abono: response[i].Abono,
+        Celular: response[i].Celular,
+        codigo: response[i].codigo,
+        nacionalidad: response[i].nacionalidad,
+        ID_document: response[i].ID_documento,
+        ID_hotel: response[i].ID_Hotel,
+        ID_tipo_habitaciones: response[i].ID_Tipo_habitaciones,
+      });
     }
 
     const query = await Promise.all(promises);
 
     res.status(201).json({
-      ok:true,
-      query
-    })
-    
+      ok: true,
+      query,
+    });
   } catch (error) {
-    console.log("error")
+    console.log("error");
     res.status(401).json({
-      ok:false
-    })
+      ok: false,
+    });
   }
-}
+};
 
-const UploadFile = async(req, res=response) =>{  
-
-  const  {id} =  req.body
+const UploadFile = async (req, res = response) => {
+  const { id } = req.body;
 
   try {
-
     const files = req.files;
 
     if (!files || files.length !== 2) {
       return res.status(401).json({
         ok: false,
-        msg: 'Debe seleccionar dos imágenes',
+        msg: "Debe seleccionar dos imágenes",
       });
     }
 
-    const rutaAdelante = 'https://test-prueba-production.up.railway.app/public/' + files[0].filename;
-    const rutaAtras = 'https://test-prueba-production.up.railway.app/public/' + files[1].filename;
+    const rutaAdelante =
+      "https://test-prueba-production.up.railway.app/public/" +
+      files[0].filename;
+    const rutaAtras =
+      "https://test-prueba-production.up.railway.app/public/" +
+      files[1].filename;
 
     let data = {
       Foto_documento_adelante: rutaAdelante,
       Foto_documento_atras: rutaAtras,
     };
-    
+
     await pool.query(
-      'UPDATE web_checking SET ? WHERE ID_Reserva = ?',
+      "UPDATE web_checking SET ? WHERE ID_Reserva = ?",
       [data, id],
       (err, customer) => {
         if (err) {
           return res.status(401).json({
             ok: false,
-            msg: 'Error al actualizar datos',
+            msg: "Error al actualizar datos",
           });
         } else {
           return res.status(201).json({
@@ -3076,43 +3072,39 @@ const UploadFile = async(req, res=response) =>{
         }
       }
     );
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(401).json({
-      ok:false
-    })
+      ok: false,
+    });
   }
-}
+};
 
-
-const UploadFileSignature = async(req, res=response) =>{  
-
-  const  {id} = req.body
+const UploadFileSignature = async (req, res = response) => {
+  const { id } = req.body;
 
   try {
-
-    const {myFile} = req.body;
+    const { myFile } = req.body;
 
     if (!myFile) {
       return res.status(401).json({
         ok: false,
-        msg: 'Debe seleccionar una imagen',
+        msg: "Debe seleccionar una imagen",
       });
     }
 
     let data = {
       Pasaporte: myFile,
     };
-    
+
     await pool.query(
-      'UPDATE web_checking SET ? WHERE ID_Reserva = ?',
+      "UPDATE web_checking SET ? WHERE ID_Reserva = ?",
       [data, id],
       (err, customer) => {
         if (err) {
           return res.status(401).json({
             ok: false,
-            msg: 'Error al actualizar datos',
+            msg: "Error al actualizar datos",
           });
         } else {
           return res.status(201).json({
@@ -3121,90 +3113,158 @@ const UploadFileSignature = async(req, res=response) =>{
         }
       }
     );
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(401).json({
-      ok:false
-    })
+      ok: false,
+    });
   }
-}
+};
 
-const ValidCheckingAll  =async (req, res=response) => {
+const ValidCheckingAll = async (req, res = response) => {
+  const { id } = req.params;
 
-  const {id} = req.params
-  
-  const query = await pool.query("SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",[id])
+  const query = await pool.query(
+    "SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",
+    [id]
+  );
 
-  if(query.length > 0){
+  if (query.length > 0) {
     return res.status(401).json({
-      ok:false
-    })
+      ok: false,
+    });
   }
 
   return res.status(201).json({
-    ok:true
-  })
+    ok: true,
+  });
+};
 
-}
+const KPIgetUser = async (req, res = response) => {
+  const { month, year, idUser, ID_hotel } = req.body;
 
-const KPIgetUser =async(req, res=response) =>{
-
-  const {month,year,idUser,ID_hotel} = req.body
-  
   try {
+    const query = await pool.query(
+      "SELECT * FROM KPI WHERE MONTH(Fecha_venta) = ? AND YEAR(Fecha_venta) = ? and ID_user =? and ID_hotel =?  and Pago_deuda =1",
+      [month, year, idUser, ID_hotel]
+    );
 
-  const query  = await pool.query("SELECT * FROM KPI WHERE MONTH(Fecha_venta) = ? AND YEAR(Fecha_venta) = ? and ID_user =? and ID_hotel =?  and Pago_deuda =1",[month,year,idUser,ID_hotel])
-
-  return res.status(201).json({
-      ok:true,
-      query
-    })
-    
+    return res.status(201).json({
+      ok: true,
+      query,
+    });
   } catch (error) {
     return res.status(401)({
-      ok:false
-    })
+      ok: false,
+    });
+  }
+};
+
+const KpiTop = async (req, res = response) => {
+  try {
+    const query = await pool.query(
+      "SELECT APP_colaboradores.id, APP_colaboradores.name, APP_colaboradores.lastName, APP_colaboradores.foto AS APP, KPI.ID_user, users.id AS user_id, KPI.Cantidad, KPI.Precio, COALESCE(SUM(KPI.Cantidad_comision), 0) AS Total_Cantidad_comision FROM users INNER JOIN APP_colaboradores ON APP_colaboradores.id_user = users.id LEFT JOIN KPI ON KPI.ID_user = users.id WHERE APP_colaboradores.status = 0 AND users.id_permissions = 2 GROUP BY users.id ORDER BY Total_Cantidad_comision DESC;"
+    );
+
+    return res.status(201).json({
+      ok: true,
+      query,
+    });
+  } catch (error) {
+    return res.status(401)({
+      ok: false,
+    });
+  }
+};
+
+const GetPublicidad = async (req, res = response) => {
+  try {
+    const query = await pool.query("select * from PopUpPms");
+
+    return res.status(201).json({
+      ok: true,
+      query,
+    });
+  } catch (error) {
+    return res.status(401)({
+      ok: false,
+    });
+  }
+};  
+
+const searchUsersaved = async (req, res = response) => {
+
+  const {serchvalue,type} = req.body
+
+  try {
+    const searchTerm =serchvalue
+
+     if (serchvalue.length === 0) {
+        return res.json({
+            ok: false,
+            message: "No se encontraron usuarios",
+        });
+    }   
+
+    switch (type) {
+      case "document":
+          
+        const queryString = "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad,Prefijo_number.ID as id_nacionalidad, web_checking.ID_Tipo_documento FROM web_checking  INNER JOIN  Prefijo_number  on Prefijo_number.ID  = web_checking.ID_Prefijo WHERE Num_documento LIKE ? GROUP BY web_checking.Num_documento LIMIT 1;";
+
+        const querySeach = await pool.query(
+          queryString,
+          [`%${searchTerm}%`],
+          (error, results) => {
+            if (error) {  
+              return res.status(401).json({
+                ok:false
+              })
+            } else {
+             if(results.length ==0){
+              return res.json({
+                ok:false
+              })
+             }
+              return res.status(201).json({
+                ok:true,
+                results
+              })
+            }
+          }
+        );
+      case "username":
+        const queryStringUsername = "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad FROM web_checking WHERE Nombre LIKE ? GROUP BY web_checking.Num_documento LIMIT 10 ";
+
+        const querySeachUsername= await pool.query(
+          queryStringUsername,
+          [`%${searchTerm}%`],
+          (error, results) => {
+            if (error) {  
+              return res.status(401).json({
+                ok:false
+              })
+            } else {
+              return res.status(201).json({
+                ok:true,
+                results
+              })
+            }
+          }
+        );
+      default:
+          return res.json({
+              status: false,
+              message: "No se encontraron usuarios",
+          });
   }
 
-}
-
-const KpiTop = async(req, res=response) =>{
-
-  try {
-
-    const query  = await pool.query("SELECT APP_colaboradores.id, APP_colaboradores.name, APP_colaboradores.lastName, APP_colaboradores.foto AS APP, KPI.ID_user, users.id AS user_id, KPI.Cantidad, KPI.Precio, COALESCE(SUM(KPI.Cantidad_comision), 0) AS Total_Cantidad_comision FROM users INNER JOIN APP_colaboradores ON APP_colaboradores.id_user = users.id LEFT JOIN KPI ON KPI.ID_user = users.id WHERE APP_colaboradores.status = 0 AND users.id_permissions = 2 GROUP BY users.id ORDER BY Total_Cantidad_comision DESC;")
-
-    return res.status(201).json({
-        ok:true,
-        query
-      })
-      
-    } catch (error) {
-      return res.status(401)({
-        ok:false
-      })
-    }
-}
-
-const GetPublicidad = async(req, res=response) =>{
-
-  try {
-
-    const query  = await pool.query("select * from PopUpPms")
-
-    return res.status(201).json({
-        ok:true,
-        query
-      })
-      
-    } catch (error) {
-      return res.status(401)({
-        ok:false
-      })
-    }
-  
-}
+  } catch (error) {
+    return res.status(401).json({
+      ok: false,
+      message: "No se encontraron usuarios",
+    });
+  }
+};
 
 module.exports = {
   GetRooms,
@@ -3267,5 +3327,6 @@ module.exports = {
   ValidCheckingAll,
   KPIgetUser,
   KpiTop,
-  GetPublicidad
+  GetPublicidad,
+  searchUsersaved,
 };
