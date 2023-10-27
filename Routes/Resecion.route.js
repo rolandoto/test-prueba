@@ -77,7 +77,8 @@ const {
   KPIgetUser,
   KpiTop,
   GetPublicidad,
-  searchUsersaved
+  searchUsersaved,
+  postInsetRoomsOcasional
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -239,5 +240,19 @@ router.get("/userKpiTop/",KpiTop)
 router.get("/getpublicidad",GetPublicidad)
 
 router.post("/searchUsersaved",searchUsersaved)
+
+router.post("/RoomsOcasional",
+[
+    check("ID_habitacion","es obligatorio").not().isEmpty(),
+    check("Fecha","es obligatorio").not().isEmpty(),
+    check("Time_ingreso","es obligatorio").not().isEmpty(),
+    check("Time_salida","es obligatorio").not().isEmpty(),
+    check("id_user","es obligatorio").not().isEmpty(),
+    check("Hora_adicional","es obligatorio").not().isEmpty(),
+    check("Persona_adicional","es obligatorio").not().isEmpty(),
+    check("Tipo_forma_pago","es obligatorio").not().isEmpty(),
+    check("Abono","es obligatorio").not().isEmpty(),
+    ValidarCampos
+],postInsetRoomsOcasional)
 
 module.exports = { router };  

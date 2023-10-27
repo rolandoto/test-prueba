@@ -30,7 +30,7 @@ const GetRooms = async (req, res = response) => {
     const rayRoom = await Promise.all(
       data.map(async (room) => {
         const query = await pool.query(
-          "SELECT ID as id, ID_Tipo_habitaciones, ID_Tipo_estados, Numero as title, ID_estado_habitacion FROM Habitaciones WHERE ID_Tipo_habitaciones = ?   GROUP BY Habitaciones.id ASC ORDER BY Habitaciones.ID ASC",
+          "SELECT Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE()   WHERE ID_Tipo_habitaciones = ? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID ASC;",
           [room.id_tipoHabitacion, id]
         );
 
@@ -52,6 +52,9 @@ const GetRooms = async (req, res = response) => {
             ID_estado_habiatcion: element.ID_estado_habitacion,
             parent: roomMap.get(idTipoHabitacion), // Obtenemos el parent del mapa
             root: isFirstInGroup, // Establecemos root: true en el primer elemento del grupo
+            Time_ingreso: element.Time_ingreso,
+            Time_salida: element.Time_salida,
+            Fecha: element.Fecha,
           };
 
           if (isFirstInGroup) {
@@ -1042,7 +1045,7 @@ const getDetailReservation = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
+      "SELECT web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
       [id]
     );
 
@@ -1589,8 +1592,6 @@ const handInformeAuditoria = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
-  const fechaFiltrar = `${fecha} 15:00:00`;
-
   try {
     const queryOne = await pool.query(
       "SELECT Carrito_reserva.Precio as total,Tipo_Forma_pago.ID as Forma_pago, Carrito_reserva.ID_Categoria as categoria,  Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra =?  and Carrito_reserva.ID_Hoteles  =? GROUP by Carrito_reserva.ID;",
@@ -1601,6 +1602,8 @@ const handInformeAuditoria = async (req, res = response) => {
       "SELECT  SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
       [fecha, id]
     );
+
+    
 
     const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
@@ -1619,6 +1622,8 @@ const handInformeAuditoria = async (req, res = response) => {
     );
 
     const groupedData = [];
+
+    const groupedOcasional = [];
 
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
@@ -1649,10 +1654,33 @@ const handInformeAuditoria = async (req, res = response) => {
       }
     }
 
-    console.log(groupedData);
+
+    for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion;
+      const res = await pool.query(
+        "SELECT RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago   from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   RoomOcasionales.Fecha =? and Habitaciones.ID_Hotel= ?   ",
+        [id_habitacion, fecha, id]
+      ); 
+
+      for (const date of res) {
+        groupedOcasional.push({
+          ID: date.ID,
+          Numero: date.Numero,
+          Habitacion: response[i].nombre,
+          Abono: date.Abono,
+          Tipo_forma_pago: date.Nombre,
+          Fecha:date.Fecha,
+          Forma_pago:date.ID_forma_pago
+        });
+      }
+    }
+
+    
+
     res.status(201).json({
       ok: true,
       result: groupedData,
+      groupedOcasional,
       queryTwo,
       queryOne,
     });
@@ -2666,7 +2694,9 @@ const PostInformeMovimiento = async (req, res = response) => {
 };
 
 const updateReservationPunter = async (req, res = response) => {
-  const { Fecha_final, id, countSeguro } = req.body;
+  const { Fecha_final, id, countSeguro,type } = req.body;
+
+  console.log(type)
 
   try {
     const queryImnformation = await pool.query(
@@ -3190,78 +3220,169 @@ const GetPublicidad = async (req, res = response) => {
       ok: false,
     });
   }
-};  
+};
 
 const searchUsersaved = async (req, res = response) => {
-
-  const {serchvalue,type} = req.body
+  const { serchvalue, type } = req.body;
 
   try {
-    const searchTerm =serchvalue
+    const searchTerm = serchvalue;
 
-     if (serchvalue.length === 0) {
-        return res.json({
-            ok: false,
-            message: "No se encontraron usuarios",
-        });
-    }   
+    if (serchvalue.length === 0) {
+      return res.json({
+        ok: false,
+        message: "No se encontraron usuarios",
+      });
+    }
 
     switch (type) {
       case "document":
-          
-        const queryString = "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad,Prefijo_number.ID as id_nacionalidad, web_checking.ID_Tipo_documento FROM web_checking  INNER JOIN  Prefijo_number  on Prefijo_number.ID  = web_checking.ID_Prefijo WHERE Num_documento LIKE ? GROUP BY web_checking.Num_documento LIMIT 1;";
+        const queryString =
+          "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad,Prefijo_number.ID as id_nacionalidad, web_checking.ID_Tipo_documento FROM web_checking  INNER JOIN  Prefijo_number  on Prefijo_number.ID  = web_checking.ID_Prefijo WHERE Num_documento LIKE ? GROUP BY web_checking.Num_documento LIMIT 1;";
 
         const querySeach = await pool.query(
           queryString,
           [`%${searchTerm}%`],
           (error, results) => {
-            if (error) {  
+            if (error) {
               return res.status(401).json({
-                ok:false
-              })
+                ok: false,
+              });
             } else {
-             if(results.length ==0){
-              return res.json({
-                ok:false
-              })
-             }
+              if (results.length == 0) {
+                return res.json({
+                  ok: false,
+                });
+              }
               return res.status(201).json({
-                ok:true,
-                results
-              })
+                ok: true,
+                results,
+              });
             }
           }
         );
       case "username":
-        const queryStringUsername = "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad FROM web_checking WHERE Nombre LIKE ? GROUP BY web_checking.Num_documento LIMIT 10 ";
+        const queryStringUsername =
+          "SELECT web_checking.ID ,web_checking.ID_Reserva,web_checking.Num_documento,web_checking.Nombre,web_checking.Apellido,web_checking.Fecha_nacimiento,web_checking.Celular,web_checking.Correo,web_checking.Ciudad FROM web_checking WHERE Nombre LIKE ? GROUP BY web_checking.Num_documento LIMIT 10 ";
 
-        const querySeachUsername= await pool.query(
+        const querySeachUsername = await pool.query(
           queryStringUsername,
           [`%${searchTerm}%`],
           (error, results) => {
-            if (error) {  
+            if (error) {
               return res.status(401).json({
-                ok:false
-              })
+                ok: false,
+              });
             } else {
               return res.status(201).json({
-                ok:true,
-                results
-              })
+                ok: true,
+                results,
+              });
             }
           }
         );
       default:
-          return res.json({
-              status: false,
-              message: "No se encontraron usuarios",
-          });
-  }
-
+        return res.json({
+          status: false,
+          message: "No se encontraron usuarios",
+        });
+    }
   } catch (error) {
     return res.status(401).json({
       ok: false,
       message: "No se encontraron usuarios",
+    });
+  }
+};
+
+const postInsetRoomsOcasional = async (req, res = response) => {
+  const {
+    ID_habitacion,
+    Fecha,
+    Time_ingreso,
+    Time_salida,
+    id_user,
+    Hora_adicional,
+    Persona_adicional,
+    Tipo_forma_pago,
+    Abono,
+    ID_hotel
+  } = req.body;
+
+  let dataOne = {
+    valid: 0,
+  };
+
+  let data = {
+    ID_habitacion,
+    Fecha,
+    Time_ingreso,
+    Time_salida,
+    id_user,
+    Hora_adicional,
+    Persona_adicional,
+    Tipo_forma_pago,
+    Abono,
+    valid: 1,
+    ID_hotel
+  };
+  try {
+   await  pool.query(
+      "UPDATE RoomOcasionales set ? WHERE ID_habitacion = ?",
+      [dataOne, ID_habitacion],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+          });
+        } else {
+          const insertSecondQuery = async () => {
+
+              await pool.query(
+                "INSERT INTO RoomOcasionales set ?",
+                data,
+                (err, customer) => {
+                  if (err) {
+                    return res.status(401).json({
+                      ok: false,
+                      msg: "error al insertar datos",
+                    });
+                  } else {
+                    return res.status(201).json({
+                      ok: true,
+                    });
+                  }
+                }
+              );
+          };
+
+          insertSecondQuery();
+        }
+      }
+    );
+  } catch (error) {
+    return res.status(401).json({
+      ok: false,
+    });
+  }
+};
+
+const getRoomsOcasionales = async (req, res = response) => {
+  const { id } = req.body;
+
+  try {
+    const query = await pool.query(
+      "SELECT * FROM KPI WHERE MONTH(Fecha_venta) = ? AND YEAR(Fecha_venta) = ? and ID_user =? and ID_hotel =?  and Pago_deuda =1",
+      [month, year, idUser, ID_hotel]
+    );
+
+    return res.status(201).json({
+      ok: true,
+      query,
+    });
+  } catch (error) {
+    return res.status(401)({
+      ok: false,
     });
   }
 };
@@ -3329,4 +3450,5 @@ module.exports = {
   KpiTop,
   GetPublicidad,
   searchUsersaved,
+  postInsetRoomsOcasional,
 };
