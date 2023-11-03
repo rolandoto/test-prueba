@@ -1677,13 +1677,7 @@ const handReservationChekin = async (req, res = response) => {
       .flat()
       .sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
 
-    if (queryHabitaciones.length === 0) {
-      return res.status(401).json({
-        ok: false,
-      });
-    }
-
-
+  
 
     res.status(201).json({
       ok: true,
@@ -2803,8 +2797,6 @@ const PostInformeMovimiento = async (req, res = response) => {
 const updateReservationPunter = async (req, res = response) => {
   const { Fecha_final, id, countSeguro,type } = req.body;
 
-  console.log(type)
-
   try {
     const queryImnformation = await pool.query(
       "SELECT ID_Habitaciones,Fecha_final ,Fecha_inicio,Adultos,Ninos from  Reservas  WHERE ID = ?",
@@ -2844,10 +2836,25 @@ const updateReservationPunter = async (req, res = response) => {
     var diasdif = fechafin.getTime() - fechaini.getTime();
     var contdias = Math.round(diasdif / (1000 * 60 * 60 * 24));
 
+  
+
     let data = {
       Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
       Noches: contdias,
     };
+
+    var fechainiCheck = new Date(`${yearOne}-${monthONe}-${dayONe}`);
+    var fechafinCheck = new Date(`${Fecha_final}`);
+    var diasdifCheck = fechainiCheck.getTime();- fechafinCheck.getTime()
+    var contdiasCheck = Math.round(diasdifCheck / (1000 * 60 * 60 * 24));
+
+    console.log(contdiasCheck)
+
+    let dataBefore = {
+      Fecha_inicio: `${desdeONe}`, // donde llega la fecha donde me quiero entender
+      Noches: contdias,
+    };
+
 
     const queryPay = await pool.query(
       "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =?",
@@ -2857,8 +2864,7 @@ const updateReservationPunter = async (req, res = response) => {
     const Payinform = queryPay[0];
 
     const totalHuespedCount =
-      (parseInt(datainform.Adultos) + parseInt(datainform.Ninos)) *
-      parseInt(countSeguro);
+      (parseInt(datainform.Adultos) + parseInt(datainform.Ninos)) * parseInt(countSeguro);
 
     const totalPay =
       (parseInt(Payinform.valor_dia_habitacion) + parseInt(totalHuespedCount)) *
@@ -2868,15 +2874,21 @@ const updateReservationPunter = async (req, res = response) => {
       Valor_habitacion: totalPay,
     };
 
+
     if (fecha3 == fecha2) {
       res.status(401).json({
         ok: false,
       });
-    } else if (fecha3 >= fecha2) {
-      return res.status(401).json({
-        ok: false,
-      });
+    } else if (fecha3 > fecha2) {
+
+      console.log(Fecha_final)
+    
+      res.status(401).json({
+        ok:false
+      })
+
     } else if (fecha1 > fecha2) {
+      
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
         [data, id],
