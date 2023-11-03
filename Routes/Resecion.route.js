@@ -78,7 +78,10 @@ const {
   KpiTop,
   GetPublicidad,
   searchUsersaved,
-  postInsetRoomsOcasional
+  postInsetRoomsOcasional,
+  occasionalCartRoomInsertion,
+  getRoomsOcasionalesDetail,
+  occasionalUpdateProductData
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -254,5 +257,14 @@ router.post("/RoomsOcasional",
     check("Abono","es obligatorio").not().isEmpty(),
     ValidarCampos
 ],postInsetRoomsOcasional)
+
+router.post("/occasionalCartRoomInsertion",occasionalCartRoomInsertion)
+
+router.post("/occasionalRoomDetails",getRoomsOcasionalesDetail)
+
+router.post("/occasionalUpdateProductData",[
+  check("Tipo_forma_pago","es obligatorio").not().isEmpty(),
+  ValidarCampos
+],occasionalUpdateProductData)
 
 module.exports = { router };  
