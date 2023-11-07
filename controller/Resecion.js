@@ -2813,7 +2813,9 @@ const updateReservationPunter = async (req, res = response) => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const desde = `${year}-${month}-${day} 15:00:00`; // aqui es la inversa de la fecha porque  aqui comienza la fecha
+    const desdebefore =  `${year}-${month}-${day} 13:00:00`;
     const hasta = `${Fecha_final} 13:00:00`; //aqui termine la fehca donde yo quiero entender
+    const hastaCheck = `${Fecha_final} 15:00:00`; //aqui termine la fehca donde yo quiero entender
 
     const dateTimeOne = datainform.Fecha_inicio;
     const dateOne = new Date(dateTimeOne);
@@ -2821,11 +2823,6 @@ const updateReservationPunter = async (req, res = response) => {
     const monthONe = String(dateOne.getMonth() + 1).padStart(2, "0");
     const dayONe = String(dateOne.getDate()).padStart(2, "0");
     const desdeONe = `${yearOne}-${monthONe}-${dayONe} 15:00:00`; // aqui es la inversa de la fecha porque  aqui comienza la fecha
-
-    const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
-      [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
-    );
 
     var fecha1 = new Date(desde);
     var fecha2 = new Date(hasta);
@@ -2836,25 +2833,15 @@ const updateReservationPunter = async (req, res = response) => {
     var diasdif = fechafin.getTime() - fechaini.getTime();
     var contdias = Math.round(diasdif / (1000 * 60 * 60 * 24));
 
-  
-
     let data = {
       Fecha_final: `${Fecha_final} 13:00:00`, // donde llega la fecha donde me quiero entender
       Noches: contdias,
     };
 
-    var fechainiCheck = new Date(`${yearOne}-${monthONe}-${dayONe}`);
-    var fechafinCheck = new Date(`${Fecha_final}`);
-    var diasdifCheck = fechainiCheck.getTime();- fechafinCheck.getTime()
+    var fechainiCheck = new Date(`${fecha1}`);
+    var fechafinCheck = new Date(`${fecha2}`);
+    var diasdifCheck = fechainiCheck.getTime()- fechafinCheck.getTime()
     var contdiasCheck = Math.round(diasdifCheck / (1000 * 60 * 60 * 24));
-
-    console.log(contdiasCheck)
-
-    let dataBefore = {
-      Fecha_inicio: `${desdeONe}`, // donde llega la fecha donde me quiero entender
-      Noches: contdias,
-    };
-
 
     const queryPay = await pool.query(
       "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =? and  pago_valid=1",
@@ -2874,20 +2861,111 @@ const updateReservationPunter = async (req, res = response) => {
       Valor_habitacion: totalPay,
     };
 
+    let dataBefore = {
+      Fecha_inicio: `${Fecha_final} 15:00:00`, // donde llega la fecha donde me quiero entender
+      Noches: contdiasCheck,
+    };
 
+    const totalPayCheck =
+    (parseInt(Payinform.valor_dia_habitacion) + parseInt(totalHuespedCount)) *
+    contdiasCheck;
+
+    const dataPayCheck = {
+      Valor_habitacion: totalPayCheck,
+    };
+   
     if (fecha3 == fecha2) {
       res.status(401).json({
         ok: false,
       });
-    } else if (fecha3 > fecha2) {
+    } else if (fecha3 > fecha2 && type =="subir" ) {
 
-      console.log(Fecha_final)
-    
-      res.status(401).json({
-        ok:false
-      })
+      const desdeBefore = `${Fecha_final} 15:00:00`
 
-    } else if (fecha1 > fecha2) {
+      const hastaBefore = `${yearOne}-${monthONe}-${dayONe} 13:00:00`;
+
+      const resultadoCheckBefore = await pool.query(
+        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
+        [ID_Habitaciones, desdeBefore, desdeBefore, hastaBefore, hastaBefore, desdeBefore, hastaBefore]
+      );
+
+      if (resultadoCheckBefore[0].Num_Reservas > 0) {
+        return res.status(401).json({
+          ok: false,
+        });
+      }
+     
+
+      await pool.query(
+        "UPDATE Reservas SET ? WHERE ID = ?",
+        [dataBefore, id],
+        (err, customer) => {
+          if (err) {
+            return res.status(401).json({
+              ok: false,
+              msg: "Error al insertar datos",
+            });
+          } else {
+            const insertSecondQuery = async () => {
+              pool.query(
+                "UPDATE Pagos set ? WHERE ID_Reserva = ?",
+                [dataPayCheck, id],
+                (err, customer) => {
+                  if (err) {
+                    return res.status(401).json({
+                      ok: false,
+                      msg: "error al insertar datos",
+                    });
+                  } else {
+                    return res.status(201).json({
+                      ok: true,
+                    });
+                  }
+                }
+              );
+            };
+            insertSecondQuery();
+          }
+        }
+      );
+
+    }else if(fecha2 > fecha3 && type =="subir" ){
+
+      await pool.query(
+        "UPDATE Reservas SET ? WHERE ID = ?",
+        [dataBefore, id],
+        (err, customer) => {
+          if (err) {
+            return res.status(401).json({
+              ok: false,
+              msg: "Error al insertar datos",
+            });
+          } else {
+            const insertSecondQuery = async () => {
+              pool.query(
+                "UPDATE Pagos set ? WHERE ID_Reserva = ?",
+                [dataPayCheck, id],
+                (err, customer) => {
+                  if (err) {
+                    return res.status(401).json({
+                      ok: false,
+                      msg: "error al insertar datos",
+                    });
+                  } else {
+                    return res.status(201).json({
+                      ok: true,
+                    });
+                  }
+                }
+              );
+            };
+            insertSecondQuery();
+          }
+        }
+      );
+    } else if (fecha1 > fecha2 && type =="bajar"  ) {
+
+      console.log("true is valid resevractions")
       
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
@@ -2921,13 +2999,20 @@ const updateReservationPunter = async (req, res = response) => {
           }
         }
       );
-    } else {
-      if (resultado[0].Num_Reservas > 0) {
+    } else if(fecha1 < fecha2  && type =="bajar"  ) {
+     
+      const resultadoCheck = await pool.query(
+        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
+        [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
+      );
+    
+      if (resultadoCheck[0].Num_Reservas > 0) {
         return res.status(401).json({
           ok: false,
         });
       }
-      if (resultado[0].Num_Reservas == 0) {
+     
+      if (resultadoCheck[0].Num_Reservas == 0) {
         await pool.query(
           "UPDATE Reservas SET ? WHERE ID = ?",
           [data, id],
