@@ -2857,7 +2857,7 @@ const updateReservationPunter = async (req, res = response) => {
 
 
     const queryPay = await pool.query(
-      "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =?",
+      "SELECT valor_dia_habitacion FROM Pagos  WHERE ID_Reserva =? and  pago_valid=1",
       [id]
     );
 
