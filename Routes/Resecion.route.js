@@ -120,7 +120,7 @@ router.post("/postinsertreservaresecipcion", insertReservaRecepcion);
 
 router.get("/gettypepet", getTypePet);
 
-router.get("/getreservarecepcion/:id", getReserva);
+router.post("/getreservarecepcion/:id", getReserva);
 
 router.get("/getcanales", GetCanales);
 

@@ -450,64 +450,69 @@ const getTypePet = async (req, res = response) => {
 
 const getReserva = async (req, res = response) => {
   const { id } = req.params;
+  const {type} = req.body
 
   try {
-    const response = await pool.query(
-      "SELECT web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones !=6",
-      [id]
-    );
 
-    const promises = [];
+    const queryType =
+      type === true
+        ? 'Reservas.ID_Tipo_Estados_Habitaciones = 6'
+        : 'Reservas.ID_Tipo_Estados_Habitaciones != 6';
 
-    for (let i = 0; i < response.length; i++) {
-      const daytBefore = moment(response[i].Fecha_final)
-        .utc()
-        .format("YYYY/MM/DD");
+      const response = await pool.query(
+       `SELECT web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and ${queryType}`,
+        [id]
+      );
+  
+      const promises = [];
+  
+      for (let i = 0; i < response.length; i++) {
+        const daytBefore = moment(response[i].Fecha_final)
+          .utc()
+          .format("YYYY/MM/DD");
+  
+        const now = moment().format("YYYY/MM/DD");
+  
+        var fechaInicio = new Date(daytBefore).getTime();
+        var fechaFin = new Date(now).getTime();
+  
+        var diff = fechaFin - fechaInicio;
+  
+        const day = diff / (1000 * 60 * 60 * 24);
+  
+        promises.push({
+          Num_Room: response[i].Numero,
+          Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
+          Observation: response[i].Observacion,
+          Noches: response[i].Noches,
+          Adultos: response[i].Adultos,
+          Ninos: response[i].Ninos,
+          Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
+          ID: response[i].ID,
+          ID_Habitaciones: response[i].ID_Habitaciones,
+          Codigo_reserva: response[i].Codigo_reserva,
+          Fecha_inicio: response[i].Fecha_inicio,
+          Fecha_final: response[i].Fecha_final,
+          ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
+          Nombre: response[i].Nombre,
+          Document: response[i].Num_documento,
+          Last_name: response[i].Apellido,
+          Valor_habitacion: response[i].Valor_habitacion,
+          abono: response[i].Abono,
+          Celular: response[i].Celular,
+          codigo: response[i].codigo,
+          nacionalidad: response[i].nacionalidad,
+          valor_dia_habitacion: response[i].valor_dia_habitacion,
+        });
+      }
 
-      const now = moment().format("YYYY/MM/DD");
-
-      var fechaInicio = new Date(daytBefore).getTime();
-      var fechaFin = new Date(now).getTime();
-
-      var diff = fechaFin - fechaInicio;
-
-      const day = diff / (1000 * 60 * 60 * 24);
-
-      promises.push({
-        Num_Room: response[i].Numero,
-        Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
-        Observation: response[i].Observacion,
-        Noches: response[i].Noches,
-        Adultos: response[i].Adultos,
-        Ninos: response[i].Ninos,
-        Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
-        ID: response[i].ID,
-        ID_Habitaciones: response[i].ID_Habitaciones,
-        Codigo_reserva: response[i].Codigo_reserva,
-        Fecha_inicio: response[i].Fecha_inicio,
-        Fecha_final: response[i].Fecha_final,
-        ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
-        Nombre: response[i].Nombre,
-        Document: response[i].Num_documento,
-        Last_name: response[i].Apellido,
-        Valor_habitacion: response[i].Valor_habitacion,
-        abono: response[i].Abono,
-        Celular: response[i].Celular,
-        codigo: response[i].codigo,
-        nacionalidad: response[i].nacionalidad,
-        valor_dia_habitacion: response[i].valor_dia_habitacion,
+      const query = await Promise.all(promises);
+  
+      return res.status(201).json({
+        ok: true,
+        query,
       });
-    }
-
-    //console.log(response[i])
-    // promises.push(pool.query("SELECT ID, ID_Reserva, ID_Tipo_documento, Num_documento, Nombre, Apellido, Fecha_nacimiento, Celular, Correo, Ciudad, Foto_documento_adelante, Foto_documento_atras,Pasaporte,Firma FROM web_checking WHERE ID_Reserva =?",[response[i].ID]));
-
-    const query = await Promise.all(promises);
-
-    return res.status(201).json({
-      ok: true,
-      query,
-    });
+  
   } catch (error) {
     res.status(201).json({
       ok: false,
