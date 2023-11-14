@@ -159,7 +159,7 @@ const validateAvaible = async (req, res = response) => {
     }
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND and Reservas.ID_Tipo_Estados_Habitaciones !=6 and ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
     );
 
