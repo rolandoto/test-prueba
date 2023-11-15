@@ -30,7 +30,7 @@ const GetRooms = async (req, res = response) => {
     const rayRoom = await Promise.all(
       data.map(async (room) => {
         const query = await pool.query(
-          "SELECT Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE()   WHERE ID_Tipo_habitaciones = ? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID ASC;",
+          "SELECT Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE()   WHERE ID_Tipo_habitaciones = ? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
           [room.id_tipoHabitacion, id]
         );
 
@@ -44,6 +44,8 @@ const GetRooms = async (req, res = response) => {
             roomMap.set(idTipoHabitacion, parent); // Asignamos un nuevo parent si no existe uno para este ID_Tipo_habitaciones
           }
 
+          console.log(element.title)
+
           const roomObject = {
             title: `${element.title} ${room.nombre}`,
             id: element.id,
@@ -55,6 +57,7 @@ const GetRooms = async (req, res = response) => {
             Time_ingreso: element.Time_ingreso,
             Time_salida: element.Time_salida,
             Fecha: element.Fecha,
+            Numero:element.title
           };
 
           if (isFirstInGroup) {
@@ -69,7 +72,7 @@ const GetRooms = async (req, res = response) => {
     // Flatten y ordenar por ID_Tipo_habitaciones
     const flattenedRooms = rayRoom
       .flat()
-      .sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
+      .sort((a, b) => a.Numero - b.Numero);
 
     if (flattenedRooms.length === 0) {
       return res.status(401).json({
