@@ -100,6 +100,45 @@ const PostRoomDetailUpdate = async (req, res = response) => {
       ID_estado_habitacion,
     };
 
+    let dataResevation ={
+      ID_Tipo_Estados_Habitaciones:6
+    }
+    
+    if(ID_estado_habitacion ==0){
+      await pool.query(
+        "UPDATE Habitaciones SET ? WHERE ID = ?",
+        [data, id],
+        (err, customer) => {
+          if (err) {
+            return res.status(401).json({
+              ok: false,
+              msg: "Error al insertar datos",
+            });
+          }  
+            const insertSecondQuery = async () => {
+            pool.query(
+              "UPDATE Reservas set ? WHERE ID_Tipo_Estados_Habitaciones = 1 and ID_Habitaciones =? ",
+              [dataResevation, id],
+              (err, customer) => {
+                if (err) {
+                  return res.status(401).json({
+                    ok: false,
+                    msg: "error al insertar datos",
+                  });
+                } else {
+                  return res.status(201).json({
+                    ok: true,
+                  });
+                }
+              }
+            );
+          };
+          insertSecondQuery();
+        }
+      );
+
+    }else{
+
     await pool.query(
       "UPDATE Habitaciones SET ? WHERE ID = ?",
       [data, id],
@@ -116,6 +155,8 @@ const PostRoomDetailUpdate = async (req, res = response) => {
         }
       }
     );
+    }
+
   } catch (error) {
     return res.status(401).json({
       ok: false,
@@ -3639,6 +3680,13 @@ const occasionalUpdateProductData =async(req, res = response) => {
 
 }
 
+
+const stadisticasbyIdHotel =(id) =>{
+
+  const data =2
+
+
+}
 
 
 module.exports = {

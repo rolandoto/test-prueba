@@ -3,6 +3,7 @@ const AuthRoutes = require("./Routes/Auth");
 const ListRoutes = require("./Routes/Listmotel");
 const AdminRoute = require("./Routes/Admin.route");
 const ResecionRoute = require("./Routes/Resecion.route");
+const Hotels = require("./Routes/Hotels")
 const cors = require("cors");
 require("dotenv").config();
 var path = require('path')
@@ -24,6 +25,7 @@ app.use("/api/auth", AuthRoutes.router);
 app.use("/api", ListRoutes.router);
 app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
+app.use("/api/hotels",Hotels.router)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 const io = new Server(server, {
@@ -45,8 +47,6 @@ io.on("connection", (socket) => {
 
   socket.on("mousemove", (data) => {
     const { userId, x, y ,Id_hotel} = data;
-
-    
 
 
     // Aquí puedes utilizar el identificador del usuario (userId) para identificar al usuario

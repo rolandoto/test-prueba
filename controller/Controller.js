@@ -36,9 +36,11 @@ const LoginUsuario =async(req,res=response) =>{
 
            const token = await GenerarJwt(response.id_hotel,response.user_name)
 
-           const logo  =  await pool.query("SELECT logo FROM hotels WHERE id = ?" ,[body.hotel])
+           const logo  =  await pool.query("SELECT logo,Iva FROM hotels WHERE id = ?" ,[body.hotel])
            
            const totaLogo =  logo[0]?.logo
+
+           const ivaHotels =  logo[0]?.Iva
 
             return res.status(201).json({
                 ok:true,
@@ -50,7 +52,8 @@ const LoginUsuario =async(req,res=response) =>{
                     id_permissions:response.id_permissions,
                     photo:response.foto,
                     token,
-                    logo:totaLogo
+                    logo:totaLogo,
+                    Iva:ivaHotels
                 }
             })
 
