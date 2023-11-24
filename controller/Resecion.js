@@ -564,6 +564,76 @@ const getReserva = async (req, res = response) => {
   }
 };
 
+const PostReserva = async (req, res = response) => {
+  const { id } = req.params;
+  const {type} = req.body
+
+  const desde ="2023-11-20 15:00:00"
+  const hasta = "2023-11-26 15:00:00"
+
+  try {
+
+      const response = await pool.query(
+       `SELECT web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 0 and  ((Fecha_inicio <= ? AND Fecha_inicio >=  ?) OR (Fecha_inicio <= ? AND Fecha_inicio >=  ?) OR (Fecha_inicio >= ? AND Fecha_inicio <=  ?))`,
+        [id,desde, hasta, desde, hasta, desde, hasta]
+      );
+  
+      const promises = [];
+  
+      for (let i = 0; i < response.length; i++) {
+        const daytBefore = moment(response[i].Fecha_final)
+          .utc()
+          .format("YYYY/MM/DD");
+  
+        const now = moment().format("YYYY/MM/DD");
+  
+        var fechaInicio = new Date(daytBefore).getTime();
+        var fechaFin = new Date(now).getTime();
+  
+        var diff = fechaFin - fechaInicio;
+  
+        const day = diff / (1000 * 60 * 60 * 24);
+  
+        promises.push({
+          Num_Room: response[i].Numero,
+          Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
+          Observation: response[i].Observacion,
+          Noches: response[i].Noches,
+          Adultos: response[i].Adultos,
+          Ninos: response[i].Ninos,
+          Title: `${response[i].Numero} ${response[i].Nombre} ${response[i].Apellido}`,
+          ID: response[i].ID,
+          ID_Habitaciones: response[i].ID_Habitaciones,
+          Codigo_reserva: response[i].Codigo_reserva,
+          Fecha_inicio: response[i].Fecha_inicio,
+          Fecha_final: response[i].Fecha_final,
+          ID_Tipo_estados: response[i].ID_Tipo_Estados_Habitaciones,
+          Nombre: response[i].Nombre,
+          Document: response[i].Num_documento,
+          Last_name: response[i].Apellido,
+          Valor_habitacion: response[i].Valor_habitacion,
+          abono: response[i].Abono,
+          Celular: response[i].Celular,
+          codigo: response[i].codigo,
+          nacionalidad: response[i].nacionalidad,
+          valor_dia_habitacion: response[i].valor_dia_habitacion,
+        });
+      }
+
+      const query = await Promise.all(promises);
+  
+      return res.status(201).json({
+        ok: true,
+        query,
+      });
+  
+  } catch (error) {
+    res.status(201).json({
+      ok: false,
+    });
+  }
+};
+
 const PruebaGet = (req, res = response) => {
   try {
     const prueba = query.pool(
@@ -1851,46 +1921,14 @@ const handInformeCamarera = async (req, res = response) => {
     const FechaIncio = `${fecha}`;
     const FechaFinal = `${fecha}`;
 
-    const queryOne = await pool.query(
-      "SELECT Reservas.ID_Tipo_Estados_Habitaciones, Reservas.Fecha_final, Reservas.Adultos, Reservas.Fecha_final, Reservas.Ninos, Reservas.Noches, web_checking.nombre, web_checking.Apellido, Habitaciones.Numero, Habitaciones.ID as id_habitaciones FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final > ? AND Fecha_final <= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) ) AND Habitaciones.ID_Hotel = ?",
-      [
-        FechaIncio,
-        FechaIncio,
-        FechaFinal,
-        FechaFinal,
-        FechaIncio,
-        FechaFinal,
-        id,
+    const query = await pool.query(
+      "SELECT  Habitaciones.ID_estado_habitacion as ID_Tipo_Estados_Habitaciones,   Reservas.Fecha_final, Reservas.Adultos,  Reservas.Fecha_final,  Reservas.Ninos,   Reservas.Noches,  web_checking.nombre,   web_checking.Apellido,  Habitaciones.Numero,  Habitaciones.ID as id_habitaciones,  CASE  WHEN Habitaciones.ID_estado_habitacion = 0 THEN 'Disponible' WHEN Habitaciones.ID_estado_habitacion = 5 THEN 'Sucia'  WHEN Habitaciones.ID_estado_habitacion = 2 THEN 'Bloqueada'  ELSE 'Ocupada'  END as Estado_Habitacio FROM  Reservas  INNER JOIN   web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN  Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE  (Reservas.ID_Tipo_Estados_Habitaciones = 3 OR Habitaciones.ID_estado_habitacion = 0 or Habitaciones.ID_estado_habitacion=5 or Habitaciones.ID_estado_habitacion=2 )  AND Habitaciones.ID_Hotel = ? GROUP BY  Habitaciones.ID;",
+      [id,
       ]
     );
 
-    const room = await pool.query(
-      "SELECT Habitaciones.ID id_habitaciones,Habitaciones.Numero ,ID_estado_habitacion from Habitaciones WHERE Habitaciones.ID_Hotel = ?",
-      [id]
-    );
-
-    const groupedById = {};
-
-    // Agrupar array1 por ID
-    queryOne.forEach((item) => {
-      if (!groupedById[item.id_habitaciones]) {
-        groupedById[item.id_habitaciones] = {};
-      }
-      Object.assign(groupedById[item.id_habitaciones], item);
-    });
-
-    // Agrupar array2 por ID y combinar los objetos existentes
-    room.forEach((item) => {
-      if (groupedById[item.id_habitaciones]) {
-        Object.assign(groupedById[item.id_habitaciones], item);
-      } else {
-        groupedById[item.id_habitaciones] = item;
-      }
-    });
-
-    const result = Object.values(groupedById);
-
-    console.log(result);
+    const result = query
+    .sort((a, b) => a.Numero - b.Numero);
 
     res.status(201).json({
       ok: true,
@@ -3755,5 +3793,6 @@ module.exports = {
   postInsetRoomsOcasional,
   occasionalCartRoomInsertion,
   getRoomsOcasionalesDetail,
-  occasionalUpdateProductData
+  occasionalUpdateProductData,
+  PostReserva
 };

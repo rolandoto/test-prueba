@@ -81,7 +81,8 @@ const {
   postInsetRoomsOcasional,
   occasionalCartRoomInsertion,
   getRoomsOcasionalesDetail,
-  occasionalUpdateProductData
+  occasionalUpdateProductData,
+  PostReserva
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -121,6 +122,8 @@ router.post("/postinsertreservaresecipcion", insertReservaRecepcion);
 router.get("/gettypepet", getTypePet);
 
 router.post("/getreservarecepcion/:id", getReserva);
+
+router.post("/postreservarecepcion/:id", PostReserva);
 
 router.get("/getcanales", GetCanales);
 
