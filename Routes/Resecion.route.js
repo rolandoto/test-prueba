@@ -82,7 +82,8 @@ const {
   occasionalCartRoomInsertion,
   getRoomsOcasionalesDetail,
   occasionalUpdateProductData,
-  PostReserva
+  PostReserva,
+  getReservationContabilidad
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -269,5 +270,7 @@ router.post("/occasionalUpdateProductData",[
   check("Tipo_forma_pago","es obligatorio").not().isEmpty(),
   ValidarCampos
 ],occasionalUpdateProductData)
+
+router.post("/postReservationContabilidad/:id",getReservationContabilidad)
 
 module.exports = { router };  
