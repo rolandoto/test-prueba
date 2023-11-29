@@ -3149,6 +3149,8 @@ const updateChangeTypreRange = async (req, res = response) => {
     [id]
   );
 
+  console.log({"hola":"28"})
+
   const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones;
   const idhabtiaciones = valid[0]?.ID_Habitaciones;
 
@@ -3718,7 +3720,6 @@ const occasionalUpdateProductData =async(req, res = response) => {
 
 }
 
-
 const getReservationContabilidad=async(req, res = response) =>{
 
   const {id}  = req.params
@@ -3753,6 +3754,38 @@ const getReservationContabilidad=async(req, res = response) =>{
 
   }
 
+}
+
+const postChangeResdian =async(req, res = response) =>{
+
+  const {id,resdian} = req.body
+
+  let data = {
+    residualsArray:resdian
+  };
+
+  try {
+
+    await  pool.query(
+      "UPDATE web_checking set ? WHERE ID_Reserva = ?",
+      [data, id],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+          });
+        }{
+          return res.status(201).json({
+            ok:true
+          })
+        }
+      }
+    )
+  } catch (error) {
+    return res.status(401).json({
+      ok:false
+    })
+  }
 
 }
 
@@ -3825,5 +3858,6 @@ module.exports = {
   getRoomsOcasionalesDetail,
   occasionalUpdateProductData,
   PostReserva,
-  getReservationContabilidad
+  getReservationContabilidad,
+  postChangeResdian
 };

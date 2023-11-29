@@ -83,7 +83,8 @@ const {
   getRoomsOcasionalesDetail,
   occasionalUpdateProductData,
   PostReserva,
-  getReservationContabilidad
+  getReservationContabilidad,
+  postChangeResdian
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -272,5 +273,11 @@ router.post("/occasionalUpdateProductData",[
 ],occasionalUpdateProductData)
 
 router.post("/postReservationContabilidad/:id",getReservationContabilidad)
+
+router.post("/postChangeResdian",[
+  check("resdian","es obligatorio").not().isEmpty(),
+  check("id","es obligatorio").not().isEmpty(),
+  ValidarCampos
+],postChangeResdian)
 
 module.exports = { router };  
