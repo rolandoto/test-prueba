@@ -13,65 +13,28 @@ const uuid = require("uuid");
 
 const GetRooms = async (req, res = response) => {
   const { id } = req.params;
+
   try {
-    const response = await fetch(
-      `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
-      {
-        method: "post",
-        headers: { "Content-type": "application/json" },
-      }
-    );
-
-    const data = await response.json();
-
-    const roomMap = new Map(); // Usamos un mapa para rastrear el parent de cada ID_Tipo_habitaciones
-    let parent = 1; // Inicializamos el valor de parent en 1
-
-    const rayRoom = await Promise.all(
-      data.map(async (room) => {
         const query = await pool.query(
-          "SELECT Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE()   WHERE ID_Tipo_habitaciones = ? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
-          [room.id_tipoHabitacion, id]
+          "SELECT rooms.id  as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE() INNER join  rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=?  GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
+          [id]
         );
-
-        let isFirstInGroup = true; // Variable para rastrear el primer elemento en cada grupo
-
-        return query.map((element) => {
-          const idTipoHabitacion = element.ID_Tipo_habitaciones;
-
-          // Verificamos si ya tenemos un parent asignado para este ID_Tipo_habitaciones
-          if (!roomMap.has(idTipoHabitacion)) {
-            roomMap.set(idTipoHabitacion, parent); // Asignamos un nuevo parent si no existe uno para este ID_Tipo_habitaciones
-          }
-
-          console.log(element.title)
-
+      const queryOne =   query.map((element) => {
           const roomObject = {
-            title: `${element.title} ${room.nombre}`,
+            title: `${element.title} ${element.nombre}`,
             id: element.id,
             ID_Tipo_estados: element.ID_Tipo_estados,
-            ID_Tipo_habitaciones: idTipoHabitacion,
-            ID_estado_habiatcion: element.ID_estado_habitacion,
-            parent: roomMap.get(idTipoHabitacion), // Obtenemos el parent del mapa
-            root: isFirstInGroup, // Establecemos root: true en el primer elemento del grupo
+            ID_Tipo_habitaciones: element.idTipoHabitacion,
+            ID_estado_habiatcion: element.ID_estado_habitacion, // Obtenemos el parent del mapa// Establecemos root: true en el primer elemento del grupo
             Time_ingreso: element.Time_ingreso,
             Time_salida: element.Time_salida,
             Fecha: element.Fecha,
             Numero:element.title
           };
-
-          if (isFirstInGroup) {
-            isFirstInGroup = false;
-            parent++;
-          }
           return roomObject;
         });
-      })
-    );
 
-    // Flatten y ordenar por ID_Tipo_habitaciones
-    const flattenedRooms = rayRoom
-      .flat()
+    const flattenedRooms = queryOne
       .sort((a, b) => a.Numero - b.Numero);
 
     if (flattenedRooms.length === 0) {

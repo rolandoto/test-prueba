@@ -44,40 +44,26 @@ const InsertIntoRoomsAdmin =async (req,res=response) =>{
 
 const  GetroomsAdmin =async(req,res=response)=>{
     
-    const  {id}  = req.params;
+    const  {id}  = req.params
  
     const ray =[]
   
     try {
-
-        const response =  await fetch( `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,{
-            method:"post",
-            headers:{'Content-type':'application/json'}
-        }).then(index =>{
-            const data =  index.json()
-            return  data
-        })
-        .catch((e) =>{
-        })
-
-        for( let count = 0; count < response?.length; count++ ) {
-
-            const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Tipo_habitaciones =?  and Habitaciones.ID_Hotel = ? ",[response[count].id_tipoHabitacion,id])
-            
+        
+            const  query = await pool.query("SELECT rooms.id, rooms.name, rooms.price, rooms.price_people, rooms.people, rooms.max_people, Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones, Tipo_estados.Nombre AS nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID INNER JOIN rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel = ?",[id])
             query.forEach(element => {
                 ray.push({
-                    id_tipoHabitacion:response[count].id_tipoHabitacion,
-                    nombre:response[count].nombre,
-                    precio:response[count].precio,
-                    precio_persona:response[count].precio_persona,
-                    persona:response[count].persona,
-                    max_persona:response[count].max_persona,
+                    id_tipoHabitacion:element.id,
+                    nombre:element.name,
+                    precio:element.price,
+                    precio_persona:element.price_people,
+                    persona:element.people,
+                    max_persona:element.max_people,
                     id: element.ID,
                     nombreEstado: element.nombreEstado,
                     Numero: element.Numero
                 })
             }); 
-        }
 
         /*
         const  query = await pool.query("SELECT Habitaciones.ID, Habitaciones.ID_Tipo_habitaciones,Tipo_estados.Nombre as nombreEstado, Habitaciones.Numero FROM Habitaciones INNER JOIN Tipo_estados ON Habitaciones.ID_Tipo_estados = Tipo_estados.ID WHERE Habitaciones.ID_Hotel =?",[id])
