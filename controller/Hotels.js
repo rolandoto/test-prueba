@@ -3,7 +3,7 @@ const { pool } = require('../database/connection');
 
 const SearchHotels =async(req, res = response) =>{
 
-  const id = 10;
+  const {id,desde,hasta} = req.body
 
     const query = await pool.query(
       "SELECT rooms.id as idTipoHabitacion, rooms.name as nombre,rooms.price as precio,rooms.price_people as precio_persona,rooms.people as persona,rooms.max_people as max_persona, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha,rooms_image.url FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() INNER JOIN rooms_image on  rooms_image.id_rooms = Habitaciones.ID_Tipo_habitaciones INNER  JOIN  rooms on  rooms.id  = Habitaciones.ID_Tipo_habitaciones  WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id;",
@@ -54,8 +54,7 @@ const test = await Promise.all(
 );      
 return test.flat().filter((item) => item !== null);
 }
-const desde = "2023-11-29 15:00:00"
-const hasta = "2023-11-30 13:00:00"
+
 const availableRooms = await getAvailableRooms(pool, queryOne, desde, hasta);
 
 if(availableRooms.length ==0){
