@@ -3458,7 +3458,7 @@ const KpiTop = async (req, res = response) => {
     });
   } catch (error) {
     return res.status(401)({
-      ok: false,
+      ok: false
     });
   }
 };
