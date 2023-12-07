@@ -347,7 +347,7 @@ const validateAvaible = async (req, res = response) => {
         };
 
         try {
-          await postApiWhasatapp(parametros);
+        
 
           return res.status(201).json({
             ok: true,
@@ -3787,6 +3787,29 @@ const getReservaSendingContabilidad=async(req, res = response) =>{
 }
 
 
+const GetFacturacion=async(req, res = response) =>{
+
+
+
+  try {
+    const queryResonse = await pool.query(
+      `SELECT id, name_people FROM APP_FORM_FACTURE`,
+     );
+      
+     return res.status(201).json({
+      ok:true,
+      query:queryResonse
+     })
+    
+  } catch (error) {
+    return res.status(401).json({
+      ok:false
+    })
+  }
+
+}
+
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -3857,5 +3880,6 @@ module.exports = {
   PostReserva,
   getReservationContabilidad,
   postChangeResdian,
-  getReservaSendingContabilidad
+  getReservaSendingContabilidad,
+  GetFacturacion
 };
