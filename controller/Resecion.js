@@ -347,7 +347,7 @@ const validateAvaible = async (req, res = response) => {
         };
 
         try {
-      
+          
           return res.status(201).json({
             ok: true,
           });
