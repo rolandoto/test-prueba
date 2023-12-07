@@ -347,8 +347,7 @@ const validateAvaible = async (req, res = response) => {
         };
 
         try {
-          await postApiWhasatapp(parametros);
-
+      
           return res.status(201).json({
             ok: true,
           });
@@ -3785,7 +3784,6 @@ const getReservaSendingContabilidad=async(req, res = response) =>{
   }
 
 }
-
 
 module.exports = {
   GetRooms,
