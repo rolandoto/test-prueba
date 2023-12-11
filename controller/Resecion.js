@@ -152,6 +152,7 @@ const validateAvaible = async (req, res = response) => {
     link,
     id_hotel,
     nowOne,
+    ID_facturacion
   } = req.body;
 
   const date1 = new Date(desde);
@@ -246,9 +247,10 @@ const validateAvaible = async (req, res = response) => {
             Correo: huespe[i]?.Correo,
             Ciudad: huespe[i]?.Ciudad,
             ID_Prefijo: huespe[i]?.Nacionalidad,
-            Tipo_persona: "persona",
+            Tipo_persona: Tipo_persona,
             Firma: 0,
             Iva: 2,
+            ID_facturacion
           };
 
           const toone = pool.query(
@@ -1127,7 +1129,7 @@ const getDetailReservation = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
+      "SELECT web_checking.ID_facturacion, web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
       [id]
     );
 
@@ -3789,12 +3791,31 @@ const getReservaSendingContabilidad=async(req, res = response) =>{
 
 const GetFacturacion=async(req, res = response) =>{
 
-
-
   try {
     const queryResonse = await pool.query(
       `SELECT id, name_people FROM APP_FORM_FACTURE`,
      );
+      
+     return res.status(201).json({
+      ok:true,
+      query:queryResonse
+     })
+    
+  } catch (error) {
+    return res.status(401).json({
+      ok:false
+    })
+  }
+
+}
+
+
+const PostFacturacion=async(req, res = response) =>{
+
+  const {id} = req.params
+
+  try {
+    const queryResonse = await pool.query(`SELECT id, type_people ,num_id,name_people,apellido_people , number_people, direccion_people,email_people FROM APP_FORM_FACTURE WHERE id =?`,[id]);
       
      return res.status(201).json({
       ok:true,
@@ -3881,5 +3902,6 @@ module.exports = {
   getReservationContabilidad,
   postChangeResdian,
   getReservaSendingContabilidad,
-  GetFacturacion
+  GetFacturacion,
+  PostFacturacion
 };
