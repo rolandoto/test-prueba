@@ -339,15 +339,6 @@ const validateAvaible = async (req, res = response) => {
 
         const totalNumberPhone = numberPhone.replace("+", "");
 
-        const parametros = {
-          to: `${totalNumberPhone}`, // Número de teléfono o ID del destinatario
-          nombre: `${item.Nombre} ${item.Apellido}`,
-          codigo: `X14A-${item.Num_documento}${parseInt(result.toString())}`,
-          link,
-          resepcion: resepcion,
-          addres: `${itemAddres.dir} ${itemAddres.adress}`,
-        };
-
         try {
           return res.status(201).json({
             ok: true,
@@ -371,7 +362,7 @@ const validateAvaible = async (req, res = response) => {
       });
     }
   } catch (error) {
-    console.log(error);
+
     res.status(401).json({
       ok: false,
       msg: "comuniquese con el administrador ",
