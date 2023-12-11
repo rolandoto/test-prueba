@@ -116,6 +116,7 @@ router.post(
     check("resepcion", "es obligatorio").not().isEmpty(),
     check("link", "es obligatorio").not().isEmpty(),
     check("id_hotel", "es obligatorio").not().isEmpty(),
+    check("ID_facturacion", "es obligatorio").not().isEmpty(),
     
     ValidarCampos,
   ],
