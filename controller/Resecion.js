@@ -1281,68 +1281,57 @@ const insertCartReservation = async (req, res = response) => {
   } = req.body;
 
   try {
-    for (let i = 0; i < Cart.length; i++) {
-      let data = {
-        ID_Reserva: ID_Reserva,
-        Nombre: Cart[i]?.Nombre,
-        Precio: Cart[i]?.Precio,
-        Cantidad: Cart[i]?.quantity,
-        ID_Categoria: Cart[i]?.id_categoria,
-        ID_product: Cart[i]?.ID,
+    for (const cartItem of Cart) {
+      const data = {
+        ID_Reserva,
+        Nombre: cartItem?.Nombre,
+        Precio: cartItem?.Precio,
+        Cantidad: cartItem?.quantity,
+        ID_Categoria: cartItem?.id_categoria,
+        ID_product: cartItem?.ID,
         ID_Hoteles,
         Fecha_compra,
         Forma_pago: 1,
         Nombre_recepcion,
-        img_product: Cart[i]?.img,
+        img_product: cartItem?.img,
       };
-
-      const id = Cart[i].ID;
-
-      let dataone = {
-        Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
+    
+      const id = cartItem.ID;
+    
+      const dataone = {
+        Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
-
-      await pool.query("INSERT INTO  Carrito_reserva  set ?", data);
-
-      const query1 = await pool.query(
-        "SELECT MAX(ID) as max FROM Carrito_reserva"
-      );
-
-      const result = query1.map((index) => {
-        return index.max;
-      });
-
-      if (Cart[i]?.id_categoria == 3) {
-        let dataKpi = {
-          ID_user: ID_user,
+    
+      // Inserting data into 'Carrito_reserva' table
+      await pool.query("INSERT INTO Carrito_reserva SET ?", data);
+    
+      // Retrieving the maximum ID from the 'Carrito_reserva' table
+      const queryResult = await pool.query("SELECT MAX(ID) as max FROM Carrito_reserva");
+      const result = queryResult[0]?.max;
+    
+      if (cartItem?.id_categoria == 3 || cartItem?.id_categoria == 8) {
+        const comisionMultiplier = cartItem?.id_categoria == 3 ? 1500 : 3500;
+    
+        const dataKpi = {
+          ID_user,
           ID_hotel: ID_Hoteles,
           Fecha_venta: Fecha_compra,
-          Nombre: Cart[i]?.Nombre,
-          Precio: Cart[i]?.Precio,
-          Cantidad: Cart[i]?.quantity,
-          ID_Categoria: Cart[i]?.id_categoria,
+          Nombre: cartItem?.Nombre,
+          Precio: cartItem?.Precio,
+          Cantidad: cartItem?.quantity,
+          ID_Categoria: cartItem?.id_categoria,
           ID_product: parseInt(result.toString()),
-          Cantidad_comision: Cart[i]?.quantity * 1500,
+          Cantidad_comision: cartItem?.quantity * comisionMultiplier,
         };
-        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
-      } else if (Cart[i]?.id_categoria == 8) {
-        let dataKpi = {
-          ID_user: ID_user,
-          ID_hotel: ID_Hoteles,
-          Fecha_venta: Fecha_compra,
-          Nombre: Cart[i]?.Nombre,
-          Precio: Cart[i]?.Precio,
-          Cantidad: Cart[i]?.quantity,
-          ID_Categoria: Cart[i]?.id_categoria,
-          ID_product: parseInt(result.toString()),
-          Cantidad_comision: Cart[i]?.quantity * 3500,
-        };
-        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
+    
+        // Inserting data into 'KPI' table
+        await pool.query("INSERT INTO KPI SET ?", dataKpi);
       }
-
-      await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
-
+    
+      // Updating the 'Productos' table
+      await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
     }
+    
     return res.status(201).json({
       ok: true,
     });
@@ -1367,14 +1356,14 @@ const insertCartStore = async (req, res = response) => {
   } = req.body;
 
   try {
-    for (let i = 0; i < Cart.length; i++) {
-      let data = {
-        ID_Reserva: ID_Reserva,
-        Nombre: Cart[i]?.Nombre,
-        Precio: Cart[i]?.Precio,
-        Cantidad: Cart[i]?.quantity,
-        ID_Categoria: Cart[i]?.id_categoria,
-        ID_product: Cart[i]?.ID,
+    for (const cartItem of Cart) {
+      const data = {
+        ID_Reserva,
+        Nombre: cartItem?.Nombre,
+        Precio: cartItem?.Precio,
+        Cantidad: cartItem?.quantity,
+        ID_Categoria: cartItem?.id_categoria,
+        ID_product: cartItem?.ID,
         ID_hotel,
         Fecha_compra,
         Nombre_persona,
@@ -1383,55 +1372,44 @@ const insertCartStore = async (req, res = response) => {
         Nombre_recepcion,
       };
 
-      const id = Cart[i].ID;
+      const id = cartItem.ID;
 
-      let dataone = {
-        Cantidad: Cart[i]?.Cantidad - Cart[i]?.quantity,
+      const dataone = {
+        Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
 
-      await pool.query("INSERT INTO  carrito_tienda  set ?", data);
+      await pool.query("INSERT INTO carrito_tienda SET ?", data);
 
-      if (Cart[i]?.id_categoria == 3) {
-        let dataKpi = {
-          ID_user: ID_user,
-          ID_hotel: ID_hotel,
-          Fecha_venta: Fecha_compra,
-          Nombre: Cart[i]?.Nombre,
-          Precio: Cart[i]?.Precio,
-          Cantidad: Cart[i]?.quantity,
-          ID_Categoria: Cart[i]?.id_categoria,
-          ID_product: Cart[i]?.ID,
-          Cantidad_comision: Cart[i]?.quantity * 1500,
-          Pago_deuda: 1,
-        };
-        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
-      } else if (Cart[i]?.id_categoria == 8) {
-        let dataKpi = {
-          ID_user: ID_user,
-          ID_hotel: ID_hotel,
-          Fecha_venta: Fecha_compra,
-          Nombre: Cart[i]?.Nombre,
-          Precio: Cart[i]?.Precio,
-          Cantidad: Cart[i]?.quantity,
-          ID_Categoria: Cart[i]?.id_categoria,
-          ID_product: Cart[i]?.ID,
-          Cantidad_comision: Cart[i]?.quantity * 3500,
-          Pago_deuda: 1,
-        };
-        await pool.query("INSERT INTO  KPI  set ?", dataKpi);
-      }
+      const dataKpi = {
+        ID_user,
+        ID_hotel,
+        Fecha_venta: Fecha_compra,
+        Nombre: cartItem?.Nombre,
+        Precio: cartItem?.Precio,
+        Cantidad: cartItem?.quantity,
+        ID_Categoria: cartItem?.id_categoria,
+        ID_product: cartItem?.ID,
+        Cantidad_comision: cartItem?.quantity * (cartItem?.id_categoria === 3 ? 1500 : 3500),
+        Pago_deuda: 1, // Assuming Pago_deuda is always 1, you may adjust this if needed.
+      };
 
-      await pool.query("UPDATE Productos set ? WHERE ID = ?", [dataone, id]);
+      await pool.query("INSERT INTO KPI SET ?", dataKpi);
+
+      await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
     }
+
     return res.status(201).json({
       ok: true,
     });
   } catch (error) {
-    res.status(401).json({
+    console.error('Error in insertCartStore:', error);
+    return res.status(401).json({
       ok: false,
+      error: 'Failed to process the request.',
     });
   }
 };
+
 
 const occasionalCartRoomInsertion =async(req, res = response) =>{
   const {
@@ -1440,7 +1418,7 @@ const occasionalCartRoomInsertion =async(req, res = response) =>{
     ID_Hoteles,
     Fecha_compra,
     ID_user}  = req.body
-    
+      
   try {
 
     for (let i = 0; i < Cart.length; i++) {
