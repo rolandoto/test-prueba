@@ -257,6 +257,7 @@ router.post("/RoomsOcasional",
 [
     check("ID_habitacion","es obligatorio").not().isEmpty(),
     check("Fecha","es obligatorio").not().isEmpty(),
+    check("Fecha_today","es obligatorio").not().isEmpty(),
     check("Time_ingreso","es obligatorio").not().isEmpty(),
     check("Time_salida","es obligatorio").not().isEmpty(),
     check("id_user","es obligatorio").not().isEmpty(),

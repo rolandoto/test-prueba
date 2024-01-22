@@ -16,7 +16,7 @@ const GetRooms = async (req, res = response) => {
 
   try {
         const query = await pool.query(
-          "SELECT rooms.id  as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID  AND RoomOcasionales.Fecha = CURDATE() INNER join  rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=?  GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
+          "SELECT Fecha_today, rooms.id as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() AND RoomOcasionales.valid =1 INNER join rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
           [id]
         );
       const queryOne =   query.map((element) => {
@@ -29,7 +29,8 @@ const GetRooms = async (req, res = response) => {
             Time_ingreso: element.Time_ingreso,
             Time_salida: element.Time_salida,
             Fecha: element.Fecha,
-            Numero:element.title
+            Numero:element.title,
+            Fecha_today:element.Fecha_today
           };
           return roomObject;
         });
@@ -1878,7 +1879,7 @@ const handRoomToSell = async (req, res = response) => {
   const { fechaInicio, fechaFinal } = req.body;
 
   try {
-    const roomById = await axios.post(
+   /* const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
       {},
       {
@@ -1887,7 +1888,11 @@ const handRoomToSell = async (req, res = response) => {
       }
     );
 
-    const response = roomById.data;
+*/
+
+    const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+      ,[id]
+    )
 
     const FechaInicio = fechaInicio;
     const FechaFinal = fechaFinal;
@@ -1905,7 +1910,6 @@ const handRoomToSell = async (req, res = response) => {
       const id_habitacion = response[i].id_tipoHabitacion;
 
       for (const date of dates) {
-        console.log(date);
         const FechaInicio = `${date} 15:00:00`;
 
         const query = await pool.query(
@@ -3524,6 +3528,7 @@ const postInsetRoomsOcasional = async (req, res = response) => {
   const {
     ID_habitacion,
     Fecha,
+    Fecha_today,
     Time_ingreso,
     Time_salida,
     id_user,
@@ -3541,6 +3546,7 @@ const postInsetRoomsOcasional = async (req, res = response) => {
   let data = {
     ID_habitacion,
     Fecha,
+    Fecha_today,
     Time_ingreso,
     Time_salida,
     id_user,
@@ -3551,6 +3557,9 @@ const postInsetRoomsOcasional = async (req, res = response) => {
     valid: 1,
     ID_hotel
   };
+
+  console.log(Fecha_today)
+
   try {
    await  pool.query(
       "UPDATE RoomOcasionales set ? WHERE ID_habitacion = ?",

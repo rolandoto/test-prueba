@@ -48,7 +48,6 @@ io.on("connection", (socket) => {
   socket.on("mousemove", (data) => {
     const { userId, x, y ,Id_hotel} = data;
 
-
     // Aquí puedes utilizar el identificador del usuario (userId) para identificar al usuario
     // y realizar las acciones de seguimiento en tiempo real correspondientes.
     
