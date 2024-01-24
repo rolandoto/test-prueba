@@ -16,7 +16,7 @@ const GetRooms = async (req, res = response) => {
 
   try {
         const query = await pool.query(
-          "SELECT Fecha_today, rooms.id as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() AND RoomOcasionales.valid =1 INNER join rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
+          "SELECT OcasioTarifa, HoraAdicional ,Fecha_today, rooms.id as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() AND RoomOcasionales.valid =1 INNER join rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
           [id]
         );
       const queryOne =   query.map((element) => {
@@ -30,7 +30,9 @@ const GetRooms = async (req, res = response) => {
             Time_salida: element.Time_salida,
             Fecha: element.Fecha,
             Numero:element.title,
-            Fecha_today:element.Fecha_today
+            Fecha_today:element.Fecha_today,
+            tarifaOcasioanal:element.OcasioTarifa,
+            HoraAdicional:element.HoraAdicional
           };
           return roomObject;
         });
@@ -1747,6 +1749,8 @@ const handInformeAuditoria = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
+  console.log(fecha)
+
   try {
     const queryOne = await pool.query(
       "SELECT Carrito_reserva.Precio as total,Tipo_Forma_pago.ID as Forma_pago, Carrito_reserva.ID_Categoria as categoria,  Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and Carrito_reserva.Fecha_compra =?  and Carrito_reserva.ID_Hoteles  =? GROUP by Carrito_reserva.ID;",
@@ -1758,7 +1762,12 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
 
-    
+    const queryThree = await pool.query(
+      "SELECT SUM(Carrito_room.Precio) as total,Carrito_room.Forma_pago as Forma_pago, Carrito_room.ID_Categoria as categoria, Carrito_room.ID_user,users.name, Tipo_Forma_pago.Nombre as Tipo_pago,Carrito_room.Nombre, Carrito_room.Precio,Carrito_room.Cantidad,Carrito_room.ID_Hoteles, Carrito_room.Fecha_compra FROM Carrito_room INNER join Tipo_Forma_pago on Carrito_room.Forma_pago = Tipo_Forma_pago.ID INNER join users on users.id = Carrito_room.ID_user WHERE Fecha_compra =? and Carrito_room.ID_Hoteles=? and Carrito_room.Pago_deuda =1 GROUP BY Carrito_room.ID;",
+      [fecha, id]
+    );
+
+
 
     const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
@@ -1787,6 +1796,7 @@ const handInformeAuditoria = async (req, res = response) => {
         [id_habitacion, fecha, id]
       );
 
+    
       for (const date of re) {
         groupedData.push({
           ID: date.ID,
@@ -1809,11 +1819,10 @@ const handInformeAuditoria = async (req, res = response) => {
       }
     }
 
-
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
       const res = await pool.query(
-        "SELECT RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago   from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   RoomOcasionales.Fecha =? and Habitaciones.ID_Hotel= ?   ",
+        "SELECT RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago,RoomOcasionales.Time_ingreso,RoomOcasionales.Time_salida, users.name from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago INNER join users on users.id = RoomOcasionales.id_user WHERE Habitaciones.ID_Tipo_habitaciones = ? and   RoomOcasionales.Fecha =? and Habitaciones.ID_Hotel= ? ",
         [id_habitacion, fecha, id]
       ); 
 
@@ -1825,12 +1834,13 @@ const handInformeAuditoria = async (req, res = response) => {
           Abono: date.Abono,
           Tipo_forma_pago: date.Nombre,
           Fecha:date.Fecha,
-          Forma_pago:date.ID_forma_pago
+          Forma_pago:date.ID_forma_pago,
+          username:date.name,
+          Time_ingreso:date.Time_ingreso,
+          Time_salida:date.Time_salida
         });
       }
     }
-
-    
 
     res.status(201).json({
       ok: true,
@@ -1838,6 +1848,7 @@ const handInformeAuditoria = async (req, res = response) => {
       groupedOcasional,
       queryTwo,
       queryOne,
+      queryThree
     });
   } catch (error) {
     res.status(201).json({
