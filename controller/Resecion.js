@@ -1413,7 +1413,6 @@ const insertCartStore = async (req, res = response) => {
   }
 };
 
-
 const occasionalCartRoomInsertion =async(req, res = response) =>{
   const {
     ID_habitacion,
@@ -1678,15 +1677,9 @@ const handReservationChekin = async (req, res = response) => {
       [id]
     );
 
-    const response = await fetch(
-      `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
-      {
-        method: "post",
-        headers: { "Content-type": "application/json" },
-      }
-    );
-
-    const data = await response.json();
+    const data = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+    ,[id]
+    )
 
     const roomMap = new Map(); 
 
@@ -1731,8 +1724,6 @@ const handReservationChekin = async (req, res = response) => {
       .flat()
       .sort((a, b) => a.ID_Tipo_habitaciones - b.ID_Tipo_habitaciones);
 
-  
-
     res.status(201).json({
       ok: true,
       query,
@@ -1749,7 +1740,7 @@ const handInformeAuditoria = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
-  console.log(fecha)
+
 
   try {
     const queryOne = await pool.query(
@@ -1767,9 +1758,7 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
 
-
-
-    const roomById = await axios.post(
+   /* const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
       {},
       {
@@ -1777,8 +1766,10 @@ const handInformeAuditoria = async (req, res = response) => {
         timeout: 1000, // tiempo de espera de 5 segundos
       }
     );
-
-    const response = roomById.data;
+*/
+    const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+    ,[id]
+    )
 
     const result = await pool.query(
       "SELECT   Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
@@ -1905,6 +1896,8 @@ const handRoomToSell = async (req, res = response) => {
     const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
       ,[id]
     )
+
+ 
 
     const FechaInicio = fechaInicio;
     const FechaFinal = fechaFinal;
@@ -2549,16 +2542,11 @@ const roomAvaibleInformeConsolidado = async (req, res = response) => {
       ]
     );
 
-    const roomById = await axios.post(
-      `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
-      {},
-      {
-        headers: { "Content-type": "application/json" },
-        timeout: 1000, // tiempo de espera de 5 segundos
-      }
-    );
+  
+    const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+    ,[id]
+  )
 
-    const response = roomById.data;
 
     const roomByIdIDtypeRoom = [];
 
@@ -2586,8 +2574,6 @@ const roomAvaibleInformeConsolidado = async (req, res = response) => {
         tipo_persona: tipo_persona,
       });
     }
-
-    console.log(roomByIdIDtypeRoom);
 
     const totalEfectivo = await pool.query(
       "SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago =1;  ",
@@ -2692,7 +2678,7 @@ const AccountErrings = async (req, res = response) => {
 
     const { fecha } = req.body;
 
-    const roomById = await axios.post(
+   /* const roomById = await axios.post(
       `https://grupo-hoteles.com/api/getTypeRoomsByIDHotel?id_hotel=${id}`,
       {},
       {
@@ -2701,7 +2687,12 @@ const AccountErrings = async (req, res = response) => {
       }
     );
 
-    const response = roomById.data;
+    const response = roomById.data;*/
+    
+    const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+    ,[id]
+    )
+    
 
     const roomByIdIDtypeRoom = [];
 
@@ -3096,8 +3087,6 @@ const updateChangeTypreRange = async (req, res = response) => {
     "SELECT  * from Reservas WHERE Reservas.ID =?",
     [id]
   );
-
-  console.log({"hola":"28"})
 
   const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones;
   const idhabtiaciones = valid[0]?.ID_Habitaciones;
@@ -3570,7 +3559,7 @@ const postInsetRoomsOcasional = async (req, res = response) => {
     ID_hotel
   };
 
-  console.log(Fecha_today)
+
 
   try {
    await  pool.query(

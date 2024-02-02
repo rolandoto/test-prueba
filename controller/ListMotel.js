@@ -1,22 +1,16 @@
 const {response} = require('express')
 const { pool } = require('../database/connection')
-const ReverseMd5 = require('reverse-md5')
+
 const moment = require("moment")
 const Product = require('../model/Product')
 
-
 const LisMotel = async(req,res=response) =>{
     
-    const link = await  pool.query('SELECT * FROM hotels')
+    const link = await  pool.query('SELECT hotels.id as id_hotel , hotels.name as nombre, hotels.segurohotelero as segurohotelero, hotels.valorseguro as valorseguro FROM hotels;')
 
     res.status(201).json({
-        LisMotel:{
-            data:{  
-                result:{
-                    link
-                }
-            }
-        }
+        ok:true,
+       query:link
     })
 }
 
@@ -98,7 +92,6 @@ const forgetlfulnes =async(req,res=response) =>{
 
 const  forgetlfulnesInsert =async(req,res=respons) =>{
 
-    console.log(req.body)
 
     const t= moment().format();   
     let today = new Date(t)
@@ -173,7 +166,7 @@ const  forgetlfulnesInsert =async(req,res=respons) =>{
                 msg:"no esta disponible"
             })
         } 
-        kjkhj
+     
         res.status(201).json({
             link 
             })

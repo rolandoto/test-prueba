@@ -2,7 +2,7 @@
 const router =require('express').Router()
 const { LisMotel,listMotelisid,reservas, forgetlfulnes, forgetlfulnesInsert, ListBooking, ListMaintenance, UpdateMaintenance, InsertMaintenance, ProductInvoince, MinImboxrRecesion, MinImboxMaintance, MinImboxMaintanceInsert } = require('../controller/ListMotel')
     
-router.get('/listmotel',LisMotel)
+router.get('/listmotels',LisMotel)
 
 router.get('/listmotel/:id',listMotelisid)
 
@@ -28,4 +28,4 @@ router.get("/minImboxMaintance/:id",MinImboxMaintance)
 
 router.post("/minimboxmaintanceinsert",MinImboxMaintanceInsert)
 
-module.exports ={router}
+module.exports = { router };  
