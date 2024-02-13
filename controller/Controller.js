@@ -5,65 +5,58 @@ const { GenerarJwt } = require('../helper/Jwt')
 const fetch  = require('node-fetch')
 const { pool } = require('../database/connection')
 
-const LoginUsuario =async(req,res=response) =>{
-    
-    const {username,password,hotel} = req.body
-    
-    const body = {
-        username:username,
-        password:password,
-        hotel:hotel
-    }
-        
-    try {    
-            const response =  await fetch('https://grupo-hoteles.com/api/login-api',{
-                body:JSON.stringify(body),
-                method:"post",
-                headers:{'Content-type':'application/json'}
-            }).then(index =>{
-                const data =  index.json()
-                return data
-            })
-             .catch((e) =>{
-            })
-            
-           if(!response){
-               return res.status(401).json({
-                   ok:false,
-                   msg:"no estas registrado"
-               })
-           }    
+const LoginUsuario = async (req,res= response) => {
+    const { username, password, hotel } = req.body;
 
-           const token = await GenerarJwt(response.id_hotel,response.user_name)
+    try {
+        // Consultar el usuario en la base de datos
+        const userQuery = await pool.query("SELECT * FROM `users` WHERE username = ?", [username]);
 
-           const logo  =  await pool.query("SELECT logo,Iva FROM hotels WHERE id = ?" ,[body.hotel])
-           
-           const totaLogo =  logo[0]?.logo
+        // Verificar si el usuario existe
+        if (userQuery.length === 0) {
+            return res.status(401).json({
+                ok: false,
+                msg: "Credenciales inválidas"
+            });
+        }
 
-           const ivaHotels =  logo[0]?.Iva
+        // Verificar si el usuario existe
+        if (userQuery.length === 0) {
+            return res.status(401).json({
+                ok: false,
+                msg: "Credenciales inválidas"
+            });
+        }
 
-            return res.status(201).json({
-                ok:true,
-                result:{
-                    name:response.user_name,
-                    hotel:response.hotel_name,
-                    id_hotel:response.id_hotel,
-                    id_user:response.id_user,
-                    id_permissions:response.id_permissions,
-                    photo:response.foto,
-                    token,
-                    logo:totaLogo,
-                    Iva:ivaHotels
-                }
-            })
+        // Obtener información adicional del hotel
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva FROM hotels WHERE id = ?", [hotel]);  
+
+        const token = "sdassasadsadsajhaskdjaskdjkashj"
+
+        return res.status(201).json({
+            ok: true,
+            result: {
+                name: userQuery[0].name,
+                hotel:hotelInfoQuery[0].name,
+                id_hotel:hotelInfoQuery[0].id,
+                id_user:userQuery[0].id,
+                id_permissions:userQuery[0].id_permissions,
+                logo:hotelInfoQuery[0].logo,
+                photo:hotelInfoQuery[0].logo,
+                Iva: hotelInfoQuery[0].Iva,
+                token
+            }
+        })
 
     } catch (error) {
-        return response.status(500).json({
-            ok:false,
-            msg:"error de login"
-        })
+       
+        return res.status(500).json({
+            ok: false,
+            msg: "Error de inicio de sesión"
+        });
     }
-}
+};
+
 
 const CreateUsuario =async (req,res= response) =>{
 
