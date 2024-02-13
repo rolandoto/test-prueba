@@ -87,7 +87,9 @@ const {
   postChangeResdian,
   getReservaSendingContabilidad,
   GetFacturacion,
-  PostFacturacion
+  PostFacturacion,
+  GetDocument,
+  PostTypeRoomsByIDHotelid_hotel
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -289,5 +291,9 @@ router.post("/getReservaSendingContabilidad/:id",getReservaSendingContabilidad)
 
 router.get("/getFacturacion",GetFacturacion)
 router.get("/PostFacturacion/:id",PostFacturacion)
+
+router.get("/getTipeDocument",GetDocument)
+
+router.post("/getTypeRoomsByIDHotelid_hotel/:id",PostTypeRoomsByIDHotelid_hotel)
 
 module.exports = { router };  
