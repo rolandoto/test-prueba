@@ -1916,9 +1916,9 @@ const handRoomToSell = async (req, res = response) => {
 
       for (const date of dates) {
         const FechaInicio = `${date} 15:00:00`;
-
+     
         const query = await pool.query(
-          "SELECT GREATEST( (SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? AND ID_estado_habitacion != 2) - (SELECT COUNT(*) FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Habitaciones.ID_estado_habitacion != 2 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 and ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final >? AND Fecha_final <=?) OR (Fecha_inicio <= ? AND Fecha_final >=?) )), 0) AS total_disponible;",
+          "SELECT GREATEST( (SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? AND ID_estado_habitacion != 2) - (SELECT COUNT(*) FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Habitaciones.ID_estado_habitacion != 2 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 and  Reservas.ID_Tipo_Estados_Habitaciones != 6 and ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final >? AND Fecha_final <=?) OR (Fecha_inicio <= ? AND Fecha_final >=?) )), 0) AS total_disponible;",
           [
             id_habitacion,
             id_habitacion,
