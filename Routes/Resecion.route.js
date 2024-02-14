@@ -89,7 +89,8 @@ const {
   GetFacturacion,
   PostFacturacion,
   GetDocument,
-  PostTypeRoomsByIDHotelid_hotel
+  PostTypeRoomsByIDHotelid_hotel,
+  GetSouvenir
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -295,5 +296,7 @@ router.get("/PostFacturacion/:id",PostFacturacion)
 router.get("/getTipeDocument",GetDocument)
 
 router.post("/getTypeRoomsByIDHotelid_hotel/:id",PostTypeRoomsByIDHotelid_hotel)
+
+router.get("/GetSouvenir",GetSouvenir)
 
 module.exports = { router };  

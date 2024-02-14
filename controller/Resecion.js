@@ -1899,10 +1899,8 @@ const handRoomToSell = async (req, res = response) => {
       ,[id]
     )
 
- 
-
-    const FechaInicio = fechaInicio;
-    const FechaFinal = fechaFinal;
+    const FechaInicio = `${fechaInicio}`;
+    const FechaFinal =`${fechaFinal}`
 
     const dates = [];
     let currentDate = moment(FechaInicio);
@@ -1920,7 +1918,7 @@ const handRoomToSell = async (req, res = response) => {
         const FechaInicio = `${date} 15:00:00`;
 
         const query = await pool.query(
-          "SELECT GREATEST( (SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? AND ID_estado_habitacion != 2) - (SELECT COUNT(*) FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Habitaciones.ID_estado_habitacion != 2 AND ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final >? AND Fecha_final <=?) OR (Fecha_inicio <= ? AND Fecha_final >=?) )), 0) AS total_disponible;",
+          "SELECT GREATEST( (SELECT COUNT(*) FROM Habitaciones WHERE ID_Tipo_habitaciones = ? AND ID_estado_habitacion != 2) - (SELECT COUNT(*) FROM Reservas INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Habitaciones.ID_estado_habitacion != 2 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 and ( (Fecha_inicio >= ? AND Fecha_inicio < ?) OR (Fecha_final >? AND Fecha_final <=?) OR (Fecha_inicio <= ? AND Fecha_final >=?) )), 0) AS total_disponible;",
           [
             id_habitacion,
             id_habitacion,
@@ -1934,7 +1932,7 @@ const handRoomToSell = async (req, res = response) => {
         );
 
         const availableRooms = query[0].total_disponible;
-
+   
         if (!groupedData[date]) {
           groupedData[date] = [];
         }
@@ -3854,6 +3852,26 @@ const PostTypeRoomsByIDHotelid_hotel =async(req, res = response) =>{
 
 }
 
+const GetSouvenir =async(req, res = response) =>{
+
+  try {
+
+    const query = await pool.query("SELECT ID_Tipo_categoria, Nombre,Cantidad,Precio FROM `Productos` WHERE Productos.ID_Hoteles = 4 AND Productos.ID_Tipo_categoria = 3;")
+
+    return res.status(201).json({
+      ok:true,
+      query 
+     })
+    
+  } catch (error) {
+      return res.status(401).json({
+      ok:false
+     })
+    
+  }
+
+}
+
 
 module.exports = {
   GetRooms,
@@ -3929,5 +3947,6 @@ module.exports = {
   GetFacturacion,
   PostFacturacion,
   GetDocument,
-  PostTypeRoomsByIDHotelid_hotel
+  PostTypeRoomsByIDHotelid_hotel,
+  GetSouvenir
 };
