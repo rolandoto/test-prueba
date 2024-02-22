@@ -2005,21 +2005,22 @@ const handAlltotalReservation = async (req, res = response) => {
   const { fecha } = req.body;
   const { id } = req.params;
 
-  console.log(id);
+  
 
   try {
-    const FechaInicio = `${fecha} 15:00:00`;
+    const FechaInicio = `${fecha} 13:00:00`;
+    const FechaFinal = `${fecha} 15:00:00`;
 
     const RoomBusyById = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [
         id,
         FechaInicio,
+        FechaFinal,
+        FechaFinal,
         FechaInicio,
         FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
+        FechaFinal,
       ]
     );
 
@@ -2027,12 +2028,12 @@ const handAlltotalReservation = async (req, res = response) => {
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =0 AND Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [
         id,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
       ]
     );
 
@@ -2040,12 +2041,12 @@ const handAlltotalReservation = async (req, res = response) => {
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID INNER JOIN  Huespedes on Huespedes.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel =? AND Reservas.ID_Tipo_Estados_Habitaciones =3 AND  ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [
         id,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
-        FechaInicio,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
+        FechaFinal,
       ]
     );
 
@@ -2823,6 +2824,7 @@ const PostInformeMovimiento = async (req, res = response) => {
 const updateReservationPunter = async (req, res = response) => {
   const { Fecha_final, id, countSeguro,type } = req.body;
 
+
   try {
     const queryImnformation = await pool.query(
       "SELECT ID_Habitaciones,Fecha_final ,Fecha_inicio,Adultos,Ninos from  Reservas  WHERE ID = ?",
@@ -2839,9 +2841,7 @@ const updateReservationPunter = async (req, res = response) => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const desde = `${year}-${month}-${day} 15:00:00`; // aqui es la inversa de la fecha porque  aqui comienza la fecha
-    const desdebefore =  `${year}-${month}-${day} 13:00:00`;
     const hasta = `${Fecha_final} 13:00:00`; //aqui termine la fehca donde yo quiero entender
-    const hastaCheck = `${Fecha_final} 15:00:00`; //aqui termine la fehca donde yo quiero entender
 
     const dateTimeOne = datainform.Fecha_inicio;
     const dateOne = new Date(dateTimeOne);
@@ -2850,6 +2850,11 @@ const updateReservationPunter = async (req, res = response) => {
     const dayONe = String(dateOne.getDate()).padStart(2, "0");
     const desdeONe = `${yearOne}-${monthONe}-${dayONe} 15:00:00`; // aqui es la inversa de la fecha porque  aqui comienza la fecha
 
+    const hastaValid =  `${year}-${month}-${day}`;
+    const desdeValid =`${yearOne}-${monthONe}-${dayONe}`; 
+
+
+    
     var fecha1 = new Date(desde);
     var fecha2 = new Date(hasta);
     var fecha3 = new Date(desdeONe);
@@ -2899,11 +2904,19 @@ const updateReservationPunter = async (req, res = response) => {
     const dataPayCheck = {
       Valor_habitacion: totalPayCheck,
     };
-   
-    if (fecha3 == fecha2) {
-      res.status(401).json({
+
+    if (hastaValid == Fecha_final && type =="subir") {
+      return  res.status(401).json({
+         ok: false,
+       });
+    }
+    
+    if (desdeValid == Fecha_final) {
+     return  res.status(401).json({
         ok: false,
       });
+
+   
     } else if (fecha3 > fecha2 && type =="subir" ) {
 
       const desdeBefore = `${Fecha_final} 15:00:00`
@@ -2921,7 +2934,6 @@ const updateReservationPunter = async (req, res = response) => {
         });
       }
      
-
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
         [dataBefore, id],
@@ -2956,7 +2968,7 @@ const updateReservationPunter = async (req, res = response) => {
       );
 
     }else if(fecha2 > fecha3 && type =="subir" ){
-
+     
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
         [dataBefore, id],
@@ -2990,8 +3002,7 @@ const updateReservationPunter = async (req, res = response) => {
         }
       );
     } else if (fecha1 > fecha2 && type =="bajar"  ) {
-
-      console.log("true is valid resevractions")
+     
       
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
@@ -3091,23 +3102,7 @@ const updateChangeTypreRange = async (req, res = response) => {
   const idhabitacionesEstado = valid[0]?.ID_Tipo_Estados_Habitaciones;
   const idhabtiaciones = valid[0]?.ID_Habitaciones;
 
-  if (idhabitacionesEstado == 3) {
-    let data = {
-      ID_estado_habitacion: 0,
-    };
-    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
-      data,
-      idhabtiaciones,
-    ]);
-
-    let dataOne = {
-      ID_estado_habitacion: 3,
-    };
-    await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
-      dataOne,
-      ID_Habitaciones,
-    ]);
-  }
+  
 
   const query = await pool.query(
     "SELECT Habitaciones.ID_Hotel,Reservas.ID_Tipo_Estados_Habitaciones from Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE Habitaciones.ID = ? AND Reservas.ID_Tipo_Estados_Habitaciones =3",
@@ -3141,6 +3136,24 @@ const updateChangeTypreRange = async (req, res = response) => {
     }
 
     if (resultado[0].Num_Reservas === 0) {
+   
+      if (idhabitacionesEstado == 3) {
+        let data = {
+          ID_estado_habitacion: 0,
+        };
+        await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+          data,
+          idhabtiaciones,
+        ]);
+    
+        let dataOne = {
+          ID_estado_habitacion: 3,
+        };
+        await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+          dataOne,
+          ID_Habitaciones,
+        ]);
+      }
       await pool.query(
         "UPDATE Reservas SET ? WHERE ID = ?",
         [data, id],
@@ -3182,13 +3195,14 @@ const updateChangeTypreRange = async (req, res = response) => {
         );
       });
 
+
       if (isAdjacent) {
-        return res.status(200).json({
-          ok: true,
+        console.log("fecha")
+        return res.status(401).json({
+          ok: false,
           message: "Puede mover la reserva en cualquier dirección",
         });
       } else {
-        console.log("error");
         return res.status(401).json({
           ok: false,
           message: "No se puede mover la reserva a ninguna dirección",
@@ -3866,10 +3880,8 @@ const GetSouvenir =async(req, res = response) =>{
   } catch (error) {
       return res.status(401).json({
       ok:false
-     })
-    
+     }) 
   }
-
 }
 
 
