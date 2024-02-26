@@ -2853,8 +2853,6 @@ const updateReservationPunter = async (req, res = response) => {
     const hastaValid =  `${year}-${month}-${day}`;
     const desdeValid =`${yearOne}-${monthONe}-${dayONe}`; 
 
-
-    
     var fecha1 = new Date(desde);
     var fecha2 = new Date(hasta);
     var fecha3 = new Date(desdeONe);
@@ -3885,6 +3883,80 @@ const GetSouvenir =async(req, res = response) =>{
 }
 
 
+const  proxyTraOne=async(req, res = response) =>{
+
+  const {body,token} = req.body
+
+  try {
+    const response = await fetch('https://pms.mincit.gov.co/one/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+     body:JSON.stringify(body)
+    });
+    const responseData = await response.json();
+
+    console.log({"one":responseData})
+
+   if(!responseData.code){
+    return res.status(401).json({
+      ok:false,
+      responseData
+    })
+   }
+    return res.status(201).json({
+      ok: true,
+      responseData
+    });
+  } catch (error) {
+   
+    return res.status(401).json({
+      ok:false
+    })
+  }
+  
+}
+
+
+const  proxyTraTwo=async(req, res = response) =>{
+
+  const {body,token} = req.body
+  console.log({"two":body})
+  try {
+    const response = await fetch('https://pms.mincit.gov.co/two/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      },
+     body:JSON.stringify(body)
+    });
+    const responseData = await response.json();
+    
+    
+
+   if(!responseData.code){
+    return res.status(401).json({
+      ok:false,
+      responseData
+    })
+   }
+    return res.status(201).json({
+      ok: true,
+      responseData
+    });
+  } catch (error) {
+   
+    return res.status(401).json({
+      ok:false
+    })
+  }
+  
+}
+
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -3960,5 +4032,7 @@ module.exports = {
   PostFacturacion,
   GetDocument,
   PostTypeRoomsByIDHotelid_hotel,
-  GetSouvenir
+  GetSouvenir,
+  proxyTraOne,
+  proxyTraTwo
 };

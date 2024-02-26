@@ -88,7 +88,9 @@ const {
   PostFacturacion,
   GetDocument,
   PostTypeRoomsByIDHotelid_hotel,
-  GetSouvenir
+  GetSouvenir,
+  proxyTraOne,
+  proxyTraTwo
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -296,5 +298,9 @@ router.get("/getTipeDocument",GetDocument)
 router.post("/getTypeRoomsByIDHotelid_hotel/:id",PostTypeRoomsByIDHotelid_hotel)
 
 router.get("/GetSouvenir",GetSouvenir)
+
+router.post('/pmstraone',proxyTraOne );
+
+router.post('/pmstratwo',proxyTraTwo );
 
 module.exports = { router };  
