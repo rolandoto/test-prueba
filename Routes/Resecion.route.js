@@ -90,7 +90,8 @@ const {
   PostTypeRoomsByIDHotelid_hotel,
   GetSouvenir,
   proxyTraOne,
-  proxyTraTwo
+  proxyTraTwo,
+  InsertPdfFacturacionsigo
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -302,5 +303,11 @@ router.get("/GetSouvenir",GetSouvenir)
 router.post('/pmstraone',proxyTraOne );
 
 router.post('/pmstratwo',proxyTraTwo );
+
+router.post('/insertpdfsigo',[
+  check("id","es obligatorio").not().isEmpty(),
+  check("id_sigo","es obligatorio").not().isEmpty(),
+  ValidarCampos
+],InsertPdfFacturacionsigo );
 
 module.exports = { router };  
