@@ -253,7 +253,7 @@ const validateAvaible = async (req, res = response) => {
             Tipo_persona: Tipo_persona,
             Firma: 0,
             Iva: 2,
-            ID_facturacion
+            ID_facturacion:""
           };
 
           const toone = pool.query(
