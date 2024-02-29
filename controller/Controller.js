@@ -56,6 +56,7 @@ const LoginUsuario = async (req,res= response) => {
         return res.status(201).json({
             ok: true,
             result: {
+                username:userQuery[0].username,
                 name: userQuery[0].name,
                 hotel:hotelInfoQuery[0].name,
                 id_hotel:hotelInfoQuery[0].id,

@@ -282,6 +282,8 @@ const validateAvaible = async (req, res = response) => {
           ID_Prefijo: huespe[i]?.Nacionalidad,
         };
 
+      
+
         const totwo = pool.query(
           "INSERT INTO  Huespedes  set ?",
           huep,
