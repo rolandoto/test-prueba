@@ -28,13 +28,14 @@ app.use("/api/resecion", ResecionRoute.router);
 app.use("/api/hotels",Hotels.router)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-
+//"https://test-frontent-n9ec.vercel.app"
 const io = new Server(server, {
   cors: {
-    origin: "https://test-frontent-n9ec.vercel.app",
+    origin: process.env.NODE_ENV === 'production' ? "https://test-frontent-n9ec.vercel.app" : "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
+
 
 io.on("connection", (socket) => {
   console.log("conectado")
