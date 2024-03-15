@@ -3258,7 +3258,7 @@ const handChangeFormapago = async (req, res = response) => {
 const getReservationSearch = async (req, res = response) => {
   try {
     const response = await pool.query(
-      "SELECT Habitaciones.ID_Tipo_habitaciones, web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0"
+      "SELECT web_checking.ID_Reserva as ID_Reserva, Habitaciones.ID_Tipo_habitaciones, web_checking.Celular,web_checking.ID_Tipo_documento as ID_documento,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, Habitaciones.ID_Hotel, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Reservas.ID_Tipo_Estados_Habitaciones = 0;"
     );
 
     const promises = [];
@@ -3266,6 +3266,7 @@ const getReservationSearch = async (req, res = response) => {
     for (let i = 0; i < response.length; i++) {
       promises.push({
         Num_Room: response[i].Numero,
+        codigobyId: response[i].ID_Reserva,
         Codigo_reservaOne: `X14A-${response[i].Num_documento}${response[i].ID}`,
         Observation: response[i].Observacion,
         Noches: response[i].Noches,
