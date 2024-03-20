@@ -1863,7 +1863,7 @@ const handInformeCamarera = async (req, res = response) => {
     const FechaFinal = `${fecha}`;
 
     const query = await pool.query(
-      "SELECT  Habitaciones.ID_estado_habitacion as ID_Tipo_Estados_Habitaciones,   Reservas.Fecha_final, Reservas.Adultos,  Reservas.Fecha_final,  Reservas.Ninos,   Reservas.Noches,  web_checking.nombre,   web_checking.Apellido,  Habitaciones.Numero,  Habitaciones.ID as id_habitaciones,  CASE  WHEN Habitaciones.ID_estado_habitacion = 0 THEN 'Disponible' WHEN Habitaciones.ID_estado_habitacion = 5 THEN 'Sucia'  WHEN Habitaciones.ID_estado_habitacion = 2 THEN 'Bloqueada'  ELSE 'Ocupada'  END as Estado_Habitacio FROM  Reservas  INNER JOIN   web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN  Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE  (Reservas.ID_Tipo_Estados_Habitaciones = 3 OR Habitaciones.ID_estado_habitacion = 0 or Habitaciones.ID_estado_habitacion=5 or Habitaciones.ID_estado_habitacion=2 )  AND Habitaciones.ID_Hotel = ? GROUP BY  Habitaciones.ID;",
+      "SELECT Habitaciones.ID,  Habitaciones.ID_estado_habitacion as ID_Tipo_Estados_Habitaciones,   Reservas.Fecha_final, Reservas.Adultos,  Reservas.Fecha_final,  Reservas.Ninos,   Reservas.Noches,  web_checking.nombre,   web_checking.Apellido,  Habitaciones.Numero,  Habitaciones.ID as id_habitaciones,  CASE  WHEN Habitaciones.ID_estado_habitacion = 0 THEN 'Disponible' WHEN Habitaciones.ID_estado_habitacion = 5 THEN 'Sucia'  WHEN Habitaciones.ID_estado_habitacion = 2 THEN 'Bloqueada'  ELSE 'Ocupada'  END as Estado_Habitacio FROM  Reservas  INNER JOIN   web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN  Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE  (Reservas.ID_Tipo_Estados_Habitaciones = 3 OR Habitaciones.ID_estado_habitacion = 0 or Habitaciones.ID_estado_habitacion=5 or Habitaciones.ID_estado_habitacion=2 )  AND Habitaciones.ID_Hotel = ? GROUP BY  Habitaciones.ID;",
       [id,
       ]
     );
@@ -3287,7 +3287,7 @@ const getReservationSearch = async (req, res = response) => {
         Celular: response[i].Celular,
         codigo: response[i].codigo,
         nacionalidad: response[i].nacionalidad,
-        ID_document: response[i].ID_documento,
+        ID_document: response[i].ID_documento,  
         ID_hotel: response[i].ID_Hotel,
         ID_tipo_habitaciones: response[i].ID_Tipo_habitaciones,
       });
