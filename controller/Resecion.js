@@ -3136,18 +3136,7 @@ const updateChangeTypreRange = async (req, res = response) => {
       });
     }
 
-    if (resultado[0].ID_estado_habitacion === 5) {
-      return res.status(401).json({
-        ok: false,
-        message: "No se puede mover la reserva en ninguna dirección",
-      });
-    }
-    if (resultado[0].ID_estado_habitacion === 3) {
-      return res.status(401).json({
-        ok: false,
-        message: "No se puede mover la reserva en ninguna dirección",
-      });
-    }
+   
 
     if (resultado[0].Num_Reservas === 0) {
    
