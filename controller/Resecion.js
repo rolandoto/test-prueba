@@ -227,7 +227,7 @@ const validateAvaible = async (req, res = response) => {
         "SELECT MAX(ID) as max FROM Reservas"
       );
       const result = queryResult[0].max;
-      console.log(result);
+   
       const newReservation = {
         ID_Tipo_estados: 2,
       };
@@ -3136,11 +3136,24 @@ const updateChangeTypreRange = async (req, res = response) => {
       });
     }
 
+    if (resultado[0].ID_estado_habitacion === 5) {
+      return res.status(401).json({
+        ok: false,
+        message: "No se puede mover la reserva en ninguna dirección",
+      });
+    }
+    if (resultado[0].ID_estado_habitacion === 3) {
+      return res.status(401).json({
+        ok: false,
+        message: "No se puede mover la reserva en ninguna dirección",
+      });
+    }
+
     if (resultado[0].Num_Reservas === 0) {
    
       if (idhabitacionesEstado == 3) {
         let data = {
-          ID_estado_habitacion: 0,
+          ID_estado_habitacion: 5,
         };
         await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
           data,
@@ -3195,8 +3208,6 @@ const updateChangeTypreRange = async (req, res = response) => {
             reservationStartDate.diff(selectedStartDate, "days") === 0)
         );
       });
-
-
       if (isAdjacent) {
         console.log("fecha")
         return res.status(401).json({
