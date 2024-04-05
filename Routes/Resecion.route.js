@@ -91,7 +91,8 @@ const {
   GetSouvenir,
   proxyTraOne,
   proxyTraTwo,
-  InsertPdfFacturacionsigo
+  InsertPdfFacturacionsigo,
+  ReservationClean
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -309,6 +310,8 @@ router.post('/insertpdfsigo',[
   check("id_sigo","es obligatorio").not().isEmpty(),
   ValidarCampos
 ],InsertPdfFacturacionsigo );
+
+router.post("/reservationclean",ReservationClean)
 
 
 

@@ -69,8 +69,15 @@ const PostRoomDetailUpdate = async (req, res = response) => {
     let dataResevation ={
       ID_Tipo_Estados_Habitaciones:6
     }
-    
+
     if(ID_estado_habitacion ==0){
+
+      const to = await pool.query("SELECT * FROM `Reservas` WHERE `ID_Habitaciones` = ? AND `ID_Tipo_Estados_Habitaciones` = 2",[id])
+      const result = to[0].ID;
+
+      await pool.query("DELETE FROM web_checking WHERE ID_Reserva = ?", [result]);
+      await pool.query("DELETE FROM Reservas WHERE ID = ?", [result]);
+      
       await pool.query(
         "UPDATE Habitaciones SET ? WHERE ID = ?",
         [data, id],
@@ -1658,9 +1665,9 @@ const handDeleteReserva = async (req, res = response) => {
 
   try {
     await pool.query("DELETE FROM web_checking WHERE ID_Reserva = ?", [id]);
+    await pool.query("DELETE FROM Reservas WHERE ID = ?", [id]);
     await pool.query("DELETE FROM Pagos WHERE ID_Reserva = ?", [id]);
     await pool.query("DELETE FROM Pago_abono WHERE ID_Reserva = ?", [id]);
-    await pool.query("DELETE FROM Reservas WHERE ID = ?", [id]);
     await pool.query("DELETE FROM Huespedes WHERE ID_Reserva = ?", [id]);
 
     res.status(201).json({
@@ -3991,6 +3998,155 @@ const InsertPdfFacturacionsigo=async(req, res = response) =>{
 }
 
 
+const ReservationClean=async(req, res = response) =>{
+  const {
+    desde,
+    hasta,
+    habitaciones,
+    disponibilidad,
+    username
+  } = req.body;
+
+ 
+  try {
+
+    const date1 = new Date(desde);
+    const date2 = new Date(hasta);
+  
+    if (date1 > date2) {
+      return res.status(201).json({
+        msg: "no puede ser mayor de la fecha",
+        ok: false,
+      });
+    }
+
+    const resultado = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
+    );
+
+    if (resultado[0].Num_Reservas == 0) {
+      let desdeSinHora = desde.split(" ", 1);
+      let hastaSinHora = hasta.split(" ", 1);
+
+      //const reservation = await pool.query("SELECT Reservas.ID_Habitaciones,  Reservas.ID, Reservas.Codigo_reserva FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones =? AND Reservas.Fecha_inicio BETWEEN ? AND ? OR Reservas.Fecha_final BETWEEN ? AND ?",[habitaciones, desde, hasta, desde, hasta])
+      const reservation = await pool.query(
+        "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
+        [habitaciones, desdeSinHora, hastaSinHora]
+      );
+
+
+      var n1 = 20000;
+      var n2 = 10000;
+      var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
+
+      let id_disponible = disponibilidad;
+
+      if (reservation.length == 0) {
+        id_disponible = id_disponible;
+      }
+
+      const data = {
+        ID_Usuarios: 1,
+        ID_Habitaciones: parseInt(id_disponible.toString()),
+        ID_Talla_mascota: 0,
+        Codigo_reserva: numero,
+        Adultos: 0,
+        Ninos: 0,
+        Infantes: 0,
+        Fecha_inicio: desde,
+        Fecha_final: hasta,
+        Noches: 1,
+        Descuento: 0,
+        ID_Canal: 0,
+        ID_Tipo_Estados_Habitaciones: 2,
+        Observacion: "",
+      };
+
+      const to = await pool.query("INSERT INTO Reservas set ?", data);
+
+      const queryResult = await pool.query(
+        "SELECT MAX(ID) as max FROM Reservas"
+      );
+      const result = queryResult[0].max;
+   
+      const newReservation = {
+        ID_Tipo_estados: 2,
+      };
+
+      await pool.query("UPDATE Habitaciones set ? WHERE ID = ?", [
+        newReservation,
+        data.ID_Habitaciones,
+      ]);
+
+
+      for (let i = 0;i<1;i++) {
+          const date = {
+            ID_Reserva: parseInt(result?.toString()),
+            ID_Tipo_documento: 5,
+            Num_documento: "",
+            Nombre:`Bloqueada ${username}`,
+            Apellido:"",
+            Fecha_nacimiento: "2000-02-02",
+            Celular: "3213132132",
+            Correo: "ibarrantes@gadventures.com",
+            Ciudad: "medellin",
+            ID_Prefijo: "734",
+            Tipo_persona: "persona",
+            Firma: 0,
+            Iva: 2,
+            ID_facturacion:""
+        };
+
+          const toone = pool.query(
+            "INSERT INTO  web_checking set ?",
+            date,
+            (q_err, q_res) => {
+              if (q_err)
+                return res.status(401).json({
+                  ok: false,
+                });
+            }
+          );
+      }
+
+      const pay = {
+        ID_Reserva: parseInt(result.toString()),
+        ID_Motivo: 1,
+        ID_Tipo_Forma_pago:0,
+        Valor: 0,
+        Abono: 0,
+        Valor_habitacion: 0,
+        valor_dia_habitacion: 0,
+        pago_valid: 1,
+      };
+
+      const tothre = pool.query("INSERT INTO  Pagos  set ?", pay);
+
+      const queryOne = await pool.query(
+        "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
+        [parseInt(result.toString())]
+      );
+
+      return res.status(201).json({
+        ok: true,
+      });
+    } else {
+      console.log("kdnaskjdhsa")
+      return res.status(401).json({
+        ok: false,
+      });
+    }
+  } catch (error) {
+    console.log("error global")
+    return res.status(401).json({
+      ok: false,
+      msg: "comuniquese con el administrador ",
+    });
+  }
+}
+
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -4069,5 +4225,6 @@ module.exports = {
   GetSouvenir,
   proxyTraOne,
   proxyTraTwo,
-  InsertPdfFacturacionsigo
+  InsertPdfFacturacionsigo,
+  ReservationClean
 };
