@@ -73,7 +73,7 @@ const PostRoomDetailUpdate = async (req, res = response) => {
     if(ID_estado_habitacion ==0){
 
       const to = await pool.query("SELECT * FROM `Reservas` WHERE `ID_Habitaciones` = ? AND `ID_Tipo_Estados_Habitaciones` = 2",[id])
-      const result = to[0].ID;
+      const result = to[0]?.ID;
 
       await pool.query("DELETE FROM web_checking WHERE ID_Reserva = ?", [result]);
       await pool.query("DELETE FROM Reservas WHERE ID = ?", [result]);
