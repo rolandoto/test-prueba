@@ -2819,7 +2819,7 @@ const PostInformeMovimiento = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT * FROM Informe_movimiento WHERE ID_hotel = ? AND DATE(Fecha) = ? ORDER BY ID DESC",
+      "SELECT * FROM Informe_movimiento WHERE ID_hotel = ? AND DATE(Fecha) = ? ORDER BY Nombre_recepcion;",
       [id, fecha]
     );
 
