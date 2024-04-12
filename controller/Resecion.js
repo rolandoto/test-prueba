@@ -2774,13 +2774,14 @@ const informationByIdHotel = async (req, res = response) => {
 const InformeMovimiento = async (req, res = response) => {
   const { id } = req.params;
 
-  const { Nombre_recepcion, Fecha, Movimiento } = req.body;
+  const { Nombre_recepcion, Fecha, Movimiento,Valor_habitacion } = req.body;
 
   const data = {
     Nombre_recepcion,
     Fecha,
     ID_hotel: id,
-    Movimiento
+    Movimiento,
+    Valor_habitacion
   };
 
 
