@@ -177,7 +177,7 @@ const validateAvaible = async (req, res = response) => {
     }
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
     );
 
@@ -470,7 +470,7 @@ const getReserva = async (req, res = response) => {
         : 'Reservas.ID_Tipo_Estados_Habitaciones != 6';
 
       const response = await pool.query(
-       `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and ${queryType}`,
+       `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and ${queryType} and Reservas.ID_Tipo_Estados_Habitaciones != 7  `,
         [id]
       );
   
@@ -769,7 +769,7 @@ const roomAvaible = async (req, res = response) => {
     }
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
 
@@ -1253,25 +1253,25 @@ const postdetailUpdate = async (req, res = response) => {
   }
 };
 
-const getRoomdetalle = async (req, res = response) => {
-  const { id } = req.params;
+  const getRoomdetalle = async (req, res = response) => {
+    const { id } = req.params;
 
-  try {
-    const avaible = await pool.query(
-      "SELECT ID,Numero  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
-      [id]
-    );
+    try {
+      const avaible = await pool.query(
+        "SELECT ID,Numero  FROM Habitaciones WHERE ID_Tipo_habitaciones = ? ",
+        [id]
+      );
 
-    res.status(201).json({
-      ok: true,
-      query: avaible,
-    });
-  } catch (error) {
-    res.status(401).json({
-      ok: false,
-    });
-  }
-};
+      res.status(201).json({
+        ok: true,
+        query: avaible,
+      });
+    } catch (error) {
+      res.status(401).json({
+        ok: false,
+      });
+    }
+  };
 
 const uploadImage = async (req, res = response) => {
   var matches = req.body.base64image.match(/^data:([A-Za-z-+/]+);base64,(.+)$/),
@@ -1661,15 +1661,20 @@ const handUpdateStatus = async (req, res = response) => {
 };
 
 const handDeleteReserva = async (req, res = response) => {
+
   const { id } = req.params;
 
   try {
-    await pool.query("DELETE FROM web_checking WHERE ID_Reserva = ?", [id]);
-    await pool.query("DELETE FROM Reservas WHERE ID = ?", [id]);
-    await pool.query("DELETE FROM Pagos WHERE ID_Reserva = ?", [id]);
-    await pool.query("DELETE FROM Pago_abono WHERE ID_Reserva = ?", [id]);
-    await pool.query("DELETE FROM Huespedes WHERE ID_Reserva = ?", [id]);
 
+    const data ={
+      ID_Tipo_Estados_Habitaciones:7
+    }
+
+    await pool.query("UPDATE  Reservas  set ? WHERE ID = ?", [
+      data,
+      id
+    ]);
+  
     res.status(201).json({
       ok: true,
     });
@@ -2020,6 +2025,8 @@ const handAlltotalReservation = async (req, res = response) => {
   try {
     const FechaInicio = `${fecha} 13:00:00`;
     const FechaFinal = `${fecha} 15:00:00`;
+    console.log(FechaInicio)
+    console.log(FechaFinal)
 
     const RoomBusyById = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
@@ -2767,14 +2774,17 @@ const informationByIdHotel = async (req, res = response) => {
 const InformeMovimiento = async (req, res = response) => {
   const { id } = req.params;
 
-  const { Nombre_recepcion, Fecha, Movimiento } = req.body;
+  const { Nombre_recepcion, Fecha, Movimiento,id_reservation } = req.body;
 
   const data = {
     Nombre_recepcion,
     Fecha,
     ID_hotel: id,
     Movimiento,
+    id_reservation
   };
+
+  
 
   try {
     await pool.query(
@@ -2932,7 +2942,7 @@ const updateReservationPunter = async (req, res = response) => {
       const hastaBefore = `${yearOne}-${monthONe}-${dayONe} 13:00:00`;
 
       const resultadoCheckBefore = await pool.query(
-        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
+        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=7 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
         [ID_Habitaciones, desdeBefore, desdeBefore, hastaBefore, hastaBefore, desdeBefore, hastaBefore]
       );
 
@@ -3047,7 +3057,7 @@ const updateReservationPunter = async (req, res = response) => {
     } else if(fecha1 < fecha2  && type =="bajar"  ) {
      
       const resultadoCheck = await pool.query(
-        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
+        "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=7 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?)) ",
         [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
       );
     
@@ -3132,7 +3142,7 @@ const updateChangeTypreRange = async (req, res = response) => {
     };
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
+      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=7 AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
     );
 
@@ -3142,8 +3152,6 @@ const updateChangeTypreRange = async (req, res = response) => {
         message: "No se puede mover la reserva en ninguna dirección",
       });
     }
-
-   
 
     if (resultado[0].Num_Reservas === 0) {
    
@@ -3997,7 +4005,6 @@ const InsertPdfFacturacionsigo=async(req, res = response) =>{
   
 }
 
-
 const ReservationClean=async(req, res = response) =>{
   const {
     desde,
@@ -4021,7 +4028,7 @@ const ReservationClean=async(req, res = response) =>{
     }
 
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [disponibilidad, desde, desde, hasta, hasta, desde, hasta]
     );
 
@@ -4146,6 +4153,50 @@ const ReservationClean=async(req, res = response) =>{
   }
 }
 
+const HandDasboard =async(req, res = response) => {
+
+
+  try {
+
+    const FechaInicio = `2024-04-11 13:00:00`;
+    const FechaFinal =  `2024-04-11 15:00:00`;
+
+    const RoomBusyById = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [
+        12,
+        FechaInicio,
+        FechaFinal,
+        FechaFinal,
+        FechaInicio,
+        FechaInicio,
+        FechaFinal,
+      ]
+    );
+
+    const totalRoomsQuery = await pool.query("SELECT COUNT(*) AS Total_Habitaciones FROM Habitaciones WHERE ID_Hotel = ?", [12]);
+
+    const totalRooms = totalRoomsQuery[0].Total_Habitaciones;
+    const occupiedRooms = RoomBusyById[0].Num_Reservas;
+    const occupancyPercentage = (occupiedRooms / totalRooms) * 100;
+    console.log("Porcentaje de Ocupación:", occupancyPercentage.toFixed(2));
+
+
+  
+  return   res.status(201).json({
+    ok:true
+  })
+    
+  } catch (error) {
+
+    return res.status(401).json({
+      ok:false
+    })
+  }
+  
+
+}
+
 
 module.exports = {
   GetRooms,
@@ -4226,5 +4277,6 @@ module.exports = {
   proxyTraOne,
   proxyTraTwo,
   InsertPdfFacturacionsigo,
-  ReservationClean
+  ReservationClean,
+  HandDasboard
 };
