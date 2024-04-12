@@ -1675,7 +1675,7 @@ const handDeleteReserva = async (req, res = response) => {
       id
     ]);
   
-    res.status(201).json({
+    return res.status(201).json({
       ok: true,
     });
   } catch (error) {
@@ -2774,17 +2774,16 @@ const informationByIdHotel = async (req, res = response) => {
 const InformeMovimiento = async (req, res = response) => {
   const { id } = req.params;
 
-  const { Nombre_recepcion, Fecha, Movimiento,id_reservation } = req.body;
+  const { Nombre_recepcion, Fecha, Movimiento } = req.body;
 
   const data = {
     Nombre_recepcion,
     Fecha,
     ID_hotel: id,
-    Movimiento,
-    id_reservation
+    Movimiento
   };
 
-  
+
 
   try {
     await pool.query(
@@ -4181,8 +4180,6 @@ const HandDasboard =async(req, res = response) => {
     const occupancyPercentage = (occupiedRooms / totalRooms) * 100;
     console.log("Porcentaje de Ocupación:", occupancyPercentage.toFixed(2));
 
-
-  
   return   res.status(201).json({
     ok:true
   })
@@ -4193,8 +4190,6 @@ const HandDasboard =async(req, res = response) => {
       ok:false
     })
   }
-  
-
 }
 
 
