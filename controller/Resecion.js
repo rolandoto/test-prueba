@@ -342,31 +342,9 @@ const validateAvaible = async (req, res = response) => {
         [id_hotel]
       );
 
-      const itemAddres = queryAddres[0];
-
-      for (let i = 0; i < queryOne?.length; i++) {
-        const item = queryOne[i];
-
-        const numberPhone = item.codigo + "" + item.Celular;
-
-        const totalNumberPhone = numberPhone.replace("+", "");
-
-        try {
-          return res.status(201).json({
-            ok: true,
-          });
-
-          // Realizar acciones adicionales según sea necesario
-        } catch (error) {
-          return res.status(401).json({
-            ok: false,
-          });
-          // Manejar el error según sea necesario
-        }
-      }
-
       return res.status(201).json({
         ok: true,
+        codigo: parseInt(result.toString())
       });
     } else {
       return res.status(401).json({
@@ -2774,17 +2752,18 @@ const informationByIdHotel = async (req, res = response) => {
 const InformeMovimiento = async (req, res = response) => {
   const { id } = req.params;
 
-  const { Nombre_recepcion, Fecha, Movimiento,Valor_habitacion } = req.body;
+  const { Nombre_recepcion, Fecha, Movimiento,Valor_habitacion,Codigo_reserva } = req.body;
+
+  console.log(Codigo_reserva)
 
   const data = {
     Nombre_recepcion,
     Fecha,
     ID_hotel: id,
     Movimiento,
-    Valor_habitacion
+    Valor_habitacion,
+    Codigo_reserva
   };
-
-
 
   try {
     await pool.query(
