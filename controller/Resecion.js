@@ -70,7 +70,49 @@ const PostRoomDetailUpdate = async (req, res = response) => {
       ID_Tipo_Estados_Habitaciones:6
     }
 
+    console.log(ID_estado_habitacion)
+
     if(ID_estado_habitacion ==0){
+
+      const to = await pool.query("SELECT * FROM `Reservas` WHERE `ID_Habitaciones` = ? AND `ID_Tipo_Estados_Habitaciones` = 2",[id])
+      const result = to[0]?.ID;
+
+      await pool.query("DELETE FROM web_checking WHERE ID_Reserva = ?", [result]);
+      await pool.query("DELETE FROM Reservas WHERE ID = ?", [result]);
+      
+      await pool.query(
+        "UPDATE Habitaciones SET ? WHERE ID = ?",
+        [data, id],
+        (err, customer) => {
+          if (err) {
+            return res.status(401).json({
+              ok: false,
+              msg: "Error al insertar datos",
+            });
+          }  
+            const insertSecondQuery = async () => {
+            pool.query(
+              "UPDATE Reservas set ? WHERE ID_Tipo_Estados_Habitaciones = 1 and ID_Habitaciones =? ",
+              [dataResevation, id],
+              (err, customer) => {
+                if (err) {
+                  return res.status(401).json({
+                    ok: false,
+                    msg: "error al insertar datos",
+                  });
+                } else {
+                  return res.status(201).json({
+                    ok: true,
+                  });
+                }
+              }
+            );
+          };
+          insertSecondQuery();
+        }
+      );
+
+    }else if(ID_estado_habitacion ==5){
 
       const to = await pool.query("SELECT * FROM `Reservas` WHERE `ID_Habitaciones` = ? AND `ID_Tipo_Estados_Habitaciones` = 2",[id])
       const result = to[0]?.ID;
