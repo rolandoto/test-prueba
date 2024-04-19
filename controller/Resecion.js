@@ -2543,7 +2543,6 @@ const roomAvaibleInformeConsolidado = async (req, res = response) => {
     ,[id]
   )
 
-
     const roomByIdIDtypeRoom = [];
 
     for (let i = 0; i < response?.length; i++) {
@@ -2571,6 +2570,32 @@ const roomAvaibleInformeConsolidado = async (req, res = response) => {
       });
     }
 
+
+    const roomByIdIDtypeRoomoOcasioanales = [];
+
+    for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion;
+      const roomPay = await pool.query(
+        "SELECT RoomOcasionales.Abono,  COUNT(RoomOcasionales.ID) AS Cantidad_Habitaciones ,ROUND( SUM(RoomOcasionales.Abono), 0 ) AS Total_Abono   from RoomOcasionales INNER JOIN Habitaciones on Habitaciones.ID = RoomOcasionales.ID_habitacion  WHERE RoomOcasionales.Fecha =? and RoomOcasionales.ID_hotel =?  and Habitaciones.ID_Tipo_habitaciones =?",
+        [ fecha,id, id_habitacion]
+      );
+
+
+      const abono = roomPay[0].Total_Abono || 0;
+     
+
+
+      const room = roomPay[0].Cantidad_Habitaciones || 0;
+
+      roomByIdIDtypeRoomoOcasioanales.push({
+        room: response[i].nombre,
+        abono,
+        cantidad: room,
+      });
+    }
+
+
+   
     const totalEfectivo = await pool.query(
       "SELECT Tipo_Forma_pago.Nombre,Tipo_Forma_pago.ID , Pago_abono.Abono, ROUND(SUM(CASE WHEN web_checking.Iva = 1 THEN (Pago_abono.Abono * 19 / 100 + Pago_abono.Abono) ELSE Pago_abono.Abono END), 0) AS Total_Abono FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_forma_pago = Tipo_Forma_pago.ID INNER JOIN Reservas on Pago_abono.ID_Reserva = Reservas.id INNER JOIN Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN web_checking on web_checking.ID_Reserva = Reservas.ID WHERE Habitaciones.ID_Hotel = ? and Pago_abono.Fecha_pago = ? and Pago_abono.Tipo_forma_pago =1;  ",
       [id, fecha]
@@ -2644,6 +2669,7 @@ const roomAvaibleInformeConsolidado = async (req, res = response) => {
     res.status(201).json({
       ok: true,
       roomByIdIDtypeRoom,
+      roomByIdIDtypeRoomoOcasioanales,
       RoomBusyById,
       RoomAvaible,
       totalEfectivo,
@@ -4134,16 +4160,19 @@ const ReservationClean=async(req, res = response) =>{
 
 const HandDasboard =async(req, res = response) => {
 
+  const {idHotel,fecha} = req.body
+
+  console.log(fecha)
 
   try {
 
-    const FechaInicio = `2024-04-11 13:00:00`;
-    const FechaFinal =  `2024-04-11 15:00:00`;
+    const FechaInicio = `${fecha} 13:00:00`;
+    const FechaFinal =  `${fecha} 15:00:00`;
 
     const RoomBusyById = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =3 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [
-        12,
+        idHotel,
         FechaInicio,
         FechaFinal,
         FechaFinal,
@@ -4153,17 +4182,46 @@ const HandDasboard =async(req, res = response) => {
       ]
     );
 
-    const totalRoomsQuery = await pool.query("SELECT COUNT(*) AS Total_Habitaciones FROM Habitaciones WHERE ID_Hotel = ?", [12]);
+    const RoomBlock = await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas,Reservas.id FROM Reservas INNER JOIN Habitaciones on Reservas.ID_Habitaciones  = Habitaciones.ID WHERE Reservas.ID_Tipo_Estados_Habitaciones =2 AND  Habitaciones.ID_Hotel = ?  AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
+      [
+        idHotel,
+        FechaInicio,
+        FechaFinal,
+        FechaFinal,
+        FechaInicio,
+        FechaInicio,
+        FechaFinal,
+      ]
+    );
+
+    const totalRoomsQuery = await pool.query("SELECT COUNT(*) AS Total_Habitaciones FROM Habitaciones WHERE ID_Hotel = ?", [idHotel]);
 
     const totalRooms = totalRoomsQuery[0].Total_Habitaciones;
     const occupiedRooms = RoomBusyById[0].Num_Reservas;
-    const occupancyPercentage = (occupiedRooms / totalRooms) * 100;
-    console.log("Porcentaje de Ocupación:", occupancyPercentage.toFixed(2));
+    const occupancyPercentage = (occupiedRooms / totalRooms * 100) 
+    let tasaOcupacionRedondeada = Math.round(occupancyPercentage);
+
+    const occupiedRoomsBlock = RoomBlock[0].Num_Reservas;
+    const occupancyPercentageBlcok = (occupiedRoomsBlock / totalRooms * 100) 
+    let tasaOcupacionRedondeadaBlock = Math.round(occupancyPercentageBlcok);
+ 
+    const habitacionesDisponibles = totalRooms - (occupiedRooms + occupiedRoomsBlock);
+
+  // Calcula el porcentaje de disponibilidad
+    const porcentajeDisponibilidad = (habitacionesDisponibles / totalRooms) * 100;
+    let tasaDisponibilidad = Math.round(porcentajeDisponibilidad);
 
   return   res.status(201).json({
-    ok:true
+    ok:true,
+    Occupation:tasaOcupacionRedondeada,
+    Block:tasaOcupacionRedondeadaBlock,
+    Available:tasaDisponibilidad,
+    NumReservation:occupiedRooms,
+    NumBlock:occupiedRoomsBlock,
+    NumAvailable:habitacionesDisponibles
   })
-    
+
   } catch (error) {
 
     return res.status(401).json({
