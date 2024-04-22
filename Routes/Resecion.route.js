@@ -92,7 +92,9 @@ const {
   proxyTraOne,
   proxyTraTwo,
   InsertPdfFacturacionsigo,
-  ReservationClean
+  ReservationClean,
+  HandDasboard,
+  HandUpdateUserRoles
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -313,6 +315,13 @@ router.post('/insertpdfsigo',[
 
 router.post("/reservationclean",ReservationClean)
 
+router.post("/HandDasboard",HandDasboard)
 
+router.post("/HandUpdateUserRoles",
+[
+  check("id_permissions","es obligatorio").not().isEmpty(),
+  check("id","es obligatorio").not().isEmpty(),
+  ValidarCampos
+],HandUpdateUserRoles)
 
 module.exports = { router };  

@@ -70,8 +70,6 @@ const PostRoomDetailUpdate = async (req, res = response) => {
       ID_Tipo_Estados_Habitaciones:6
     }
 
-    console.log(ID_estado_habitacion)
-
     if(ID_estado_habitacion ==0){
 
       const to = await pool.query("SELECT * FROM `Reservas` WHERE `ID_Habitaciones` = ? AND `ID_Tipo_Estados_Habitaciones` = 2",[id])
@@ -4272,6 +4270,37 @@ const HandDasboard =async(req, res = response) => {
   }
 }
 
+const HandUpdateUserRoles= async(req, res = response) => {
+
+    const {id_permissions,id} =req.body
+
+    let data = {
+      id_permissions:id_permissions
+    };
+    
+    try {
+    await  pool.query(
+      "UPDATE users set ? WHERE id = ?",
+      [data,id],
+      (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+          });
+        }{
+          return res.status(201).json({
+            ok:true
+          })
+        }
+      }
+    )
+    } catch (error) {
+      return res.status(401).json({
+        ok:false
+      })
+    }
+}
+
 
 module.exports = {
   GetRooms,
@@ -4353,5 +4382,7 @@ module.exports = {
   proxyTraTwo,
   InsertPdfFacturacionsigo,
   ReservationClean,
-  HandDasboard
+  HandDasboard,
+  HandUpdateUserRoles,
+  
 };
