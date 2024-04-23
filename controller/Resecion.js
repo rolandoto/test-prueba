@@ -1775,7 +1775,7 @@ const handInformeAuditoria = async (req, res = response) => {
   const { id } = req.params;
   const { fecha } = req.body;
 
-
+  console.log(fecha)
 
   try {
     const queryOne = await pool.query(
@@ -1783,7 +1783,6 @@ const handInformeAuditoria = async (req, res = response) => {
       [fecha, id]
     );
     const queryTwo = await pool.query(
-
       "SELECT  SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento,  Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago  on  carrito_tienda.Forma_pago = Tipo_Forma_pago.ID  WHERE Fecha_compra = ?  and ID_hotel=?   GROUP BY carrito_tienda.ID",
       [fecha, id]
     );
@@ -1806,11 +1805,11 @@ const handInformeAuditoria = async (req, res = response) => {
     ,[id]
     )
 
-    const result = await pool.query(
+  /*  const result = await pool.query(
       "SELECT   Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Pagos.Valor_habitacion,Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Pagos on Reservas.id = Pagos.ID_Reserva INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
       [fecha, id]
     );
-
+*/
     const groupedData = [];
 
     const groupedOcasional = [];
@@ -1818,15 +1817,17 @@ const handInformeAuditoria = async (req, res = response) => {
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
       const re = await pool.query(
-        "SELECT web_checking.ID_Tipo_documento, Pago_abono.Tipo_forma_pago, Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE Habitaciones.ID_Tipo_habitaciones = ? and   Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?",
+        "SELECT Reservas.Ninos,Reservas.Adultos, Pagos.valor_dia_habitacion, web_checking.ID_Tipo_documento, Pago_abono.Tipo_forma_pago, Pago_abono.Abono as abono,  Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre  ,Reservas.Fecha_inicio, Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre  as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id  INNER JOIN  Pago_abono on  Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago INNER JOIN Pagos  on Pagos.ID_Reserva = web_checking.ID_Reserva WHERE Habitaciones.ID_Tipo_habitaciones = ? and    Pago_abono.Fecha_pago=? and Habitaciones.ID_Hotel= ?;",
         [id_habitacion, fecha, id]
       );
 
-    
       for (const date of re) {
         groupedData.push({
           ID: date.ID,
           abono: date.abono,
+          nino:date.Ninos,
+          adult:date.Adultos,
+          valor_habtiacion:date.valor_dia_habitacion,
           Fecha_pago: date.Fecha_pago,
           ID_reserva: date.ID_reserva,
           Numero: date.Numero,
@@ -4302,6 +4303,85 @@ const HandUpdateUserRoles= async(req, res = response) => {
 }
 
 
+const GetMetricasInformeMonthHotel =async(req, res = response) => {
+
+  const { fecha,id } = req.body;
+
+  try { 
+
+    var fechaOne = new Date(fecha);
+ 
+    var numero_year = fechaOne.getFullYear() 
+    var numero_mes =  fechaOne.getUTCMonth() + 1;
+
+    const queryOne = await pool.query(
+      "SELECT web_checking.ID_Reserva,  web_checking.ID_Tipo_documento, SUM(Carrito_reserva.Precio) as total_mes,  Carrito_reserva.Precio as total,Tipo_Forma_pago.ID as Forma_pago, Carrito_reserva.ID_Categoria as categoria,  Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and  month( Carrito_reserva.Fecha_compra)=? and YEAR( Carrito_reserva.Fecha_compra) =?  and Carrito_reserva.ID_Hoteles  =?;",
+      [numero_mes,numero_year, id]
+    );
+   
+
+    const queryTwo = await pool.query(
+      "SELECT SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento, Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago on carrito_tienda.Forma_pago = Tipo_Forma_pago.ID WHERE month( carrito_tienda.Fecha_compra)=? and YEAR( carrito_tienda.Fecha_compra) = ? AND ID_hotel=? GROUP BY carrito_tienda.Fecha_compra ASC;",
+      [numero_mes,numero_year, id]
+    );
+
+    const queryThree = await pool.query(
+      "SELECT SUM(Carrito_room.Precio) as total,Carrito_room.Forma_pago as Forma_pago, Carrito_room.ID_Categoria as categoria, Carrito_room.ID_user,users.name, Tipo_Forma_pago.Nombre as Tipo_pago,Carrito_room.Nombre, Carrito_room.Precio,Carrito_room.Cantidad,Carrito_room.ID_Hoteles, Carrito_room.Fecha_compra FROM Carrito_room INNER join Tipo_Forma_pago on Carrito_room.Forma_pago = Tipo_Forma_pago.ID INNER join users on users.id = Carrito_room.ID_user WHERE Month( Carrito_room.Fecha_compra)=? and YEAR( Carrito_room.Fecha_compra) = ?  and Carrito_room.ID_Hoteles=? and Carrito_room.Pago_deuda =1 GROUP BY Carrito_room.ID;",
+      [numero_mes,numero_year, id]
+    );
+   
+    const Totalhospedaje = await pool.query(
+      "SELECT web_checking.ID_Tipo_documento, Pago_abono.Tipo_forma_pago,SUM( Pago_abono.Abono) as abono, Pago_abono.Fecha_pago, Reservas.ID as ID_reserva, Habitaciones.Numero,Habitaciones.ID ,Tipo_Forma_pago.Nombre ,Reservas.Fecha_inicio, Reservas.Codigo_reserva,web_checking.Num_documento,web_checking.Nombre as Nombre_Person,web_checking.Apellido,web_checking.Iva ,web_checking.Tipo_persona from Reservas INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.id INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pago_abono on Reservas.id = Pago_abono.ID_Reserva INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = Pago_abono.Tipo_Forma_pago WHERE Month( Pago_abono.Fecha_pago)=? and YEAR( Pago_abono.Fecha_pago) = ? and Habitaciones.ID_Hotel= ? GROUP by Pago_abono.Fecha_pago ASC;",
+      [ numero_mes,numero_year, id]
+    );
+
+    const Ocasionales = await pool.query(
+      "SELECT SUM(RoomOcasionales.Abono) as total, RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago,RoomOcasionales.Time_ingreso,RoomOcasionales.Time_salida, users.name from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago INNER join users on users.id = RoomOcasionales.id_user WHERE Month( RoomOcasionales.Fecha)=? and YEAR( RoomOcasionales.Fecha) = ?  and Habitaciones.ID_Hotel= ? GROUP by  RoomOcasionales.Fecha ASC;",
+      [numero_mes,numero_year, id]
+    );
+  
+   /* for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion;
+      const res = await pool.query(
+        "SELECT RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago,RoomOcasionales.Time_ingreso,RoomOcasionales.Time_salida, users.name from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago INNER join users on users.id = RoomOcasionales.id_user WHERE Habitaciones.ID_Tipo_habitaciones = ? and   RoomOcasionales.Fecha =? and Habitaciones.ID_Hotel= ? ",
+        [id_habitacion, fecha, id]
+      ); 
+
+      for (const date of res) {
+        groupedOcasional.push({
+          ID: date.ID,
+          Numero: date.Numero,
+          Habitacion: response[i].nombre,
+          Abono: date.Abono,
+          Tipo_forma_pago: date.Nombre,
+          Fecha:date.Fecha,
+          Forma_pago:date.ID_forma_pago,
+          username:date.name,
+          Time_ingreso:date.Time_ingreso,
+          Time_salida:date.Time_salida
+        });
+      }
+    }*/
+
+    return res.status(201).json({
+      ok:true,
+      queryOne,
+      queryTwo,
+      queryThree,
+      Totalhospedaje,
+      Ocasionales
+    })
+    
+  } catch (error) {
+    
+    return res.status(401).json({
+      ok:false
+    })
+
+  }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -4384,5 +4464,6 @@ module.exports = {
   ReservationClean,
   HandDasboard,
   HandUpdateUserRoles,
+  GetMetricasInformeMonthHotel
   
 };
