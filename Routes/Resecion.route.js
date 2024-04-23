@@ -94,7 +94,8 @@ const {
   InsertPdfFacturacionsigo,
   ReservationClean,
   HandDasboard,
-  HandUpdateUserRoles
+  HandUpdateUserRoles,
+  GetMetricasInformeMonthHotel
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -323,5 +324,12 @@ router.post("/HandUpdateUserRoles",
   check("id","es obligatorio").not().isEmpty(),
   ValidarCampos
 ],HandUpdateUserRoles)
+
+router.post("/GetMetricasInformeMonthHotel",
+[
+  check("id","es obligatorio").not().isEmpty(),
+  check("fecha","es obligatorio").not().isEmpty(),
+  ValidarCampos
+],GetMetricasInformeMonthHotel)
 
 module.exports = { router };  
