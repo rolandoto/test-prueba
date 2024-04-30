@@ -2529,7 +2529,7 @@ const getpayABono = async (req, res = response) => {
 
   try {
     const query = await pool.query(
-      "SELECT Pago_abono.ID,web_checking.Iva,web_checking.Tipo_persona, Pago_abono.Nombre_recepcion, Pago_abono.ID_Reserva,Pago_abono.Abono,Pago_abono.Fecha_pago,Tipo_Forma_pago.Nombre FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_Forma_pago = Tipo_Forma_pago.ID INNER JOIN web_checking ON Pago_abono.ID_Reserva = web_checking.ID_Reserva WHERE Pago_abono.ID_Reserva = ?",
+      "SELECT Pago_abono.Valid_Dian, Pago_abono.ID,web_checking.Iva,web_checking.Tipo_persona, Pago_abono.Nombre_recepcion, Pago_abono.ID_Reserva,Pago_abono.Abono,Pago_abono.Fecha_pago,Tipo_Forma_pago.Nombre FROM `Pago_abono` INNER JOIN Tipo_Forma_pago on Pago_abono.Tipo_Forma_pago = Tipo_Forma_pago.ID INNER JOIN web_checking ON Pago_abono.ID_Reserva = web_checking.ID_Reserva WHERE Pago_abono.ID_Reserva = ?",
       [id]
     );
 
@@ -4018,35 +4018,100 @@ const  proxyTraTwo=async(req, res = response) =>{
   }
 }
 
-
 const InsertPdfFacturacionsigo=async(req, res = response) =>{
 
-  const {id,id_sigo} = req.body
+  const {id, id_sigo,id_user,fecha} = req.body
 
-  let data = {
-    ID_facturacion:id_sigo
-  };
-
-  await  pool.query(
-    "UPDATE web_checking set ? WHERE ID_Reserva = ?",
-    [data,id],
-    (err, customer) => {
-      if (err) {
-        return res.status(401).json({
-          ok: false,
-        });
-      }{
-        return res.status(201).json({
-          ok:true
-        })
-      }
-    }
-  )
- 
   try {
+
+    /*;*/
+
+    const roomPay = await pool.query(
+      "SELECT SUM(Pago_abono.Abono) as Total_Abono FROM Pago_abono WHERE  Pago_abono.Valid_Dian=0 and Pago_abono.ID_Reserva =?",
+      [id]
+    );
+
+    const abono = roomPay[0].Total_Abono || 0;
+
+    if(!abono){
+      return res.status(401).json({
+        ok:false,
+        msg:"noso puede facturar en numero 0"
+      })
+    }else{
+
+      let dataDian ={
+        Fecha:fecha,
+        id_user,
+        Abono:abono,
+        ID_facturacion:id_sigo,
+        ID_Reserva:id
+      }
+  
+      await pool.query('INSERT INTO Dian_facturacion_register set ?', dataDian, (err, customer) => {
+        if(err){
+            return res.status(401).json({
+                 ok:false,
+                 msg:"error al insertar datos"
+            })
+         }else{
+            const insertSecondQuery = async() => {
+  
+              let data = {
+                Valid_Dian:1
+              }
+  
+                pool.query('UPDATE Pago_abono set ? WHERE ID_Reserva = ?', [data,id], (err, customer) => {
+                    if (err) {
+                        return res.status(401).json({
+                            ok: false,
+                            msg: "error al insertar datos"
+                        });
+                    } else {
+
+                      const insertSecondQuery = async() =>{
+
+                        let dataThird = {
+                          ID_facturacion:123456
+                        };
+
+                        await  pool.query(
+                          "UPDATE web_checking set ? WHERE ID_Reserva = ?",
+                          [dataThird,id],
+                          (err, customer) => {
+                            if (err) {
+                              return res.status(401).json({
+                                ok: false,
+                              });
+                            }{
+                              return res.status(201).json({
+                                ok:true
+                              })
+                            }
+                          }
+                        )
+                      }
+
+                      insertSecondQuery()
+
+                    }
+                });
+                 
+            }
+            insertSecondQuery();
+         }
+      })
+    }
+
+  
+   return  res.status(201).json({
+    ok:true
+   })
     
   } catch (error) {
-    
+    return res.status(401).json({
+      ok:false
+    })
   }
   
 }
@@ -4087,7 +4152,6 @@ const ReservationClean=async(req, res = response) =>{
         "SELECT * FROM Lista_Fechas_Reservada INNER JOIN Habitaciones ON Lista_Fechas_Reservada.ID_Habitaciones = Habitaciones.ID WHERE Habitaciones.ID_Tipo_habitaciones = ? AND Lista_Fechas_Reservada.Date > ? AND  Lista_Fechas_Reservada.Date <= ? GROUP BY Lista_Fechas_Reservada.ID_Habitaciones",
         [habitaciones, desdeSinHora, hastaSinHora]
       );
-
 
       var n1 = 20000;
       var n2 = 10000;
@@ -4432,6 +4496,29 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
 
 }
 
+
+const GetFacturacionDianByIdReserva =async(req, res = response) =>{
+
+  const {id} = req.params
+
+  try {
+
+    const  query = await  pool.query("SELECT APP_colaboradores.name, APP_colaboradores.lastName, Dian_facturacion_register.Fecha, Dian_facturacion_register.Abono ,Dian_facturacion_register.ID_facturacion FROM `Dian_facturacion_register` INNER JOIN APP_colaboradores on APP_colaboradores.id_user = Dian_facturacion_register.id_user WHERE Dian_facturacion_register.ID_Reserva =?"
+      ,[id])
+
+    return res.status(201).json({
+      ok:true,
+      query
+    })
+    
+  } catch (error) {
+   return res.status(401).json({
+    ok:false
+   }) 
+  }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -4514,6 +4601,7 @@ module.exports = {
   ReservationClean,
   HandDasboard,
   HandUpdateUserRoles,
-  GetMetricasInformeMonthHotel
+  GetMetricasInformeMonthHotel,
+  GetFacturacionDianByIdReserva
   
 };

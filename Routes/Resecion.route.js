@@ -95,7 +95,8 @@ const {
   ReservationClean,
   HandDasboard,
   HandUpdateUserRoles,
-  GetMetricasInformeMonthHotel
+  GetMetricasInformeMonthHotel,
+  GetFacturacionDianByIdReserva
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -311,6 +312,8 @@ router.post('/pmstratwo',proxyTraTwo );
 router.post('/insertpdfsigo',[
   check("id","es obligatorio").not().isEmpty(),
   check("id_sigo","es obligatorio").not().isEmpty(),
+  check("id_user","es obligatorio").not().isEmpty(),
+  check("fecha","es obligatorio").not().isEmpty(),
   ValidarCampos
 ],InsertPdfFacturacionsigo );
 
@@ -331,5 +334,7 @@ router.post("/GetMetricasInformeMonthHotel",
   check("fecha","es obligatorio").not().isEmpty(),
   ValidarCampos
 ],GetMetricasInformeMonthHotel)
+
+router.get("/GetFacturacionDianByIdReserva/:id",GetFacturacionDianByIdReserva)
 
 module.exports = { router };  
