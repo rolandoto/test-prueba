@@ -517,8 +517,7 @@ const getReserva = async (req, res = response) => {
          });
        }
  
-       
- 
+
        const query = await Promise.all(promises);
    
        return res.status(201).json({
@@ -4442,12 +4441,14 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
     const roomByIdIDtypeRoomTwoPerson = [];
     const roomByIdIDtypeRoomTwoPersonThre = [];
     const roomByIdIDtypeRoomTwoPersonFour = [];
+    const roomByIdIDtypeRoomTwoPersonFive = []
+    const roomByIdIDtypeRoomTwoPersonSix = []
 
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
 
       const roomPay = await pool.query(
-        "SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, DAYOFWEEK(Reservas.Fecha_inicio) as day, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones,ROUND( SUM( Pagos.Abono ), 0 ) AS Total_Abono , Reservas.Adultos FROM accommodation INNER JOIN rooms ON rooms.id = accommodation.id_room  INNER JOIN Habitaciones ON Habitaciones.ID_Tipo_habitaciones = rooms.id INNER JOIN Reservas ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pagos ON Pagos.ID_Reserva = Reservas.ID  WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? AND Pagos.pago_valid = 1  AND DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 1 AND 4  AND accommodation.id_hotel = ?   and rooms.id = ? and  Reservas.Adultos = 1 ; ",
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 1 AND 4 AND  Reservas.Adultos = 1 and Habitaciones.ID_Tipo_habitaciones=?",
         [numero_year,numero_mes, id,id_habitacion]
       );
 
@@ -4462,7 +4463,7 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
       });
 
       const roomPayTwoPerson = await pool.query(
-        "SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, DAYOFWEEK(Reservas.Fecha_inicio) as day, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones,ROUND( SUM( Pagos.Abono ), 0 ) AS Total_Abono , Reservas.Adultos FROM accommodation INNER JOIN rooms ON rooms.id = accommodation.id_room  INNER JOIN Habitaciones ON Habitaciones.ID_Tipo_habitaciones = rooms.id INNER JOIN Reservas ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pagos ON Pagos.ID_Reserva = Reservas.ID  WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? AND Pagos.pago_valid = 1  AND DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 1 AND 4  AND accommodation.id_hotel = ?   and rooms.id = ? and  Reservas.Adultos = 2 ;  ",
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 1 AND 4 AND  Reservas.Adultos = 2 and Habitaciones.ID_Tipo_habitaciones=? ",
         [numero_year,numero_mes, id,id_habitacion]
       );
       
@@ -4477,10 +4478,10 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
       });
 
       const roomPayTwoPersonThree = await pool.query(
-        "SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, DAYOFWEEK(Reservas.Fecha_inicio) as day, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones,ROUND( SUM( Pagos.Abono ), 0 ) AS Total_Abono , Reservas.Adultos FROM accommodation INNER JOIN rooms ON rooms.id = accommodation.id_room  INNER JOIN Habitaciones ON Habitaciones.ID_Tipo_habitaciones = rooms.id INNER JOIN Reservas ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pagos ON Pagos.ID_Reserva = Reservas.ID  WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? AND Pagos.pago_valid = 1  AND DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7  AND accommodation.id_hotel = ?   and rooms.id = ? and  Reservas.Adultos = 1 ;  ",
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7 AND  Reservas.Adultos = 1 and Habitaciones.ID_Tipo_habitaciones=? ",
         [numero_year,numero_mes, id,id_habitacion]
       );
-      
+
       const abonoTwoPersonThree = roomPayTwoPersonThree[0].Total_Abono || 0;
 
       const roomTwoPersonThree = roomPayTwoPersonThree[0].Cantidad_Habitaciones || 0;
@@ -4490,8 +4491,10 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
         abono:abonoTwoPersonThree,
         cantidad: roomTwoPersonThree,
       });
+
+      
       const roomPayTwoPersonFour = await pool.query(
-        "SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, DAYOFWEEK(Reservas.Fecha_inicio) as day, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones,ROUND( SUM( Pagos.Abono ), 0 ) AS Total_Abono , Reservas.Adultos FROM accommodation INNER JOIN rooms ON rooms.id = accommodation.id_room  INNER JOIN Habitaciones ON Habitaciones.ID_Tipo_habitaciones = rooms.id INNER JOIN Reservas ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pagos ON Pagos.ID_Reserva = Reservas.ID  WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? AND Pagos.pago_valid = 1  AND DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7  AND accommodation.id_hotel = ?   and rooms.id = ? and  Reservas.Adultos = 2 ;",
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7 AND  Reservas.Adultos = 2 and Habitaciones.ID_Tipo_habitaciones=?  ",
         [numero_year,numero_mes, id,id_habitacion]
       );
       const abonoTwoPersonFour = roomPayTwoPersonFour[0].Total_Abono || 0;
@@ -4500,6 +4503,32 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
         room: response[i].nombre,
         abono:abonoTwoPersonFour,
         cantidad: roomTwoPersonFour,
+      });
+
+      const roomPayTwoPersonFive = await pool.query(
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 1 AND 4 AND  Reservas.Adultos != 1 and Reservas.Adultos != 2 and Habitaciones.ID_Tipo_habitaciones=?  ",
+        [numero_year,numero_mes, id,id_habitacion]
+      );
+
+      const abonoTwoPersonFive = roomPayTwoPersonFive[0].Total_Abono || 0;
+      const roomTwoPersonFive = roomPayTwoPersonFive[0].Cantidad_Habitaciones || 0;
+      roomByIdIDtypeRoomTwoPersonFive.push({
+        room: response[i].nombre,
+        abono:abonoTwoPersonFive,
+        cantidad: roomTwoPersonFive,
+      });
+
+      const roomPayTwoPersonSix = await pool.query(
+        "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7 AND  Reservas.Adultos != 1 and Reservas.Adultos != 2 and Habitaciones.ID_Tipo_habitaciones=? ",
+        [numero_year,numero_mes, id,id_habitacion]
+      );
+
+      const abonoTwoPersonSix = roomPayTwoPersonSix[0].Total_Abono || 0;
+      const roomTwoPersonSix = roomPayTwoPersonSix[0].Cantidad_Habitaciones || 0;
+      roomByIdIDtypeRoomTwoPersonSix.push({
+        room: response[i].nombre,
+        abono:abonoTwoPersonSix,
+        cantidad: roomTwoPersonSix,
       });
     }
 
@@ -4513,7 +4542,9 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
       roomByIdIDtypeRoom,
       roomByIdIDtypeRoomTwoPerson,
       roomByIdIDtypeRoomTwoPersonThre,
-      roomByIdIDtypeRoomTwoPersonFour
+      roomByIdIDtypeRoomTwoPersonFour,
+      roomByIdIDtypeRoomTwoPersonFive,
+      roomByIdIDtypeRoomTwoPersonSix
     })
     
   } catch (error) {
