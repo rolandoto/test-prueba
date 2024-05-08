@@ -4645,6 +4645,62 @@ const Getbreakfast =async(req, res = response) =>{
   }
 }
 
+
+
+const PostRoomOcasionalMonth =async(req, res = response) =>{
+
+  const {fecha,id} = req.body
+
+  var fechaOne = new Date(fecha);
+
+  var numero_mes =  fechaOne.getUTCMonth() + 1;
+
+
+
+  try {
+
+    const response = await pool.query("SELECT rooms.id as id_tipoHabitacion, rooms.name as nombre, rooms.price as precio, rooms.price_people as precio_persona,  rooms.people as persona , rooms.max_people as max_persona FROM accommodation JOIN rooms ON rooms.id = accommodation.id_room WHERE accommodation.id_hotel = ?;"
+    ,[id]
+  )
+
+    const query= []
+    for (let i = 0; i < response?.length; i++) {
+      const id_habitacion = response[i].id_tipoHabitacion;
+      const res = await pool.query(
+        "SELECT RoomOcasionales.ID, Habitaciones.Numero, RoomOcasionales.ID_hotel,RoomOcasionales.ID_habitacion,RoomOcasionales.Abono ,Tipo_Forma_pago.Nombre ,RoomOcasionales.Fecha ,Tipo_Forma_pago.ID as ID_forma_pago,RoomOcasionales.Time_ingreso,RoomOcasionales.Time_salida, users.name from Habitaciones INNER JOIN  RoomOcasionales  on RoomOcasionales.ID_habitacion = Habitaciones.ID INNER join Tipo_Forma_pago on Tipo_Forma_pago.ID = RoomOcasionales.Tipo_forma_pago INNER join users on users.id = RoomOcasionales.id_user WHERE Habitaciones.ID_Tipo_habitaciones =? and    MONTH( RoomOcasionales.Fecha) = ?  and Habitaciones.ID_Hotel= ?;",
+        [id_habitacion, numero_mes, id]
+      ); 
+
+      for (const date of res) {
+        query.push({
+          ID: date.ID,
+          Numero: date.Numero,
+          Habitacion: response[i].nombre,
+          Abono: date.Abono,
+          Tipo_forma_pago: date.Nombre,
+          Fecha:date.Fecha,
+          Forma_pago:date.ID_forma_pago,
+          username:date.name,
+          Time_ingreso:date.Time_ingreso,
+          Time_salida:date.Time_salida
+        });
+      }
+    }
+ 
+  return res.status(201).json({
+    ok:true,
+    query
+  })
+
+
+  } catch (error) {
+    return res.status(201).json({
+      ok:false
+    })
+  }
+
+}
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -4730,6 +4786,7 @@ module.exports = {
   GetMetricasInformeMonthHotel,
   GetFacturacionDianByIdReserva,
   InsertRegisterHuespedBreafast,
-  Getbreakfast
+  Getbreakfast,
+  PostRoomOcasionalMonth
   
 };
