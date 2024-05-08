@@ -202,7 +202,8 @@ const validateAvaible = async (req, res = response) => {
     link,
     id_hotel,
     nowOne,
-    ID_facturacion
+    ID_facturacion,
+    id_user
   } = req.body;
 
   const date1 = new Date(desde);
@@ -215,6 +216,7 @@ const validateAvaible = async (req, res = response) => {
         ok: false,
       });
     }
+
 
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
@@ -251,6 +253,8 @@ const validateAvaible = async (req, res = response) => {
         id_disponible = id_disponible;
       }
 
+
+
       const data = {
         ID_Usuarios: 1,
         ID_Habitaciones: parseInt(id_disponible.toString()),
@@ -269,6 +273,8 @@ const validateAvaible = async (req, res = response) => {
       };
 
       const to = await pool.query("INSERT INTO Reservas set ?", data);
+
+
 
       const queryResult = await pool.query(
         "SELECT MAX(ID) as max FROM Reservas"
@@ -808,12 +814,16 @@ const roomAvaible = async (req, res = response) => {
     const date1 = new Date(desde);
     const date2 = new Date(hasta);
 
+    console.log(desde)
+
     if (date1 > date2) {
       return res.status(401).json({
         msg: "no puede ser mayor de la fecha",
         ok: false,
       });
     }
+
+    
 
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
@@ -1180,7 +1190,7 @@ const getDetailReservation = async (req, res = response) => {
 
 
     const query = await pool.query(
-      "SELECT rooms.name as nombre_habitacion, web_checking.ID_facturacion, web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion,web_checking.ID_facturacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID INNER JOIN rooms  on rooms.id = Habitaciones.ID_Tipo_habitaciones  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
+      "SELECT web_checking.ID as huesped, rooms.name as nombre_habitacion, web_checking.ID_facturacion, web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion,web_checking.ID_facturacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID INNER JOIN rooms  on rooms.id = Habitaciones.ID_Tipo_habitaciones  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
       [id]
     );
 
@@ -4557,7 +4567,6 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
 
 }
 
-
 const GetFacturacionDianByIdReserva =async(req, res = response) =>{
 
   const {id} = req.params
@@ -4577,7 +4586,63 @@ const GetFacturacionDianByIdReserva =async(req, res = response) =>{
     ok:false
    }) 
   }
+}
 
+
+const InsertRegisterHuespedBreafast =async(req, res = response) =>{
+
+  const {Id_user,id_huesped,Fecha,NumberDesayuno,Id_hotel,ID_Reserva} = req.body
+
+  let data={
+    Id_user,
+    id_huesped,
+    Fecha,
+    NumberDesayuno,
+    Id_hotel,
+    ID_Reserva
+  }
+
+  try {
+    await pool.query('INSERT INTO RegisterBreakfast set ?', data, (err, customer) => {
+      if(err){
+          return res.status(401).json({
+               ok:false,
+               msg:"error al insertar datos"
+          })
+      }else{
+        return res.status(201).json({
+          ok:true
+        })
+      }
+    })
+    
+  } catch (error) {
+    return res.status(401).json({
+      ok:false
+    })
+  }
+}
+
+
+const Getbreakfast =async(req, res = response) =>{
+
+  const {id} = req.params
+
+  try {
+
+    const  query = await  pool.query("SELECT ID,Id_user,id_huesped,Id_hotel,ID_Reserva,Fecha,NumberDesayuno FROM `RegisterBreakfast` WHERE ID_Reserva =?"
+      ,[id])
+
+    return res.status(201).json({
+      ok:true,
+      query
+    })
+    
+  } catch (error) {
+   return res.status(401).json({
+    ok:false
+   }) 
+  }
 }
 
 module.exports = {
@@ -4663,6 +4728,8 @@ module.exports = {
   HandDasboard,
   HandUpdateUserRoles,
   GetMetricasInformeMonthHotel,
-  GetFacturacionDianByIdReserva
+  GetFacturacionDianByIdReserva,
+  InsertRegisterHuespedBreafast,
+  Getbreakfast
   
 };

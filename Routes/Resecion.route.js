@@ -96,7 +96,9 @@ const {
   HandDasboard,
   HandUpdateUserRoles,
   GetMetricasInformeMonthHotel,
-  GetFacturacionDianByIdReserva
+  GetFacturacionDianByIdReserva,
+  InsertRegisterHuespedBreafast,
+  Getbreakfast
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -336,5 +338,17 @@ router.post("/GetMetricasInformeMonthHotel",
 ],GetMetricasInformeMonthHotel)
 
 router.get("/GetFacturacionDianByIdReserva/:id",GetFacturacionDianByIdReserva)
+
+router.post("/PostInsertRegisterHuespedBreafast",
+    [
+    check("Id_user","es obligatorio").not().isEmpty(),
+    check("id_huesped","es obligatorio").not().isEmpty(),
+    check("NumberDesayuno","es obligatorio").not().isEmpty(),
+    check("Id_hotel","es obligatorio").not().isEmpty(),
+    check("Fecha","es obligatorio").not().isEmpty(),
+    check("ID_Reserva","es obligatorio").not().isEmpty(),
+    ValidarCampos
+    ],InsertRegisterHuespedBreafast)
+    router.get("/Getbreakfast/:id",Getbreakfast)
 
 module.exports = { router };  
