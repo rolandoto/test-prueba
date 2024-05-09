@@ -823,8 +823,7 @@ const roomAvaible = async (req, res = response) => {
       });
     }
 
-    
-
+  
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas FROM Reservas WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [ID_Habitaciones, desde, desde, hasta, hasta, desde, hasta]
@@ -4453,6 +4452,10 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
     const roomByIdIDtypeRoomTwoPersonFour = [];
     const roomByIdIDtypeRoomTwoPersonFive = []
     const roomByIdIDtypeRoomTwoPersonSix = []
+    const  roomByIdIDtypeRoomDian =[]
+
+
+    
 
     for (let i = 0; i < response?.length; i++) {
       const id_habitacion = response[i].id_tipoHabitacion;
@@ -4503,6 +4506,7 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
       });
 
       
+      
       const roomPayTwoPersonFour = await pool.query(
         "SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones, ROUND( SUM( Pago_abono.Abono  ), 0 ) AS Total_Abono, COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Pago_abono ON Reservas.id = Pago_abono.ID_Reserva INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.id WHERE YEAR(Reservas.Fecha_inicio) = ? AND Month(Reservas.Fecha_inicio) = ? and Habitaciones.ID_Hotel = ? and   DAYOFWEEK(Reservas.Fecha_inicio) BETWEEN 5 AND 7 AND  Reservas.Adultos = 2 and Habitaciones.ID_Tipo_habitaciones=?  ",
         [numero_year,numero_mes, id,id_habitacion]
@@ -4533,6 +4537,8 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
         [numero_year,numero_mes, id,id_habitacion]
       );
 
+
+
       const abonoTwoPersonSix = roomPayTwoPersonSix[0].Total_Abono || 0;
       const roomTwoPersonSix = roomPayTwoPersonSix[0].Cantidad_Habitaciones || 0;
       roomByIdIDtypeRoomTwoPersonSix.push({
@@ -4540,6 +4546,21 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
         abono:abonoTwoPersonSix,
         cantidad: roomTwoPersonSix,
       });
+
+      const TotalDian = await pool.query(
+        `SELECT web_checking.Iva, web_checking.Tipo_persona, Habitaciones.ID_Tipo_habitaciones,  IF(web_checking.ID_facturacion <> "", ROUND(SUM(Pago_abono.Abono), 0), 0) AS Total_Abono,  COUNT(DISTINCT Reservas.ID) AS Cantidad_Habitaciones  FROM  Reservas  INNER JOIN   Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID  INNER JOIN  Pago_abono ON Reservas.id = Pago_abono.ID_Reserva  INNER JOIN  web_checking ON web_checking.ID_Reserva = Reservas.id  WHERE  YEAR(Reservas.Fecha_inicio) = ?   AND MONTH(Reservas.Fecha_inicio) =?  AND Habitaciones.ID_Hotel = ? AND web_checking.ID_facturacion <> "" and Habitaciones.ID_Tipo_habitaciones=? `,
+        [numero_year,numero_mes, id,id_habitacion]
+      );
+
+      const abonoDian = TotalDian[0].Total_Abono || 0;
+      const roomdian = TotalDian[0].Cantidad_Habitaciones || 0;
+
+      roomByIdIDtypeRoomDian.push({
+        room: response[i].nombre,
+        abono:abonoDian,
+        cantidad: roomdian,
+      });
+    
     }
 
     return res.status(201).json({
@@ -4554,7 +4575,8 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
       roomByIdIDtypeRoomTwoPersonThre,
       roomByIdIDtypeRoomTwoPersonFour,
       roomByIdIDtypeRoomTwoPersonFive,
-      roomByIdIDtypeRoomTwoPersonSix
+      roomByIdIDtypeRoomTwoPersonSix,
+      roomByIdIDtypeRoomDian
     })
     
   } catch (error) {
