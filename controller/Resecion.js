@@ -569,7 +569,10 @@ const getReserva = async (req, res = response) => {
        }
  
        const query = await Promise.all(promises);
-   
+       
+
+       console.log(id)
+
        return res.status(201).json({
          ok: true,
          query,
@@ -1448,32 +1451,39 @@ const insertCartStore = async (req, res = response) => {
       const dataone = {
         Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
-
-      await pool.query("INSERT INTO carrito_tienda SET ?", data);
-
-      const dataKpi = {
-        ID_user,
-        ID_hotel,
-        Fecha_venta: Fecha_compra,
-        Nombre: cartItem?.Nombre,
-        Precio: cartItem?.Precio,
-        Cantidad: cartItem?.quantity,
-        ID_Categoria: cartItem?.id_categoria,
-        ID_product: cartItem?.ID,
-        Cantidad_comision: cartItem?.quantity * (cartItem?.id_categoria === 3 ? 1500 : 3500),
-        Pago_deuda: 1, // Assuming Pago_deuda is always 1, you may adjust this if needed.
-      };
-
-      await pool.query("INSERT INTO KPI SET ?", dataKpi);
-
-      await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
+      
+      await pool.query("INSERT INTO carrito_tienda SET ?", data, (err, customer) => {
+        if (err) {
+          return res.status(401).json({
+            ok: false,
+            msg: "error al insertar datos",
+          });
+        } else {
+          const insertSecondQuery = async () => {
+            pool.query(
+              "UPDATE Productos SET ? WHERE ID = ?",
+              [dataone, id],
+              (err, customer) => {
+                if (err) {
+                  return res.status(401).json({
+                    ok: false,
+                    msg: "error al insertar datos",
+                  });
+                } else {
+                  return res.status(201).json({
+                    ok: true,
+                  });
+                }
+              }
+            );
+          };
+          insertSecondQuery();
+        }
+      });
     }
 
-    return res.status(201).json({
-      ok: true,
-    });
   } catch (error) {
-    console.error('Error in insertCartStore:', error);
+    
     return res.status(401).json({
       ok: false,
       error: 'Failed to process the request.',
