@@ -1430,6 +1430,9 @@ const insertCartStore = async (req, res = response) => {
   } = req.body;
 
   try {
+
+    
+
     for (const cartItem of Cart) {
       const data = {
         ID_Reserva,
@@ -1451,39 +1454,18 @@ const insertCartStore = async (req, res = response) => {
       const dataone = {
         Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
-      
-      await pool.query("INSERT INTO carrito_tienda SET ?", data, (err, customer) => {
-        if (err) {
-          return res.status(401).json({
-            ok: false,
-            msg: "error al insertar datos",
-          });
-        } else {
-          const insertSecondQuery = async () => {
-            pool.query(
-              "UPDATE Productos SET ? WHERE ID = ?",
-              [dataone, id],
-              (err, customer) => {
-                if (err) {
-                  return res.status(401).json({
-                    ok: false,
-                    msg: "error al insertar datos",
-                  });
-                } else {
-                  return res.status(201).json({
-                    ok: true,
-                  });
-                }
-              }
-            );
-          };
-          insertSecondQuery();
-        }
-      });
+
+      await pool.query("INSERT INTO carrito_tienda SET ?", data);
+
+    
+      await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
     }
 
+    return res.status(201).json({
+      ok: true,
+    });
   } catch (error) {
-    
+    console.error('Error in insertCartStore:', error);
     return res.status(401).json({
       ok: false,
       error: 'Failed to process the request.',
