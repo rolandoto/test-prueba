@@ -4,6 +4,7 @@ const ListRoutes = require("./Routes/Listmotel");
 const AdminRoute = require("./Routes/Admin.route");
 const ResecionRoute = require("./Routes/Resecion.route");
 const Hotels = require("./Routes/Hotels")
+const RouterCloudbeds = require("./Routes/RouteCloudbeds")
 const cors = require("cors");
 require("dotenv").config();
 var path = require('path')
@@ -26,6 +27,7 @@ app.use("/api", ListRoutes.router);
 app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 app.use("/api/hotels",Hotels.router)
+app.use("/api/hotels/cloubeds",RouterCloudbeds.router)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 //"https://test-frontent-n9ec.vercel.app"

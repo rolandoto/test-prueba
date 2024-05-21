@@ -4602,7 +4602,6 @@ const GetFacturacionDianByIdReserva =async(req, res = response) =>{
   }
 }
 
-
 const InsertRegisterHuespedBreafast =async(req, res = response) =>{
 
   const {Id_user,id_huesped,Fecha,NumberDesayuno,Id_hotel,ID_Reserva} = req.body
