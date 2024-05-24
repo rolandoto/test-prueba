@@ -6,8 +6,8 @@ const router =require('express').Router()
 
 router.post("/SeacrhHotelsById", [
     check("id", "es obligatorio").not().isEmpty(),
-    check("desde", "es obligatorio").not().isEmpty(),
-    check("hasta", "es obligatorio").not().isEmpty(),
+    check("desde", "es obligatorio").isDate(),
+    check("hasta", "es obligatorio").isDate(),
     ValidarCampos
   ],SearchHotels)
 

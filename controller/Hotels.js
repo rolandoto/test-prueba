@@ -5,6 +5,19 @@ const SearchHotels =async(req, res = response) =>{
 
   const {id,desde,hasta} = req.body
 
+  const desdeFecha  = `${desde} 15:00:00`
+  const hastaFecha  = `${hasta} 13:00:00`
+
+  const FechaDesde = new Date(desde);
+  const FechaHasta = new Date(hasta);
+
+  if (FechaDesde >= FechaHasta) {
+    return res.status(401).json({
+      ok: false,
+      error: 'La fecha hasta debe ser mayor que la fecha desde'
+    });
+  }
+
     const query = await pool.query(
       "SELECT rooms.id as idTipoHabitacion, rooms.name as nombre,rooms.price as precio,rooms.price_people as precio_persona,rooms.people as persona,rooms.max_people as max_persona, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha,rooms_image.url FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() INNER JOIN rooms_image on  rooms_image.id_rooms = Habitaciones.ID_Tipo_habitaciones INNER  JOIN  rooms on  rooms.id  = Habitaciones.ID_Tipo_habitaciones  WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id;",
       [id]
@@ -33,7 +46,7 @@ const test = await Promise.all(
   flattenedRooms.map(async (room) => {
     const resultado = await pool.query(
       "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6  AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
-      [room.id, desde, desde, hasta, hasta, desde, hasta]
+      [room.id, desdeFecha, desdeFecha, hastaFecha, hastaFecha, desdeFecha, hastaFecha]
     );
     return resultado.map((element) => {
       if (element.Num_Reservas === 0 && element.ID_estado_habitacion !==2 ) {
@@ -55,7 +68,7 @@ const test = await Promise.all(
 return test.flat().filter((item) => item !== null);
 }
 
-const availableRooms = await getAvailableRooms(pool, queryOne, desde, hasta);
+const availableRooms = await getAvailableRooms(pool, queryOne, desdeFecha, hastaFecha);
 
 if(availableRooms.length ==0){
 return res.status(401).json({
@@ -63,9 +76,15 @@ return res.status(401).json({
 })
 }
 
+
+const total =  availableRooms.lentgh
+
+console.log(total)
+
 res.status(201).json({
 ok:true,
-availableRooms
+availableRooms,
+total
 })
 
 }
