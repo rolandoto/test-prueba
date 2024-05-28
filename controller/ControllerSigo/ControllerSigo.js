@@ -5,7 +5,7 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
 
     const {token,body,id_Reserva,id_user,fecha} = req.body
 
-    console.log(id_Reserva)
+
     try {   
         const response = await fetch(`https://private-anon-72afbfb6b1-siigoapi.apiary-proxy.com/v1/invoices`, {
             method: "POST",
@@ -17,6 +17,8 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
              body:JSON.stringify(body)
         });
 
+        console.log(response)
+
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }
@@ -26,6 +28,7 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
         }
 
         const data = await response.json();
+        console.log(data)
 
 
         if(data.id){
@@ -113,6 +116,8 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
         })
     }
 }
+
+
 
 
 module.exports={
