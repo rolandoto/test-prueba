@@ -24,7 +24,7 @@ const SearchHotels =async(req, res = response) =>{
     )
     const queryOne =   query.map((element) => {
       const roomObject = {
-        title: `${element.title} ${element.nombre}`,
+        title: `${element.nombre}`,
         id: element.id,
         ID_Tipo_estados: element.ID_Tipo_estados,
         ID_Tipo_habitaciones: element.idTipoHabitacion,
@@ -41,23 +41,25 @@ const SearchHotels =async(req, res = response) =>{
     return roomObject
 })
 
-async function getAvailableRooms(pool, flattenedRooms, desde, hasta) {
+async function getAvailableRooms(pool, flattenedRooms) {
 const test = await Promise.all(
   flattenedRooms.map(async (room) => {
     const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6  AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
+      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion ,Habitaciones.ID as ID_ROOM FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6  AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
       [room.id, desdeFecha, desdeFecha, hastaFecha, hastaFecha, desdeFecha, hastaFecha]
     );
     return resultado.map((element) => {
       if (element.Num_Reservas === 0 && element.ID_estado_habitacion !==2 ) {
         const roomObject = {
-            ID:room.id,
+          ID_Room:element.ID_ROOM,
+          ID: room.id,
           title: room.title,
-          Price:room.Price,
-          prici_people:room.prici_people,
-          person:room.person,
-          max_people:room.max_people,
-          room_image:room.room_image
+          Price: room.Price,
+          prici_people: room.prici_people,
+          person: room.person,
+          max_people: room.max_people,
+          room_image: room.room_image,
+          ID_Tipo_habitaciones: room.ID_Tipo_habitaciones
         };
         return roomObject;
       }
@@ -70,6 +72,25 @@ return test.flat().filter((item) => item !== null);
 
 const availableRooms = await getAvailableRooms(pool, queryOne, desdeFecha, hastaFecha);
 
+const groupedRooms = availableRooms.reduce((acc, room) => {
+  if (!acc.has(room.ID_Tipo_habitaciones)) {
+    acc.set(  room.ID_Tipo_habitaciones, { cantidad: 0,
+                                         rooms: [],
+                                         title: room.title,
+                                         Price:room.Price ,
+                                         person:room.person,
+                                         max_people:room.max_people,
+                                         room_image:room.room_image,
+                                         ID_Room:room.ID_Room});
+  }
+  const tipo = acc.get(room.ID_Tipo_habitaciones);
+  tipo.cantidad += 1;
+  return acc;
+}, new Map());
+
+const groupedRoomsArray = Array.from(groupedRooms, ([ID_Tipo_habitaciones, data]) => ({ ID_Tipo_habitaciones, ...data }));
+
+
 if(availableRooms.length ==0){
 return res.status(401).json({
     ok:false
@@ -77,14 +98,9 @@ return res.status(401).json({
 }
 
 
-const total =  availableRooms.lentgh
-
-console.log(total)
-
 res.status(201).json({
 ok:true,
-availableRooms,
-total
+availableRooms:groupedRoomsArray
 })
 
 }
