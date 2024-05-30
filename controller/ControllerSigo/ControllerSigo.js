@@ -5,9 +5,8 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
 
     const {token,body,id_Reserva,id_user,fecha} = req.body
 
-
     try {   
-        const response = await fetch(`https://private-anon-72afbfb6b1-siigoapi.apiary-proxy.com/v1/invoices`, {
+        const response = await fetch(`https://api.siigo.com/v1/invoices`, {
             method: "POST",
             headers: {
                 "Authorization":token,
@@ -16,8 +15,6 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
               },
              body:JSON.stringify(body)
         });
-
-        console.log(response)
 
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
@@ -28,8 +25,7 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
         }
 
         const data = await response.json();
-        console.log(data)
-
+        
 
         if(data.id){
             const roomPay = await pool.query(
@@ -117,9 +113,212 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
     }
 }
 
+const GetClientSigo =async(req,res=response) =>{
 
+    const {token,document} = req.body
+
+    try {   
+        const response = await fetch(`https://api.siigo.com/v1/customers?identification=${document}`, {
+            method: "GET",
+            headers: {
+                "Authorization":token,
+                'Content-Type': 'application/json',
+                'Partner-Id': 'officegroup'
+              },
+        });
+
+
+        if (response.status === 401) {
+            return res.status(401).json({ ok: false });
+        }
+
+        if (response.status === 400) {
+            return res.status(401).json({ ok: false });
+        }
+
+        const data = await response.json();
+
+        
+        
+        if(data.pagination.total_results ==0){
+            return res.status(401).json({ ok: false });
+        }
+
+      
+        return res.status(201).json({
+            ok:true,
+            data
+        })
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+const GetTaxesSigo =async(req,res=response) =>{
+
+  const {token} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/taxes`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
+const GetProductSigo =async(req,res=response) =>{
+
+  const {token} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/products?created_start=2024-02-06`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const {results} = await response.json();
+
+
+
+      return res.status(201).json({
+          ok:true,
+          data:results
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
+const GetPdfSigo =async(req,res=response) =>{
+
+  const {token,id} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/invoices/${id}/pdf`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
+const PostAuthSigo=async(req,res=response) =>{
+
+  const body = {
+    username: '10elementossas@gmail.com',
+    access_key: "YzFmOTA0MjktNmVmYi00YzMzLWJmOTItN2QyNDk1NGE1YzIzOmlkVioxSDIjalE="
+  };
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/auth`, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+            'Partner-Id': 'officegroup'
+          },
+        body:JSON.stringify(body)
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+      console.log(data)
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
 
 
 module.exports={
-    PostInvoinceByIdCLient
+    PostInvoinceByIdCLient,
+    GetClientSigo,
+    GetTaxesSigo,
+    GetProductSigo,
+    GetPdfSigo,
+    PostAuthSigo
 }
