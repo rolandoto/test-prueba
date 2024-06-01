@@ -11,6 +11,7 @@ router.post("/PostInvoinceByIdCLient",
     check("id_Reserva","es obligatorio").not().isEmpty(),
     check("id_user","es obligatorio").not().isEmpty(),
     check("fecha","es obligatorio").not().isEmpty(),
+    check("Retention","es obligatorio").not().isEmpty(),
     ValidarCampos
     ],PostInvoinceByIdCLient);
 

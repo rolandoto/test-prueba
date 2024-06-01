@@ -3,7 +3,7 @@ const { pool } = require('../../database/connection');
 
 const PostInvoinceByIdCLient =async(req,res=response) =>{
 
-    const {token,body,id_Reserva,id_user,fecha} = req.body
+    const {token,body,id_Reserva,id_user,fecha,Retention} = req.body
 
     try {   
         const response = await fetch(`https://api.siigo.com/v1/invoices`, {
@@ -26,7 +26,6 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
 
         const data = await response.json();
         
-
         if(data.id){
             const roomPay = await pool.query(
                 "SELECT SUM(Pago_abono.Abono) as Total_Abono FROM Pago_abono WHERE  Pago_abono.Valid_Dian=0 and Pago_abono.ID_Reserva =?",
@@ -86,19 +85,36 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
                                           ok: false,
                                         });
                                       }{
-                                        return res.status(201).json({
-                                          ok:true
-                                        })
+                                        const insertThrirdeQuery = async() =>{
+          
+                                          let dataThird = {
+                                            Retention
+                                          };
+                  
+                                          await  pool.query(
+                                            "UPDATE Pagos set ? WHERE ID_Reserva = ?",
+                                            [dataThird,id_Reserva],
+                                            (err, customer) => {
+                                              if (err) {
+                                                return res.status(401).json({
+                                                  ok: false,
+                                                });
+                                              }{
+                                                return res.status(201).json({
+                                                  ok:true
+                                                })
+                                              }
+                                            }
+                                          )
+                                        }
+                                        insertThrirdeQuery()
                                       }
                                     }
                                   )
                                 }
-          
                                 insertSecondQuery()
-          
                               }
-                          });
-                           
+                          });  
                       }
                       insertSecondQuery();
                    }
