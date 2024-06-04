@@ -11,6 +11,7 @@ const SearchHotels =async(req, res = response) =>{
   const FechaDesde = new Date(desde);
   const FechaHasta = new Date(hasta);
 
+
   if (FechaDesde >= FechaHasta) {
     return res.status(401).json({
       ok: false,
@@ -44,10 +45,12 @@ const SearchHotels =async(req, res = response) =>{
 async function getAvailableRooms(pool, flattenedRooms) {
 const test = await Promise.all(
   flattenedRooms.map(async (room) => {
-    const resultado = await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas, Reservas.id, Habitaciones.ID_estado_habitacion ,Habitaciones.ID as ID_ROOM FROM Reservas INNER JOIN Habitaciones on Habitaciones.ID = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND  Reservas.ID_Tipo_Estados_Habitaciones !=6 and Reservas.ID_Tipo_Estados_Habitaciones !=6  AND  ((Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio <= ? AND Fecha_final >= ?) OR (Fecha_inicio >= ? AND Fecha_final <= ?))  ",
+
+    const resultado= await pool.query(
+      "SELECT COUNT(*) AS Num_Reservas , Reservas.id,Habitaciones.ID as id_room FROM Reservas  INNER JOIN Habitaciones ON Habitaciones.ID  = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
       [room.id, desdeFecha, desdeFecha, hastaFecha, hastaFecha, desdeFecha, hastaFecha]
     );
+
     return resultado.map((element) => {
       if (element.Num_Reservas === 0 && element.ID_estado_habitacion !==2 ) {
         const roomObject = {
