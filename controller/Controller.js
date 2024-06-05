@@ -40,15 +40,17 @@ const LoginUsuario = async (req,res= response) => {
         // Obtener información adicional del hotel
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva FROM hotels WHERE id = ?", [hotel]); 
         
-        const dian = await pool.query("SELECT ID_DIAN,id_paymen,id_type_document FROM Dian_register WHERE id_hotel = ?", [hotel]);  
+        const dian = await pool.query("SELECT observations, ID_DIAN,id_paymen,id_type_document FROM Dian_register WHERE id_hotel = ?", [hotel]);  
 
         let ID_Dian=0
         let id_payment =0
         let id_document=0
+        let observation=""
         if(dian.length !== 0) {
            ID_Dian  = dian[0].ID_DIAN
            id_payment  = dian[0].id_paymen
            id_document= dian[0].id_type_document
+           observation= dian[0].observations
         }
 
         const token = "sdassasadsadsajhaskdjaskdjkashj"
@@ -68,6 +70,7 @@ const LoginUsuario = async (req,res= response) => {
                 dian:ID_Dian,
                 id_payment,
                 id_document,
+                observation,
                 token
             }
         })
