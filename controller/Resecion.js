@@ -571,8 +571,6 @@ const getReserva = async (req, res = response) => {
        const query = await Promise.all(promises);
        
 
-       console.log(id)
-
        return res.status(201).json({
          ok: true,
          query,
@@ -1375,33 +1373,8 @@ const insertCartReservation = async (req, res = response) => {
       const dataone = {
         Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
-    
       // Inserting data into 'Carrito_reserva' table
       await pool.query("INSERT INTO Carrito_reserva SET ?", data);
-    
-      // Retrieving the maximum ID from the 'Carrito_reserva' table
-      const queryResult = await pool.query("SELECT MAX(ID) as max FROM Carrito_reserva");
-      const result = queryResult[0]?.max;
-    
-      if (cartItem?.id_categoria == 3 || cartItem?.id_categoria == 8) {
-        const comisionMultiplier = cartItem?.id_categoria == 3 ? 1500 : 3500;
-    
-        const dataKpi = {
-          ID_user,
-          ID_hotel: ID_Hoteles,
-          Fecha_venta: Fecha_compra,
-          Nombre: cartItem?.Nombre,
-          Precio: cartItem?.Precio,
-          Cantidad: cartItem?.quantity,
-          ID_Categoria: cartItem?.id_categoria,
-          ID_product: parseInt(result.toString()),
-          Cantidad_comision: cartItem?.quantity * comisionMultiplier,
-        };
-    
-        // Inserting data into 'KPI' table
-        await pool.query("INSERT INTO KPI SET ?", dataKpi);
-      }
-    
       // Updating the 'Productos' table
       await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
     }
