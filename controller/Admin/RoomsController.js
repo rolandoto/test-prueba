@@ -387,39 +387,56 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
             let dataPay = {
                 pago_valid:0
             }
-
-                pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
-                    if(err){
-                        return res.status(401).json({
-                            ok:false
-                        })
-                    }else{
-                        const insertSecondQuery = async() => {
-                            if(valid_buy ==1){
-    
-                                await  pool.query('UPDATE Pagos set ? WHERE ID_Reserva = ?', [dataPay,ID_reservation] )
-                               await pool.query('INSERT INTO Pagos set ?', pay, (err, customer) => {
-                                    if (err) {
-                                        return res.status(401).json({
-                                            ok: false,
-                                            msg: "error al insertar datos"
-                                        });
-                                    } else {
-                                        return res.status(201).json({
-                                            ok: true
-                                        });
-                                    }
-                                });
-                            }else{
-                                return res.status(201).json({
-                                    ok:true
-                                })
-                            }   
-                         }
-         
-                         insertSecondQuery();
-                    }
-                })
+            pool.query('UPDATE TarifasReservation set ? WHERE ID = ?', [data,id], (err, customer) => {
+                if(err){
+                    return res.status(401).json({
+                        ok:false
+                    })
+                }else{
+                    const insertSecondQuery = async() => {
+                        if(valid_buy ==1){
+                            
+                            await pool.query('UPDATE Pagos set ? WHERE ID_Reserva = ?',  [dataPay,ID_reservation], (err, customer) => {
+                                if (err) {
+                                    return res.status(401).json({
+                                        ok: false,
+                                        msg: "error al insertar datos"
+                                    });
+                                } else {
+                                    const insertSecondQuery = async() => {
+                                        if(valid_buy ==1){
+                                            
+                                            await pool.query('INSERT INTO Pagos set ?', pay, (err, customer) => {
+                                                if (err) {
+                                                    return res.status(401).json({
+                                                        ok: false,
+                                                        msg: "error al insertar datos"
+                                                    });
+                                                } else {
+                                                    return res.status(201).json({
+                                                        ok: true
+                                                    });
+                                                }
+                                            });
+                                        }else{
+                                            return res.status(201).json({
+                                                ok:true
+                                            })
+                                        }   
+                                        }
+                        
+                                        insertSecondQuery();
+                                }
+                            });
+                        }else{
+                            return res.status(201).json({
+                                ok:true
+                            })
+                        }   
+                        }
+                        insertSecondQuery();
+                }
+            })
             
     } catch (error) {
            return  res.status(401).json({
