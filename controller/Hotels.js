@@ -1,13 +1,29 @@
 const {response, json, query} = require('express');
 const { pool } = require('../database/connection');
 
+function calcularNoches(desde, hasta) {
+  const FechaDesde = new Date(desde);
+  const FechaHasta = new Date(hasta);
+  // Asegúrate de que ambas fechas son válidas
+  if (isNaN(FechaDesde) || isNaN(FechaHasta)) {
+    throw new Error('Fechas inválidas');
+  }
+  // Calcula la diferencia en milisegundos
+  const diferenciaTiempo = FechaHasta - FechaDesde;
+  // Convierte la diferencia de milisegundos a días
+  const diferenciaDias = diferenciaTiempo / (1000 * 60 * 60 * 24);
+  // Calcula las noches, que es la diferencia en días menos 1
+  const noches = Math.ceil(diferenciaDias);
+
+  return noches;
+}
+
 const SearchHotels =async(req, res = response) =>{
 
-  const {id,desde,hasta} = req.body
-
+  const {id,desde,hasta,counPeople} = req.body
   const desdeFecha  = `${desde} 15:00:00`
   const hastaFecha  = `${hasta} 13:00:00`
-
+  const nights = calcularNoches(desde, hasta);
   const FechaDesde = new Date(desde);
   const FechaHasta = new Date(hasta);
 
@@ -33,11 +49,12 @@ const SearchHotels =async(req, res = response) =>{
         Time_ingreso: element.Time_ingreso,
         Time_salida: element.Time_salida,
         Fecha: element.Fecha,
-        Price:element.precio,
+        Price:element.precio *nights,
         prici_people:element.precio_persona,
         person:element.persona,
         max_people:element.max_persona,
-        room_image:element.url
+        room_image:element.url,
+        nights:nights
       };
     return roomObject
 })
@@ -53,19 +70,22 @@ const test = await Promise.all(
 
     return resultado.map((element) => {
       if (element.Num_Reservas === 0 && element.ID_estado_habitacion !==2 ) {
-        const roomObject = {
-          ID_Room:element.ID_ROOM,
-          ID: room.id,
-          title: room.title,
-          Price: room.Price,
-          prici_people: room.prici_people,
-          person: room.person,
-          max_people: room.max_people,
-          room_image: room.room_image,
-          ID_Tipo_habitaciones: room.ID_Tipo_habitaciones
-        };
-        return roomObject;
-      }
+        if(room.person == counPeople){
+            const roomObject = {
+              ID_Room:element.id_room,
+              ID: room.id,
+              title: room.title,
+              Price: room.Price,
+              prici_people: room.prici_people,
+              person: room.person,
+              max_people: room.max_people,
+              room_image: room.room_image,
+              ID_Tipo_habitaciones: room.ID_Tipo_habitaciones,
+              nights:room.nights,
+            };
+            return roomObject;
+          }
+        }
       return null;
     });
   })
@@ -78,16 +98,19 @@ const availableRooms = await getAvailableRooms(pool, queryOne, desdeFecha, hasta
 const groupedRooms = availableRooms.reduce((acc, room) => {
   if (!acc.has(room.ID_Tipo_habitaciones)) {
     acc.set(  room.ID_Tipo_habitaciones, { cantidad: 0,
-                                         rooms: [],
-                                         title: room.title,
-                                         Price:room.Price ,
-                                         person:room.person,
-                                         max_people:room.max_people,
-                                         room_image:room.room_image,
-                                         ID_Room:room.ID_Room});
+                                        ID:room.ID,
+                                        Room:[],
+                                        title: room.title,
+                                        Price:room.Price ,
+                                        person:room.person,
+                                        max_people:room.max_people,
+                                        room_image:room.room_image,
+                                        ID_Room:room.ID_Room,
+                                        nights:room.nights});
   }
   const tipo = acc.get(room.ID_Tipo_habitaciones);
   tipo.cantidad += 1;
+  tipo.Room.push(room.ID_Room);
   return acc;
 }, new Map());
 

@@ -8,6 +8,7 @@ router.post("/SeacrhHotelsById", [
     check("id", "es obligatorio").not().isEmpty(),
     check("desde", "es obligatorio").isDate(),
     check("hasta", "es obligatorio").isDate(),
+    check("counPeople", "es obligatorio").not().isEmpty(),
     ValidarCampos
   ],SearchHotels)
 
