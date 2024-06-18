@@ -50,11 +50,14 @@ const SearchHotels =async(req, res = response) =>{
         Time_salida: element.Time_salida,
         Fecha: element.Fecha,
         Price:element.precio *nights,
+        Price_nigth:element.precio,
         prici_people:element.precio_persona,
         person:element.persona,
         max_people:element.max_persona,
         room_image:element.url,
-        nights:nights
+        nights:nights,
+        start:desde,
+        end:hasta
       };
     return roomObject
 })
@@ -76,12 +79,15 @@ const test = await Promise.all(
               ID: room.id,
               title: room.title,
               Price: room.Price,
+              Price_nigth:room.Price_nigth,
               prici_people: room.prici_people,
               person: room.person,
               max_people: room.max_people,
               room_image: room.room_image,
               ID_Tipo_habitaciones: room.ID_Tipo_habitaciones,
               nights:room.nights,
+              start:room.start,
+              end:room.end
             };
             return roomObject;
           }
@@ -106,7 +112,11 @@ const groupedRooms = availableRooms.reduce((acc, room) => {
                                         max_people:room.max_people,
                                         room_image:room.room_image,
                                         ID_Room:room.ID_Room,
-                                        nights:room.nights});
+                                        nights:room.nights,
+                                        start:room.start,
+                                        end:room.end  ,
+                                        Price_nigth:room.Price_nigth
+                                      });
   }
   const tipo = acc.get(room.ID_Tipo_habitaciones);
   tipo.cantidad += 1;
