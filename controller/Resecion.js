@@ -1342,52 +1342,52 @@ const uploadImage = async (req, res = response) => {
   }
 };
 
-const insertCartReservation = async (req, res = response) => {
-  const {
-    Cart,
-    ID_Reserva,
-    ID_Hoteles,
-    Fecha_compra,
-    Nombre_recepcion,
-    ID_user,
-  } = req.body;
+  const insertCartReservation = async (req, res = response) => {
+    const {
+      Cart,
+      ID_Reserva,
+      ID_Hoteles,
+      Fecha_compra,
+      Nombre_recepcion,
+      ID_user,
+    } = req.body;
 
-  try {
-    for (const cartItem of Cart) {
-      const data = {
-        ID_Reserva,
-        Nombre: cartItem?.Nombre,
-        Precio: cartItem?.Precio,
-        Cantidad: cartItem?.quantity,
-        ID_Categoria: cartItem?.id_categoria,
-        ID_product: cartItem?.ID,
-        ID_Hoteles,
-        Fecha_compra,
-        Forma_pago: 1,
-        Nombre_recepcion,
-        img_product: cartItem?.img,
-      };
-    
-      const id = cartItem.ID;
-    
-      const dataone = {
-        Cantidad: cartItem?.Cantidad - cartItem?.quantity,
-      };
-      // Inserting data into 'Carrito_reserva' table
-      await pool.query("INSERT INTO Carrito_reserva SET ?", data);
-      // Updating the 'Productos' table
-      await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
+    try {
+      for (const cartItem of Cart) {
+        const data = {
+          ID_Reserva,
+          Nombre: cartItem?.Nombre,
+          Precio: cartItem?.Precio,
+          Cantidad: cartItem?.quantity,
+          ID_Categoria: cartItem?.id_categoria,
+          ID_product: cartItem?.ID,
+          ID_Hoteles,
+          Fecha_compra,
+          Forma_pago: 1,
+          Nombre_recepcion,
+          img_product: cartItem?.img,
+        };
+      
+        const id = cartItem.ID;
+      
+        const dataone = {
+          Cantidad: cartItem?.Cantidad - cartItem?.quantity,
+        };
+        // Inserting data into 'Carrito_reserva' table
+        await pool.query("INSERT INTO Carrito_reserva SET ?", data);
+        // Updating the 'Productos' table
+        await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
+      }
+      
+      return res.status(201).json({
+        ok: true,
+      });
+    } catch (error) {
+      return res.status(401).json({
+        ok: false,
+      });
     }
-    
-    return res.status(201).json({
-      ok: true,
-    });
-  } catch (error) {
-    return res.status(401).json({
-      ok: false,
-    });
-  }
-};
+  };
 
 const insertCartStore = async (req, res = response) => {
   const {
@@ -1429,8 +1429,6 @@ const insertCartStore = async (req, res = response) => {
       };
 
       await pool.query("INSERT INTO carrito_tienda SET ?", data);
-
-    
       await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
     }
 
@@ -4382,11 +4380,10 @@ const GetMetricasInformeMonthHotel =async(req, res = response) => {
     var numero_mes =  fechaOne.getUTCMonth() + 1;
 
     const queryOne = await pool.query(
-      "SELECT web_checking.ID_Reserva,  web_checking.ID_Tipo_documento, SUM(Carrito_reserva.Precio) as total_mes,  Carrito_reserva.Precio as total,Tipo_Forma_pago.ID as Forma_pago, Carrito_reserva.ID_Categoria as categoria,  Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Carrito_reserva.pago_deuda =1 and  month( Carrito_reserva.Fecha_compra)=? and YEAR( Carrito_reserva.Fecha_compra) =?  and Carrito_reserva.ID_Hoteles  =? GROUP by  Carrito_reserva.Fecha_compra ASC;",
+      "SELECT web_checking.ID_Reserva,  web_checking.ID_Tipo_documento, SUM(Carrito_reserva.Precio) as total_mes,  Carrito_reserva.Precio as total,Tipo_Forma_pago.ID as Forma_pago, Carrito_reserva.ID_Categoria as categoria,  Habitaciones.Numero,Pagos.Valor_habitacion, Tipo_Forma_pago.Nombre as Tipo_pago, web_checking.Nombre AS Nombre_Person, web_checking.Apellido, web_checking.Num_documento, Reservas.ID  as ID_reserva,Carrito_reserva.Nombre as Nombre_producto,Carrito_reserva.ID_Categoria,Carrito_reserva.Cantidad,Carrito_reserva.Precio,Carrito_reserva.Fecha_compra ,Tipo_categoria.Nombre as nombre_categoria, Pagos.Valor_habitacion FROM Carrito_reserva INNER JOIN Tipo_categoria on Carrito_reserva.ID_Categoria = Tipo_categoria.ID INNER join Reservas on Carrito_reserva.ID_Reserva = Reservas.ID  INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER join web_checking on Reservas.ID = web_checking.ID_Reserva INNER JOIN Tipo_Forma_pago on Carrito_reserva.Forma_pago = Tipo_Forma_pago.ID INNER join Habitaciones on Reservas.ID_Habitaciones = Habitaciones.ID WHERE Pagos.pago_valid=1 and Carrito_reserva.pago_deuda =1 and  month( Carrito_reserva.Fecha_compra)=? and YEAR( Carrito_reserva.Fecha_compra) =?  and Carrito_reserva.ID_Hoteles  =? GROUP by  Carrito_reserva.Fecha_compra  ASC;",
       [numero_mes,numero_year, id]
     );
    
-
     const queryTwo = await pool.query(
       "SELECT SUM(carrito_tienda.Precio) as total,Tipo_Forma_pago.ID as Forma_pago, carrito_tienda.ID_Categoria as categoria, carrito_tienda.Nombre_persona, carrito_tienda.Num_documento, Tipo_Forma_pago.Nombre as Tipo_pago,carrito_tienda.ID_Reserva,carrito_tienda.Nombre, carrito_tienda.Precio,carrito_tienda.Cantidad,carrito_tienda.ID_hotel, carrito_tienda.Fecha_compra FROM carrito_tienda INNER join Tipo_Forma_pago on carrito_tienda.Forma_pago = Tipo_Forma_pago.ID WHERE month( carrito_tienda.Fecha_compra)=? and YEAR( carrito_tienda.Fecha_compra) = ? AND ID_hotel=? GROUP BY carrito_tienda.Fecha_compra ASC;",
       [numero_mes,numero_year, id]
