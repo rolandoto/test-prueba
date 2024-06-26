@@ -247,6 +247,7 @@ const postListProductAdminById  =async( req, res=response) => {
         ID_Product:id,
         Cantidad_total:Cantidad,
         Nombre_Recepcion
+        
     }
 
     try {
@@ -301,7 +302,6 @@ const postListProductAdminById  =async( req, res=response) => {
             ok:false
         })
     }
-
 }
 
 
@@ -348,6 +348,95 @@ const getSubProduct =async(req, res = response) => {
     }
 }
 
+const getproduct =async(req, res = response) => {
+    
+    const  {id} =req.params
+    try {   
+
+        const query=  await pool.query("SELECT Productos.ID, Tipo_categoria.Nombre as categoria, Productos.ID_Hoteles,Productos.Nombre, Productos.Cantidad, Productos.Precio FROM Productos INNER JOIN Tipo_categoria on Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID =?",[id])
+
+        if(query.length==0){
+            res.status(401).json({
+                ok:true
+            })
+        }
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+      
+    } catch (error) {
+      
+            res.status(401).json({
+                ok:false
+            })
+      
+    }
+}
+
+
+const updateProduct =async(req, res = response) =>{
+    
+  
+    const  {ID,Cantidad,ID_user,Price} = req.body
+    
+    const dateOne = {
+        ID_Product:ID,
+        Cantidad_total:Cantidad,
+        ID_user:ID_user,
+        Price:Price
+    }
+
+    const data = {
+        Precio:Price,
+        Cantidad:Cantidad
+    }
+
+    try {
+
+        if(Cantidad <=0){
+            return res.status(401).json({
+                ok:false
+            })
+        }
+
+        await pool.query('INSERT INTO history_product_update set ?', dateOne, (err, customer) => {
+            if(err){
+                return res.status(401).json({
+                     ok:false,
+                     msg:"error al insertar datos"
+                })
+             }else{
+                const insertSecondQuery = async() => {
+                   
+                    pool.query('UPDATE Productos set ? WHERE ID = ?', [data,ID], (err, customer) => {
+                        if (err) {
+                            return res.status(401).json({
+                                ok: false,
+                                msg: "error al insertar datos"
+                            });
+                        } else {
+                            return res.status(201).json({
+                                ok: true
+                            });
+                        }
+                    });
+                }
+                insertSecondQuery();
+             }
+          })
+
+        res.status(201).json({
+            ok:true
+        })
+        
+    } catch (error) {
+        res.status(401).json({
+            ok:false
+        })
+    }
+}
 
 const postUpdteTarifasReservation =async(req, res = response) =>{
 
@@ -442,6 +531,25 @@ const postUpdteTarifasReservation =async(req, res = response) =>{
            return  res.status(401).json({
             ok:false
            })
+    }
+}
+
+const getProdcutUpdte =async(req, res = response) =>{
+
+    const {id} = req.params
+
+    try {
+
+        const query = await pool.query("SELECT users.name,Productos.Nombre, history_product_update.Price,history_product_update.Cantidad_total , Tipo_categoria.Nombre as categoria  FROM `history_product_update` INNER JOIN Productos on Productos.ID = history_product_update.ID_Product INNER JOIN users on users.id = history_product_update.ID_user INNER JOIN Tipo_categoria on  Tipo_categoria.ID  = Productos.ID_Tipo_categoria   WHERE history_product_update.ID_Product = ?;",[id])
+
+        res.status(201).json({
+            ok:true,
+            query
+        })
+    } catch (error) {
+            res.status(401).json({
+                ok:false
+            })
     }
 }
 
@@ -548,5 +656,8 @@ module.exports ={InsertIntoRoomsAdmin,
                 postUpdteTarifasReservation,
                 getTarifasReservation,
                 postInsetTarifaReservation,
-                getHistialReservation
+                getHistialReservation,
+                getproduct,
+                updateProduct,
+                getProdcutUpdte
 }   
