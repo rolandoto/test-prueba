@@ -19,6 +19,8 @@ const GetRooms = async (req, res = response) => {
           "SELECT OcasioTarifa, HoraAdicional ,Fecha_today, rooms.id as idTipoHabitacion,rooms.name as nombre, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() AND RoomOcasionales.valid =1 INNER join rooms ON rooms.id = Habitaciones.ID_Tipo_habitaciones WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id ORDER BY Habitaciones.ID DESC;",
           [id]
         );
+
+
       const queryOne =   query.map((element) => {
           const roomObject = {
             title: `${element.title} ${element.nombre}`,
@@ -39,6 +41,8 @@ const GetRooms = async (req, res = response) => {
 
     const flattenedRooms = queryOne
       .sort((a, b) => a.Numero - b.Numero);
+
+    
 
     if (flattenedRooms.length === 0) {
       return res.status(401).json({
@@ -489,7 +493,7 @@ const getReserva = async (req, res = response) => {
   try {
     if(type){
       const response = await pool.query(
-        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio) BETWEEN 5 AND 6;  `,
+        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 6;  `,
          [id]
        );
        const promises = [];
@@ -1259,6 +1263,8 @@ const updateDetailPagos = async (req, res = response) => {
       Fecha_pago: data.Fecha_pago,
     };
 
+    
+
     await pool.query("INSERT INTO  Pago_abono  set ?", dataOne);
 
     await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [dataTwo, id]);
@@ -1267,6 +1273,7 @@ const updateDetailPagos = async (req, res = response) => {
       ok: true,
     });
   } catch (error) {
+    console.log(error)
     res.status(401).json({
       ok: false,
     });
@@ -2468,12 +2475,14 @@ const handInsertPayAbono = async (req, res = response) => {
     Nombre_recepcion,
   };
 
+
   try {
     if (!Tipo_forma_pago) {
       return res.status(401).json({
         ok: false,
       });
     }
+
 
     const ByIdReserva = await pool.query("SELECT * FROM `Pagos` WHERE ID = ?", [
       ID_pago,
@@ -2491,6 +2500,7 @@ const handInsertPayAbono = async (req, res = response) => {
 
     await pool.query("INSERT INTO Pago_abono SET ?", data, (err, customer) => {
       if (err) {
+        console.log(err)
         return res.status(401).json({
           ok: false,
           msg: "error al insertar datos",
