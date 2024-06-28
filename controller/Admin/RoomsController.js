@@ -220,7 +220,7 @@ const GetListProductAdminById = async( req, res=response ) =>{
 
     try {
 
-        const  query = await  pool.query("SELECT cantidad_product.Nombre_Recepcion,cantidad_product.Cantidad_total,  Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria   INNER JOIN cantidad_product on cantidad_product.ID_Product = Productos.ID  WHERE Productos.ID = ?",[id])
+        const  query = await  pool.query("SELECT cantidad_product.Fecha,  cantidad_product.Nombre_Recepcion,cantidad_product.Cantidad_total,  Productos.ID, Productos.Nombre, Productos.Cantidad, Productos.Precio, Tipo_categoria.Nombre as 'Nombre_categoria',Tipo_categoria.ID AS id_categoria FROM Productos INNER JOIN Tipo_categoria ON Tipo_categoria.ID = Productos.ID_Tipo_categoria   INNER JOIN cantidad_product on cantidad_product.ID_Product = Productos.ID  WHERE Productos.ID = ?",[id])
 
         res.status(201).json({
             ok:true,
@@ -241,13 +241,13 @@ const postListProductAdminById  =async( req, res=response) => {
 
     const {id} = req.params
 
-    const  {Cantidad,Nombre_Recepcion} = req.body
+    const  {Cantidad,Nombre_Recepcion,Fecha} = req.body
     
     const dateOne = {
         ID_Product:id,
         Cantidad_total:Cantidad,
-        Nombre_Recepcion
-        
+        Nombre_Recepcion,
+        Fecha
     }
 
     try {
@@ -309,10 +309,10 @@ const getStoreAdmin =async(req,res= response) =>{
 
     try {
 
-            return res.status(201).json({
-                ok:false,
-                msg:"entro"
-            })
+        return res.status(201).json({
+            ok:false,
+            msg:"entro"
+        })
         
     } catch (error) {
 
@@ -353,7 +353,7 @@ const getproduct =async(req, res = response) => {
     const  {id} =req.params
     try {   
 
-        const query=  await pool.query("SELECT Productos.ID, Tipo_categoria.Nombre as categoria, Productos.ID_Hoteles,Productos.Nombre, Productos.Cantidad, Productos.Precio FROM Productos INNER JOIN Tipo_categoria on Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID =?",[id])
+        const query=  await pool.query("SELECT  Productos.ID, Tipo_categoria.Nombre as categoria, Productos.ID_Hoteles,Productos.Nombre, Productos.Cantidad, Productos.Precio FROM Productos INNER JOIN Tipo_categoria on Tipo_categoria.ID = Productos.ID_Tipo_categoria WHERE Productos.ID =?",[id])
 
         if(query.length==0){
             res.status(401).json({
@@ -379,7 +379,7 @@ const getproduct =async(req, res = response) => {
 const updateProduct =async(req, res = response) =>{
     
   
-    const  {ID,Cantidad,ID_user,Price} = req.body
+    const  {ID,Cantidad,ID_user,Price,Fecha} = req.body
     
   
     try {
@@ -405,7 +405,8 @@ const updateProduct =async(req, res = response) =>{
             Cantidad_total:Cantidad,
             ID_user:ID_user,
             Price:Price,
-            valid:totalValid
+            valid:totalValid,
+            Fecha
         }
     
         const data = {
@@ -553,7 +554,7 @@ const getProdcutUpdte =async(req, res = response) =>{
 
     try {
 
-        const query = await pool.query("SELECT history_product_update.valid,  users.name,Productos.Nombre, history_product_update.Price,history_product_update.Cantidad_total , Tipo_categoria.Nombre as categoria  FROM `history_product_update` INNER JOIN Productos on Productos.ID = history_product_update.ID_Product INNER JOIN users on users.id = history_product_update.ID_user INNER JOIN Tipo_categoria on  Tipo_categoria.ID  = Productos.ID_Tipo_categoria   WHERE history_product_update.ID_Product = ?;",[id])
+        const query = await pool.query("SELECT history_product_update.Fecha ,  history_product_update.valid,  users.name,Productos.Nombre, history_product_update.Price,history_product_update.Cantidad_total , Tipo_categoria.Nombre as categoria  FROM `history_product_update` INNER JOIN Productos on Productos.ID = history_product_update.ID_Product INNER JOIN users on users.id = history_product_update.ID_user INNER JOIN Tipo_categoria on  Tipo_categoria.ID  = Productos.ID_Tipo_categoria   WHERE history_product_update.ID_Product = ?;",[id])
 
         res.status(201).json({
             ok:true,
