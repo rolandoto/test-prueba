@@ -36,12 +36,15 @@ const SearchHotels =async(req, res = response) =>{
   }
 
     const query = await pool.query(
-      "SELECT rooms.id as idTipoHabitacion, rooms.name as nombre,rooms.price as precio,rooms.price_people as precio_persona,rooms.people as persona,rooms.max_people as max_persona, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha,rooms_image.url FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() INNER JOIN rooms_image on  rooms_image.id_rooms = Habitaciones.ID_Tipo_habitaciones INNER  JOIN  rooms on  rooms.id  = Habitaciones.ID_Tipo_habitaciones  WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id;",
+      "SELECT rooms.id as idTipoHabitacion,rooms.description, rooms.name as nombre,rooms.price as precio,rooms.price_people as precio_persona,rooms.people as persona,rooms.max_people as max_persona, Habitaciones.ID as id, Habitaciones.ID_Tipo_habitaciones, Habitaciones.ID_Tipo_estados, Habitaciones.Numero as title, ID_estado_habitacion, MAX(RoomOcasionales.Time_ingreso) as Time_ingreso, MAX(RoomOcasionales.Time_salida) as Time_salida, RoomOcasionales.Fecha,rooms_image.url FROM Habitaciones LEFT JOIN RoomOcasionales ON RoomOcasionales.ID_habitacion = Habitaciones.ID AND RoomOcasionales.Fecha = CURDATE() INNER JOIN rooms_image on  rooms_image.id_rooms = Habitaciones.ID_Tipo_habitaciones INNER  JOIN  rooms on  rooms.id  = Habitaciones.ID_Tipo_habitaciones  WHERE Habitaciones.ID_Hotel=? GROUP BY Habitaciones.id;",
       [id]
     )
+
     const queryOne =   query.map((element) => {
+  
       const roomObject = {
         title: `${element.nombre}`,
+        description:  element.description,
         id: element.id,
         ID_Tipo_estados: element.ID_Tipo_estados,
         ID_Tipo_habitaciones: element.idTipoHabitacion,
@@ -65,10 +68,10 @@ const SearchHotels =async(req, res = response) =>{
 async function getAvailableRooms(pool, flattenedRooms) {
 const test = await Promise.all(
   flattenedRooms.map(async (room) => {
-
+  
     const resultado= await pool.query(
-      "SELECT COUNT(*) AS Num_Reservas , Reservas.id,Habitaciones.ID as id_room FROM Reservas  INNER JOIN Habitaciones ON Habitaciones.ID  = Reservas.ID_Habitaciones WHERE ID_Habitaciones = ? AND Reservas.ID_Tipo_Estados_Habitaciones !=6 AND Reservas.ID_Tipo_Estados_Habitaciones !=7 AND ((Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio <= ? AND Fecha_final >=  ?) OR (Fecha_inicio >= ? AND Fecha_final <=  ?))",
-      [room.id, desdeFecha, desdeFecha, hastaFecha, hastaFecha, desdeFecha, hastaFecha]
+      "SELECT  (SELECT COUNT(*)  FROM Reservas  WHERE   Reservas.ID_Habitaciones = ?  AND Reservas.ID_Tipo_Estados_Habitaciones != 6  AND Reservas.ID_Tipo_Estados_Habitaciones != 7   AND ( (Fecha_inicio <= ? AND Fecha_final >= ?)  OR   (Fecha_inicio <= ? AND Fecha_final >= ?)    OR   (Fecha_inicio >= ? AND Fecha_final <= ?) ) ) AS Num_Reservas, Habitaciones.ID AS id_room FROM  Habitaciones WHERE  Habitaciones.ID = ?;",
+      [room.id, desdeFecha, desdeFecha, hastaFecha, hastaFecha, desdeFecha, hastaFecha,room.id]
     );
 
     return resultado.map((element) => {
@@ -78,6 +81,7 @@ const test = await Promise.all(
               ID_Room:element.id_room,
               ID: room.id,
               title: room.title,
+              description: room.description,
               Price: room.Price,
               Price_nigth:room.Price_nigth,
               prici_people: room.prici_people,
@@ -106,7 +110,9 @@ const groupedRooms = availableRooms.reduce((acc, room) => {
     acc.set(  room.ID_Tipo_habitaciones, { cantidad: 0,
                                         ID:room.ID,
                                         Room:[],
+                                        idTipoHabitacion:room.ID_Tipo_habitaciones,
                                         title: room.title,
+                                        description:room.description,
                                         Price:room.Price ,
                                         person:room.person,
                                         max_people:room.max_people,
@@ -125,8 +131,8 @@ const groupedRooms = availableRooms.reduce((acc, room) => {
 }, new Map());
 
 const groupedRoomsArray = Array.from(groupedRooms, ([ID_Tipo_habitaciones, data]) => ({ ID_Tipo_habitaciones, ...data }));
-
-
+groupedRoomsArray.sort(function(a, b){return a.Price - b.Price});
+console.log(groupedRoomsArray)
 if(availableRooms.length ==0){
 return res.status(401).json({
     ok:false
