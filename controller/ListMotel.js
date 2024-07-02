@@ -5,20 +5,29 @@ const moment = require("moment")
 const Product = require('../model/Product')
 
 const LisMotel = async(req,res=response) =>{
-    
+
+    try {  
     const link = await  pool.query('SELECT hotels.id as id_hotel , hotels.name as nombre, hotels.segurohotelero as segurohotelero, hotels.valorseguro as valorseguro FROM hotels;')
 
-    res.status(201).json({
+    return res.status(201).json({
         ok:true,
        query:link
     })
+        
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
 }
 
-const listMotelisid = async(req,res)=>{
+const listMotelisid = async(req,res=response)=>{
 
     const {id} = req.params
 
-    const link = await pool.query('SELECT * FROM hotels where id=?',[id])
+    try { 
+    
+        const link = await pool.query('SELECT * FROM hotels where id=?',[id])
 
     APP_centro_documental
 
@@ -32,6 +41,14 @@ const listMotelisid = async(req,res)=>{
             }
         }
     })
+        
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+
+   
 }
 
 
