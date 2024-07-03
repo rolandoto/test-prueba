@@ -257,8 +257,6 @@ const validateAvaible = async (req, res = response) => {
         id_disponible = id_disponible;
       }
 
-
-
       const data = {
         ID_Usuarios: 1,
         ID_Habitaciones: parseInt(id_disponible.toString()),
@@ -277,8 +275,6 @@ const validateAvaible = async (req, res = response) => {
       };
 
       const to = await pool.query("INSERT INTO Reservas set ?", data);
-
-
 
       const queryResult = await pool.query(
         "SELECT MAX(ID) as max FROM Reservas"
@@ -382,16 +378,6 @@ const validateAvaible = async (req, res = response) => {
         );
       }
 
-      const queryOne = await pool.query(
-        "SELECT web_checking.Nombre ,web_checking.Apellido, web_checking.Celular, Prefijo_number.codigo ,web_checking.Num_documento,web_checking.ID_Reserva FROM web_checking INNER JOIN Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID WHERE web_checking.ID_Reserva =?",
-        [parseInt(result.toString())]
-      );
-
-      const queryAddres = await pool.query(
-        "SELECT dir , adress FROM `hotels` WHERE id =  ?",
-        [id_hotel]
-      );
-
       return res.status(201).json({
         ok: true,
         codigo: parseInt(result.toString())
@@ -493,7 +479,7 @@ const getReserva = async (req, res = response) => {
   try {
     if(type){
       const response = await pool.query(
-        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 6;  `,
+        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 7;  `,
          [id]
        );
        const promises = [];
