@@ -136,9 +136,7 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         console.log(getValidTransation.data.status)
 
-        
-
-        if(getValidTransation.data.status =="PENDING"){
+        if(getValidTransation.data.status =="APROVE"){
             
             var n1 = 20000;
             var n2 = 10000;
@@ -256,7 +254,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 ok:true
             })
     
-        }else if(getValidTransation.data.status =="APROVE"){
+        }else if(getValidTransation.data.status =="PENDING"){
             var n1 = 20000;
             var n2 = 10000;
             var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
@@ -367,6 +365,7 @@ const RegisterCardWompi =async(req,res=response) =>{
         
           }
 
+          console.log("se creo la resera")
             return res.status(201).json({
                 ok:true
             })

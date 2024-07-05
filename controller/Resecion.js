@@ -1249,8 +1249,6 @@ const updateDetailPagos = async (req, res = response) => {
       Fecha_pago: data.Fecha_pago,
     };
 
-    
-
     await pool.query("INSERT INTO  Pago_abono  set ?", dataOne);
 
     await pool.query("UPDATE Pagos set ? WHERE ID_Reserva = ?", [dataTwo, id]);
