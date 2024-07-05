@@ -136,7 +136,7 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         console.log(getValidTransation.data.status)
 
-
+        
 
         if(getValidTransation.data.status =="PENDING"){
             
@@ -256,7 +256,122 @@ const RegisterCardWompi =async(req,res=response) =>{
                 ok:true
             })
     
-        }else{
+        }else if(getValidTransation.data.status =="APROVE"){
+            var n1 = 20000;
+            var n2 = 10000;
+            var numero = Math.floor(Math.random() * (n1 - (n2 - 1))) + n2;
+        
+            for (const room of cart) {
+              const data = {
+                ID_Usuarios: 1,
+                ID_Habitaciones: room.roomByID,
+                ID_Talla_mascota: 3,
+                Codigo_reserva: numero,
+                Adultos: 1,
+                Ninos: 1,
+                Infantes: 0,
+                Fecha_inicio: `${room.start} 15:00:00`,
+                Fecha_final:  `${room.end} 13:00:00`,
+                Noches: room.nights,
+                Descuento: 0,
+                ID_Canal: 3,
+                ID_Tipo_Estados_Habitaciones: 0,
+                Observacion: "Creado por la pagina web ",
+              };
+        
+              await pool.query("INSERT INTO Reservas set ?", data);
+           
+              const queryResult = await pool.query(
+                "SELECT MAX(ID) as max FROM Reservas"
+              );
+              const result = queryResult[0].max;
+        
+              const date = {
+                ID_Reserva: parseInt(result.toString()),
+                ID_Tipo_documento:1,
+                Num_documento: "000",
+                Nombre: name,
+                Apellido: apellido,
+                Fecha_nacimiento: room.start,
+                Celular: "3000",
+                Correo: email,
+                Ciudad: city,
+                ID_Prefijo: country,
+                Tipo_persona: "persona",
+                Firma: 0,
+                Iva: 2,
+                ID_facturacion:""
+              };
+        
+               pool.query(
+                "INSERT INTO  web_checking set ?",
+                date,
+                (q_err, q_res) => {
+                  if (q_err)
+                    return res.status(401).json({
+                      ok: false,
+                    });
+                }
+              );
+        
+              const huep = {
+                ID_Reserva: parseInt(result.toString()),
+                ID_Tipo_documento:1,
+                ID_Tipo_genero: 1,
+                Num_documento:"000",
+                Nombre: name,
+                Apellido:apellido,
+                Fecha_nacimiento:room.start,
+                Celular:"33123",
+                Correo: email,
+                Ciudad:city,
+                ID_Prefijo: country,
+              };
+              pool.query(
+                "INSERT INTO  Huespedes  set ?",
+                huep,
+                (q_err, q_res) => {
+                  if (q_err)
+                    return res.status(401).json({
+                      ok: false,
+                      msg: "error de web huespedes",
+                    });
+                }
+              );
+        
+        
+              const pay = {
+                ID_Reserva: parseInt(result.toString()),
+                ID_Motivo: 1,
+                ID_Tipo_Forma_pago:4,
+                Valor: room.Price,
+                Abono:  room.Price,
+                Valor_habitacion: room.Price,
+                valor_dia_habitacion: room.Price_nigth,
+                pago_valid: 1,
+              };
+        
+             pool.query("INSERT INTO  Pagos  set ?", pay);
+        
+             const dataPayAbono = {
+              ID_Reserva: parseInt(result.toString()),
+              Abono: room.Price,
+              Fecha_pago: fecha,
+              Tipo_forma_pago: 4,
+              Nombre_recepcion: "pagina web",
+            };
+           pool.query(
+              "INSERT INTO  Pago_abono  set ?",
+              dataPayAbono
+            );
+        
+          }
+
+            return res.status(201).json({
+                ok:true
+            })
+    
+        } else{
            
             return res.status(401).json({
                 ok:false
