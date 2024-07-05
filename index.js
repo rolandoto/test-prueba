@@ -6,6 +6,7 @@ const ResecionRoute = require("./Routes/Resecion.route");
 const Hotels = require("./Routes/Hotels")
 const RouterCloudbeds = require("./Routes/RouteCloudbeds")
 const RouterSigo = require("./Routes/RouteSigo")
+const RouterWompi = require("./Routes/RouteWompi")
 const cors = require("cors");
 require("dotenv").config();
 var path = require('path')
@@ -29,6 +30,7 @@ app.use("/api/admin", AdminRoute.router);
 app.use("/api/resecion", ResecionRoute.router);
 app.use("/api/hotels",Hotels.router)
 app.use("/api/hotels/cloubeds",RouterCloudbeds.router)
+app.use("/api/hotels/wompi",RouterWompi.router)
 app.use("/api/hotels/sigo",RouterSigo.router)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 

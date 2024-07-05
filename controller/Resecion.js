@@ -321,19 +321,19 @@ const validateAvaible = async (req, res = response) => {
           );
         }
 
-        const huep = {
-          ID_Reserva: parseInt(result.toString()),
-          ID_Tipo_documento: huespe[i]?.Tipo_documento,
-          ID_Tipo_genero: 1,
-          Num_documento: huespe[i]?.Num_documento,
-          Nombre: huespe[i]?.Nombre,
-          Apellido: huespe[i]?.Apellido,
-          Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
-          Celular: huespe[i]?.Celular,
-          Correo: huespe[i]?.Correo,
-          Ciudad: huespe[i]?.Ciudad,
-          ID_Prefijo: huespe[i]?.Nacionalidad,
-        };
+          const huep = {
+            ID_Reserva: parseInt(result.toString()),
+            ID_Tipo_documento: huespe[i]?.Tipo_documento,
+            ID_Tipo_genero: 1,
+            Num_documento: huespe[i]?.Num_documento,
+            Nombre: huespe[i]?.Nombre,
+            Apellido: huespe[i]?.Apellido,
+            Fecha_nacimiento: huespe[i]?.Fecha_nacimiento,
+            Celular: huespe[i]?.Celular,
+            Correo: huespe[i]?.Correo,
+            Ciudad: huespe[i]?.Ciudad,
+            ID_Prefijo: huespe[i]?.Nacionalidad,
+          };
 
       
 

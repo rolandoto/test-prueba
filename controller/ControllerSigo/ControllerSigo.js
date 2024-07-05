@@ -15,8 +15,8 @@ const PostInvoinceByIdCLient =async(req,res=response) =>{
               },
              body:JSON.stringify(body)
         });
-
       
+    
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }
@@ -174,7 +174,6 @@ const GetClientSigo =async(req,res=response) =>{
     }
 }
 
-
 const GetTaxesSigo =async(req,res=response) =>{
 
   const {token} = req.body
@@ -212,7 +211,6 @@ const GetTaxesSigo =async(req,res=response) =>{
   }
 }
 
-
 const GetProductSigo =async(req,res=response) =>{
 
   const {token} = req.body
@@ -223,11 +221,11 @@ const GetProductSigo =async(req,res=response) =>{
           headers: {
               "Authorization":token,
               'Content-Type': 'application/json',
-              'Partner-Id': 'officegroup'
+              'Partner-Id': 'officegroupe'
             },
       });
 
-
+   
       if (response.status === 401) {
           return res.status(401).json({ ok: false });
       }
@@ -238,7 +236,7 @@ const GetProductSigo =async(req,res=response) =>{
 
       const {results} = await response.json();
 
-
+    
 
       return res.status(201).json({
           ok:true,
@@ -251,7 +249,6 @@ const GetProductSigo =async(req,res=response) =>{
       })
   }
 }
-
 
 const GetPdfSigo =async(req,res=response) =>{
 
@@ -308,6 +305,7 @@ const PostAuthSigo=async(req,res=response) =>{
         body:JSON.stringify(body)
       });
 
+   
       if (response.status === 401) {
           return res.status(401).json({ ok: false });
       }
@@ -317,7 +315,7 @@ const PostAuthSigo=async(req,res=response) =>{
       }
 
       const data = await response.json();
-      console.log(data)
+
       return res.status(201).json({
           ok:true,
           data
@@ -331,11 +329,35 @@ const PostAuthSigo=async(req,res=response) =>{
 }
 
 
+const GetProductsigoDashboard=async(req,res=response) =>{
+
+  try {
+
+    const data = await pool.query("SELECT hotels.name , ID_DIAN, id_hotel,id_paymen,id_type_document,observations FROM Dian_register INNER JOIN hotels on hotels.id = Dian_register.id_hotel;")
+
+    return res.status(201).json({
+      ok:true,
+      data
+    })
+
+  } catch (error) {
+
+    return res.status(401).json({
+      ok:false
+    })
+
+  }
+
+}
+
+
+
 module.exports={
     PostInvoinceByIdCLient,
     GetClientSigo,
     GetTaxesSigo,
     GetProductSigo,
     GetPdfSigo,
-    PostAuthSigo
+    PostAuthSigo,
+    GetProductsigoDashboard
 }

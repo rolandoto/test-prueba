@@ -1,5 +1,5 @@
 const { check } = require('express-validator');
-const { PostInvoinceByIdCLient, GetClientSigo, GetTaxesSigo, GetProductSigo, GetPdfSigo, PostAuthSigo } = require('../controller/ControllerSigo/ControllerSigo');
+const { PostInvoinceByIdCLient, GetClientSigo, GetTaxesSigo, GetProductSigo, GetPdfSigo, PostAuthSigo, GetProductsigoDashboard } = require('../controller/ControllerSigo/ControllerSigo');
 const { ValidarCampos } = require('../middleweres/middleweres');
 
 const router = require('express').Router()
@@ -22,7 +22,6 @@ router.post("/GetClientSigo",[
 ]
 ,GetClientSigo);
 
-
 router.post("/GetTaxesSigo",[
     check("token","es obligatorio").not().isEmpty(),
     ValidarCampos
@@ -36,7 +35,6 @@ router.post("/GetProductSigo",[
 ]
 ,GetProductSigo);
 
-
 router.post("/GetPdfSigo",[
     check("token","es obligatorio").not().isEmpty(),
     check("id","es obligatorio").not().isEmpty(),
@@ -44,6 +42,7 @@ router.post("/GetPdfSigo",[
 ]
 ,GetPdfSigo);
 
+router.get("/GetProductsigoDashboard",GetProductsigoDashboard);
 
 router.post("/PostAuthSigo",PostAuthSigo);
 
