@@ -136,7 +136,7 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         console.log(getValidTransation.data.status)
 
-        if(getValidTransation.data.status =="APROVE"){
+        if(getValidTransation.data.status =="APPROVED"){
             
             var n1 = 20000;
             var n2 = 10000;
