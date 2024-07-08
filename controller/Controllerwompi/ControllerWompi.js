@@ -34,7 +34,7 @@ async function fetchTransaction(transactionId) {
 const RegisterCardWompi =async(req,res=response) =>{
     
     /*const dataCard = req.body*/
-    const {cart,name,apellido,email,city,country,fecha,number,exp_month,exp_year,cvc,card_holder} = req.body
+    const {cart,name,apellido,email,city,country,fecha,number,exp_month,exp_year,cvc,card_holder,subtotal} = req.body
 
     try {
 
@@ -89,10 +89,12 @@ const RegisterCardWompi =async(req,res=response) =>{
         const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
         const ProductoToken = productToken.data.id
 
+        let total = subtotal; // example value
+        let amount_in_cents = total * 100; // add two zeros
 
         const dataTransTions ={
             "public-key": "pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ",
-            "amount_in_cents": 200,
+            "amount_in_cents":amount_in_cents,
             "currency": "COP",
             "customer_email": email,
             "reference":ProductoToken,

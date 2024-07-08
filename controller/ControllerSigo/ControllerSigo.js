@@ -215,6 +215,7 @@ const GetProductSigo =async(req,res=response) =>{
 
   const {token} = req.body
 
+
   try {   
       const response = await fetch(`https://api.siigo.com/v1/products?created_start=2024-02-06`, {
           method: "GET",
