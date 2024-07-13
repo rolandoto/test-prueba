@@ -174,6 +174,41 @@ const GetClientSigo =async(req,res=response) =>{
     }
 }
 
+
+const PostClientSigo =async(req,res=response) =>{
+
+  const {token,body} = req.body
+ 
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/customers`, {
+          method: "POST",
+          headers: {
+            "Authorization":token,
+            'Content-Type': 'application/json',
+            'Partner-Id': 'officegroup'
+          },
+         body:JSON.stringify(body) 
+      });
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
 const GetTaxesSigo =async(req,res=response) =>{
 
   const {token} = req.body
@@ -214,7 +249,6 @@ const GetTaxesSigo =async(req,res=response) =>{
 const GetProductSigo =async(req,res=response) =>{
 
   const {token} = req.body
-
 
   try {   
       const response = await fetch(`https://api.siigo.com/v1/products?created_start=2024-02-06`, {
@@ -352,6 +386,24 @@ const GetProductsigoDashboard=async(req,res=response) =>{
 }
 
 
+const CitySigo =async(req, res = response) =>{
+
+  try {
+
+    const  query = await  pool.query("SELECT * FROM `tableName`")
+
+    return res.status(201).json({
+      ok:true,
+      query
+    })
+  } catch (error) {
+
+   return res.status(401).json({
+    ok:false
+   }) 
+  }
+}
+
 
 module.exports={
     PostInvoinceByIdCLient,
@@ -360,5 +412,7 @@ module.exports={
     GetProductSigo,
     GetPdfSigo,
     PostAuthSigo,
-    GetProductsigoDashboard
+    GetProductsigoDashboard,
+    CitySigo,
+    PostClientSigo
 }

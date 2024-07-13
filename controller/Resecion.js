@@ -1180,7 +1180,7 @@ const getDetailReservation = async (req, res = response) => {
 
 
     const query = await pool.query(
-      "SELECT Pagos.Retention, web_checking.ID as huesped, rooms.name as nombre_habitacion, web_checking.ID_facturacion, web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion,web_checking.ID_facturacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID INNER JOIN rooms  on rooms.id = Habitaciones.ID_Tipo_habitaciones  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
+      "SELECT tableName.City, web_checking.Direcion,web_checking.check_digit,web_checking.Ciudad, Pagos.Retention, web_checking.ID as huesped, rooms.name as nombre_habitacion, web_checking.ID_facturacion, web_checking.ID_Reserva as ID_RESERVA,Reservas.Observacion,Canales.Nombre as Canales_Nombre, web_checking.Tipo_persona as tipo_persona, web_checking.ID as id_persona,web_checking.Foto_documento_adelante,web_checking.Foto_documento_atras,web_checking.Pasaporte,web_checking.Iva, web_checking.Firma, Reservas.ID_Habitaciones, Habitaciones.ID_Tipo_habitaciones, Habitaciones.Numero, Talla_mascota.Talla, Reservas.Codigo_reserva, Reservas.Adultos, Reservas.Ninos, Reservas.Infantes, Reservas.Fecha_inicio, Reservas.Fecha_final, Reservas.Noches, Reservas.Descuento, Reservas.Placa,Reservas.ID_Tipo_Estados_Habitaciones AS Estado, web_checking.ID_Tipo_documento, web_checking.Num_documento, web_checking.Nombre, web_checking.Apellido, web_checking.Fecha_nacimiento, web_checking.Celular, web_checking.Correo, web_checking.Ciudad, Tipo_Forma_pago.Nombre as forma_pago, Pagos.Valor as valor_pago, Pagos.Valor_habitacion as valor_habitacion , Pagos.Abono as valor_abono,Pagos.valor_dia_habitacion, Prefijo_number.nombre as nacionalidad,Prefijo_number.codigo , Pagos.ID as ID_pago, Habitaciones.ID_estado_habitacion,web_checking.ID_facturacion FROM Reservas INNER JOIN Habitaciones ON Reservas.ID_Habitaciones = Habitaciones.ID INNER JOIN Talla_mascota ON Reservas.ID_Talla_mascota = Talla_mascota.ID INNER JOIN web_checking ON web_checking.ID_Reserva = Reservas.ID INNER JOIN Canales ON Canales.id= Reservas.ID_Canal INNER JOIN Pagos on Reservas.ID = Pagos.ID_Reserva INNER  join Tipo_Forma_pago on Pagos.ID_Tipo_Forma_pago = Tipo_Forma_pago.ID INNER  JOIN  Prefijo_number on web_checking.ID_Prefijo = Prefijo_number.ID INNER JOIN rooms  on rooms.id = Habitaciones.ID_Tipo_habitaciones LEFT JOIN tableName on tableName.ID = web_checking.Ciudad  WHERE Reservas.ID = ? AND Pagos.pago_valid=1 ORDER  by web_checking.ID  DESC;",
       [id]
     );
 
@@ -3883,7 +3883,7 @@ const GetDocument =async(req, res = response) =>{
 
   try {
 
-    const query = await pool.query("SELECT id as ID,min_type as Type, type as nombre FROM APP_type_document; ")
+    const query = await pool.query("SELECT ID_document_dian, id as ID,min_type as Type, type as nombre FROM APP_type_document; ")
 
     return res.status(201).json({
       ok:true,
@@ -4675,6 +4675,8 @@ const PostRoomOcasionalMonth =async(req, res = response) =>{
   }
 
 }
+
+
 
 module.exports = {
   GetRooms,
