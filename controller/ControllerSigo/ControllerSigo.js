@@ -178,7 +178,6 @@ const GetClientSigo =async(req,res=response) =>{
 const PostClientSigo =async(req,res=response) =>{
 
   const {token,body} = req.body
- 
   try {   
       const response = await fetch(`https://api.siigo.com/v1/customers`, {
           method: "POST",
