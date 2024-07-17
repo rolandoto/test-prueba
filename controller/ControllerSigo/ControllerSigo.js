@@ -174,7 +174,6 @@ const GetClientSigo =async(req,res=response) =>{
     }
 }
 
-
 const PostClientSigo =async(req,res=response) =>{
 
   const {token,body} = req.body
@@ -259,7 +258,6 @@ const GetProductSigo =async(req,res=response) =>{
             },
       });
 
-   
       if (response.status === 401) {
           return res.status(401).json({ ok: false });
       }
