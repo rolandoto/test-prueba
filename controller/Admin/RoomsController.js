@@ -384,12 +384,6 @@ const updateProduct =async(req, res = response) =>{
   
     try {
 
-        if(Cantidad <=0){
-            return res.status(401).json({
-                ok:false
-            })
-        }
-
         
         const query = await pool.query("SELECT * FROM Productos  WHERE  Productos.ID =?",[ID])
 
