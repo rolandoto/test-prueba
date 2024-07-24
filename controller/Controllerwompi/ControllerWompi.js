@@ -126,8 +126,6 @@ const RegisterCardWompi =async(req,res=response) =>{
            
         const Trasntion= await responseTranstion.json();
 
-      
-      
         const getTranstion = await fetch(` https://api.wompi.co/v1/transactions/${Trasntion.data.id}`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
@@ -136,7 +134,7 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         const getValidTransation= await getTranstion.json();
 
-        console.log(getValidTransation.data.status)
+
 
         if(getValidTransation.data.status =="APPROVED"){
             

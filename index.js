@@ -7,6 +7,7 @@ const Hotels = require("./Routes/Hotels")
 const RouterCloudbeds = require("./Routes/RouteCloudbeds")
 const RouterSigo = require("./Routes/RouteSigo")
 const RouterWompi = require("./Routes/RouteWompi")
+const RouteWenSite = require("./Routes/Website.route")
 const cors = require("cors");
 require("dotenv").config();
 var path = require('path')
@@ -32,6 +33,8 @@ app.use("/api/hotels",Hotels.router)
 app.use("/api/hotels/cloubeds",RouterCloudbeds.router)
 app.use("/api/hotels/wompi",RouterWompi.router)
 app.use("/api/hotels/sigo",RouterSigo.router)
+app.use("/api/hotels/sigo",RouterSigo.router)
+app.use("/api/hotels/webSite",RouteWenSite.router)
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 //"https://test-frontent-n9ec.vercel.app"

@@ -9,11 +9,11 @@ const LisMotel = async(req,res=response) =>{
     try {  
     const link = await  pool.query('SELECT hotels.id as id_hotel , hotels.name as nombre, hotels.segurohotelero as segurohotelero, hotels.valorseguro as valorseguro FROM hotels;')
 
-    return res.status(201).json({
-        ok:true,
-       query:link
-    })
-        
+        return res.status(201).json({
+            ok:true,
+        query:link
+        })
+            
     } catch (error) {
         return res.status(401).json({
             ok:false
