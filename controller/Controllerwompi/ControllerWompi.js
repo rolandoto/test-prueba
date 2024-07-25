@@ -134,7 +134,7 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         const getValidTransation= await getTranstion.json();
 
-
+        console.log()
 
         if(getValidTransation.data.status =="APPROVED"){
             
@@ -181,7 +181,8 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Tipo_persona: "persona",
                 Firma: 0,
                 Iva: 2,
-                ID_facturacion:""
+                ID_facturacion:"",
+                id_prod_card:getValidTransation.data.id
               };
         
                pool.query(
@@ -273,6 +274,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 ID_Canal: 3,
                 ID_Tipo_Estados_Habitaciones: 0,
                 Observacion: "Creado por la pagina web ",
+                
               };
         
               await pool.query("INSERT INTO Reservas set ?", data);
@@ -296,7 +298,8 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Tipo_persona: "persona",
                 Firma: 0,
                 Iva: 2,
-                ID_facturacion:""
+                ID_facturacion:"",
+                id_prod_card:getValidTransation.data.id
               };
         
                pool.query(
@@ -400,7 +403,8 @@ const RegisterCardWompi =async(req,res=response) =>{
               Tipo_persona: "persona",
               Firma: 0,
               Iva: 2,
-              ID_facturacion:""
+              ID_facturacion:"",
+              id_prod_card:getValidTransation.data.id
             };
       
              pool.query(
@@ -438,7 +442,6 @@ const RegisterCardWompi =async(req,res=response) =>{
                   });
               }
             );
-      
       
             const pay = {
               ID_Reserva: parseInt(result.toString()),
