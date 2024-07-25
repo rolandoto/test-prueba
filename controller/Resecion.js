@@ -1361,21 +1361,62 @@ const uploadImage = async (req, res = response) => {
           Nombre_recepcion,
           img_product: cartItem?.img,
         };
-      
+  
         const id = cartItem.ID;
-      
         const dataone = {
           Cantidad: cartItem?.Cantidad - cartItem?.quantity,
         };
-        // Inserting data into 'Carrito_reserva' table
-        await pool.query("INSERT INTO Carrito_reserva SET ?", data);
+  
+        await new Promise((resolve, reject) => {
+          pool.query('INSERT INTO Carrito_reserva SET ?', data, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+
+        await new Promise((resolve, reject) => {
+          pool.query('UPDATE Productos SET ? WHERE ID = ?', [dataone, id], (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+
+      }
+  
+      return res.status(200).json({
+        ok: true,
+        msg: "Datos insertados correctamente"
+      });
+  
+     
+       /**
+        * 
+        *  const insertSecondQuery = async() => {
+                await pool.query('UPDATE Productos SET ? WHERE ID = ?', [dataone, id], (err, customer) => {
+                  if(err){
+                    return res.status(401).json({
+                         ok:false,
+                         msg:"error al insertar datos"
+                    })
+                  }
+                })
+              }
+              insertSecondQuery()
+            }
+        * 
+        */
+        /**await pool.query("INSERT INTO Carrito_reserva SET ?", data);
         // Updating the 'Productos' table
         await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
-      }
-      
-      return res.status(201).json({
-        ok: true,
-      });
+        */
+
+    
     } catch (error) {
       return res.status(401).json({
         ok: false,
@@ -1422,15 +1463,37 @@ const insertCartStore = async (req, res = response) => {
         Cantidad: cartItem?.Cantidad - cartItem?.quantity,
       };
 
-      await pool.query("INSERT INTO carrito_tienda SET ?", data);
+      await new Promise((resolve, reject) => {
+        pool.query('INSERT INTO carrito_tienda SET ?', data, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+
+      await new Promise((resolve, reject) => {
+        pool.query('UPDATE Productos SET ? WHERE ID = ?', [dataone, id], (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+
+
+     /* await pool.query("INSERT INTO carrito_tienda SET ?", data);
       await pool.query("UPDATE Productos SET ? WHERE ID = ?", [dataone, id]);
+      */
     }
 
     return res.status(201).json({
       ok: true,
     });
   } catch (error) {
-    console.error('Error in insertCartStore:', error);
+  
     return res.status(401).json({
       ok: false,
       error: 'Failed to process the request.',
