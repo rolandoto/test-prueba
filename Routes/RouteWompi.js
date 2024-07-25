@@ -1,6 +1,6 @@
 const { check } = require('express-validator');
 const { ValidarCampos } = require('../middleweres/middleweres');
-const { RegisterCardWompi } = require('../controller/Controllerwompi/ControllerWompi');
+const { RegisterCardWompi, getDetailtPayment } = require('../controller/Controllerwompi/ControllerWompi');
 
 const router = require('express').Router()
 
@@ -20,5 +20,8 @@ router.post("/RegisterCardWompi",[
     check("subtotal", "es obligatorio").not().isEmpty(),
     ValidarCampos
 ],RegisterCardWompi);
+
+
+router.get("/getDetailtPayment/:id",getDetailtPayment);
 
 module.exports = { router };  

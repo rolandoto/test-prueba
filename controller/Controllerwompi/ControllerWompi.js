@@ -47,7 +47,7 @@ const RegisterCardWompi =async(req,res=response) =>{
             "card_holder":card_holder
         }
 
-    console.log(dataCard)
+        console.log(dataCard)
         const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
@@ -134,7 +134,6 @@ const RegisterCardWompi =async(req,res=response) =>{
 
         const getValidTransation= await getTranstion.json();
 
-        console.log()
 
         if(getValidTransation.data.status =="APPROVED"){
             
@@ -492,6 +491,46 @@ const RegisterCardWompi =async(req,res=response) =>{
 
 }
 
+
+const getDetailtPayment =async(req,res=response) =>{
+
+  const  {id} = req.params
+
+  try {
+
+
+    const response = await fetch(`https://api.wompi.co/v1/transactions/${id}`, {
+      method: "GET",
+      headers: { 'Content-type': 'application/json',
+      'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
+  });
+
+  if (response.status === 404) {
+    return res.status(401).json({ ok: false });
+    }
+
+  if (response.status === 401) {
+    return res.status(401).json({ ok: false });
+    }
+
+  const Trasntion= await response.json();
+
+ 
+  return res.status(201).json({
+    ok:true,
+    Trasntion
+  })
+
+  } catch (error) {
+    return res.status(401).json({
+      ok:false
+    })
+  }
+
+
+}
+
 module.exports={
-    RegisterCardWompi
+    RegisterCardWompi,
+    getDetailtPayment
 }
