@@ -99,7 +99,8 @@ const {
   GetFacturacionDianByIdReserva,
   InsertRegisterHuespedBreafast,
   Getbreakfast,
-  PostRoomOcasionalMonth
+  PostRoomOcasionalMonth,
+  HandDetalleHistory
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -340,6 +341,8 @@ router.post("/GetMetricasInformeMonthHotel",
 
 router.get("/GetFacturacionDianByIdReserva/:id",GetFacturacionDianByIdReserva)
 
+
+
 router.post("/PostInsertRegisterHuespedBreafast",
     [
     check("Id_user","es obligatorio").not().isEmpty(),
@@ -358,5 +361,7 @@ router.post("/PostInsertRegisterHuespedBreafast",
     check("id","es obligatorio").not().isEmpty(),
     ValidarCampos
     ],PostRoomOcasionalMonth)
+
+router.get("/HandDetalleHistory/:id",HandDetalleHistory)
 
 module.exports = { router };  

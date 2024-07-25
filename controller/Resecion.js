@@ -4743,6 +4743,28 @@ const PostRoomOcasionalMonth =async(req, res = response) =>{
 }
 
 
+const HandDetalleHistory =async(req, res = response) =>{
+
+  const {id} = req.params
+
+  try {
+
+  const userQuery = await pool.query ("SELECT * FROM `Informe_movimiento` WHERE `Codigo_reserva` LIKE ?",id)
+    
+  return res.status(201).json({
+    ok:true,
+    userQuery
+  })
+
+  } catch (error) {
+    return res.status(201).json({
+      ok:false
+    })
+  }
+
+}
+
+
 
 module.exports = {
   GetRooms,
@@ -4830,6 +4852,6 @@ module.exports = {
   GetFacturacionDianByIdReserva,
   InsertRegisterHuespedBreafast,
   Getbreakfast,
-  PostRoomOcasionalMonth
-  
+  PostRoomOcasionalMonth,
+  HandDetalleHistory
 };
