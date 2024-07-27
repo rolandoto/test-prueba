@@ -281,15 +281,11 @@ const HotelCreateWebSite =async(req, res = response) =>{
 
 const RoomHotelPromotion = (req, res = response) => {
   // Definir el array de días a procesar
-  const days = [
-    { id_hotel: 12, day_number: 1 },
-    { id_hotel: 12, day_number: 2 },
-    { id_hotel: 12, day_number: 3 },
-    // Agrega más días aquí
-  ];
+  const {days} = req.body
 
-  
-  // Verificar que days es un array válido
+  try {
+
+     // Verificar que days es un array válido
   if (!Array.isArray(days) || days.length === 0) {
     return res.status(400).json({ ok: false, message: "Invalid or empty 'days' array." });
   }
@@ -347,8 +343,39 @@ const RoomHotelPromotion = (req, res = response) => {
       return res.status(success ? 200 : 500).json({ ok: success });
     }
   }
+    
+  } catch (error) {
+     return res.status(401).json({
+      ok:false
+     })
+  }
 };
+
+
+
+const GetRoomHotelPromotion = async(req, res = response) => {
+  
+   const {id} = req.params
+   
+  try {
+
+    const userQuery =  await pool.query("SELECT * FROM RoomPromotion WHERE Id_hotel = ? ",[id])
+
+    return res.status(201).json({
+      ok:true,
+      userQuery
+    })
+
+  } catch (error) {
+      return res.status(401).json({
+        ok:false
+      })
+  }
+
+};
+
 
 module.exports = {SearchHotels,
                 HotelCreateWebSite,
-                RoomHotelPromotion}
+                RoomHotelPromotion,
+                GetRoomHotelPromotion}
