@@ -1,4 +1,4 @@
-const { SearchHotels, HotelCreateWebSite } = require('../controller/Hotels');
+const { SearchHotels, HotelCreateWebSite, RoomHotelPromotion } = require('../controller/Hotels');
 const { ValidarCampos } = require('../middleweres/middleweres');
 const { check } = require("express-validator");
 
@@ -22,5 +22,9 @@ router.post("/SeacrhHotelsById", [
     check("fecha", "es obligatorio").not().isEmpty(),
     ValidarCampos
   ],HotelCreateWebSite)
+
+
+  router.post("/RoomHotelPromotion",RoomHotelPromotion)
+
 
 module.exports = { router };    

@@ -265,10 +265,8 @@ const HotelCreateWebSite =async(req, res = response) =>{
       "INSERT INTO  Pago_abono  set ?",
       dataPayAbono
     );
-
   }
   
-
     return res.status(201).json({
         ok:true
       })
@@ -277,10 +275,80 @@ const HotelCreateWebSite =async(req, res = response) =>{
       return res.status(401).json({
         ok:false
       })
-  }
-  
+  }  
 }
 
 
+const RoomHotelPromotion = (req, res = response) => {
+  // Definir el array de días a procesar
+  const days = [
+    { id_hotel: 12, day_number: 1 },
+    { id_hotel: 12, day_number: 2 },
+    { id_hotel: 12, day_number: 3 },
+    // Agrega más días aquí
+  ];
+
+  
+  // Verificar que days es un array válido
+  if (!Array.isArray(days) || days.length === 0) {
+    return res.status(400).json({ ok: false, message: "Invalid or empty 'days' array." });
+  }
+
+  const id_hotel = days[0]?.id_hotel; // Asumimos que el id_hotel es el mismo para todos los días
+
+  // Almacenar los day_number recibidos en un set para referencia rápida
+  const dayNumbers = new Set(days.map(day => day.day_number));
+
+  let completedQueries = 0;
+  const totalQueries = days.length;
+  let success = true;
+
+  // Eliminar los registros que no están en el nuevo array
+  pool.query("DELETE FROM RoomPromotion WHERE id_hotel = ? AND day_number NOT IN (?)", [id_hotel, Array.from(dayNumbers)], (deleteError) => {
+    if (deleteError) {
+      success = false;
+      console.error("Error deleting old records:", deleteError);
+    }
+
+    // Luego, para cada día en el array de días, realiza la actualización o inserción
+    days.forEach(day => {
+      pool.query("SELECT * FROM RoomPromotion WHERE id_hotel = ? AND day_number = ?", [day.id_hotel, day.day_number], (selectError, results) => {
+        if (selectError) {
+          success = false;
+          console.error("Error querying RoomPromotion:", selectError);
+        } else {
+          if (results.length > 0) {
+            // Update existing record
+            pool.query("UPDATE RoomPromotion SET ? WHERE id_hotel = ? AND day_number = ?", [day, day.id_hotel, day.day_number], (updateError) => {
+              if (updateError) {
+                success = false;
+                console.error("Error updating record:", updateError);
+              }
+              checkCompletion();
+            });
+          } else {
+            // Insert new record
+            pool.query("INSERT INTO RoomPromotion SET ?", day, (insertError) => {
+              if (insertError) {
+                success = false;
+                console.error("Error inserting record:", insertError);
+              }
+              checkCompletion();
+            });
+          }
+        }
+      });
+    });
+  });
+
+  function checkCompletion() {
+    completedQueries++;
+    if (completedQueries === totalQueries) {
+      return res.status(success ? 200 : 500).json({ ok: success });
+    }
+  }
+};
+
 module.exports = {SearchHotels,
-                HotelCreateWebSite}
+                HotelCreateWebSite,
+                RoomHotelPromotion}
