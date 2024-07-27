@@ -285,10 +285,6 @@ const RoomHotelPromotion = (req, res = response) => {
 
   try {
 
-     // Verificar que days es un array válido
-  if (!Array.isArray(days) || days.length === 0) {
-    return res.status(400).json({ ok: false, message: "Invalid or empty 'days' array." });
-  }
 
   const id_hotel = days[0]?.id_hotel; // Asumimos que el id_hotel es el mismo para todos los días
 
@@ -300,42 +296,42 @@ const RoomHotelPromotion = (req, res = response) => {
   let success = true;
 
   // Eliminar los registros que no están en el nuevo array
-  pool.query("DELETE FROM RoomPromotion WHERE id_hotel = ? AND day_number NOT IN (?)", [id_hotel, Array.from(dayNumbers)], (deleteError) => {
-    if (deleteError) {
-      success = false;
-      console.error("Error deleting old records:", deleteError);
-    }
+    pool.query("DELETE FROM RoomPromotion WHERE id_hotel = ? AND day_number NOT IN (?)", [id_hotel, Array.from(dayNumbers)], (deleteError) => {
+      if (deleteError) {
+        success = false;
+        console.error("Error deleting old records:", deleteError);
+      }
 
-    // Luego, para cada día en el array de días, realiza la actualización o inserción
-    days.forEach(day => {
-      pool.query("SELECT * FROM RoomPromotion WHERE id_hotel = ? AND day_number = ?", [day.id_hotel, day.day_number], (selectError, results) => {
-        if (selectError) {
-          success = false;
-          console.error("Error querying RoomPromotion:", selectError);
-        } else {
-          if (results.length > 0) {
-            // Update existing record
-            pool.query("UPDATE RoomPromotion SET ? WHERE id_hotel = ? AND day_number = ?", [day, day.id_hotel, day.day_number], (updateError) => {
-              if (updateError) {
-                success = false;
-                console.error("Error updating record:", updateError);
-              }
-              checkCompletion();
-            });
+      // Luego, para cada día en el array de días, realiza la actualización o inserción
+      days.forEach(day => {
+        pool.query("SELECT * FROM RoomPromotion WHERE id_hotel = ? AND day_number = ?", [day.id_hotel, day.day_number], (selectError, results) => {
+          if (selectError) {
+            success = false;
+            console.error("Error querying RoomPromotion:", selectError);
           } else {
-            // Insert new record
-            pool.query("INSERT INTO RoomPromotion SET ?", day, (insertError) => {
-              if (insertError) {
-                success = false;
-                console.error("Error inserting record:", insertError);
-              }
-              checkCompletion();
-            });
+            if (results.length > 0) {
+              // Update existing record
+              pool.query("UPDATE RoomPromotion SET ? WHERE id_hotel = ? AND day_number = ?", [day, day.id_hotel, day.day_number], (updateError) => {
+                if (updateError) {
+                  success = false;
+                  console.error("Error updating record:", updateError);
+                }
+                checkCompletion();
+              });
+            } else {
+              // Insert new record
+              pool.query("INSERT INTO RoomPromotion SET ?", day, (insertError) => {
+                if (insertError) {
+                  success = false;
+                  console.error("Error inserting record:", insertError);
+                }
+                checkCompletion();
+              });
+            }
           }
-        }
+        });
       });
     });
-  });
 
   function checkCompletion() {
     completedQueries++;
@@ -356,10 +352,10 @@ const RoomHotelPromotion = (req, res = response) => {
 const GetRoomHotelPromotion = async(req, res = response) => {
   
    const {id} = req.params
-   
+
   try {
 
-    const userQuery =  await pool.query("SELECT * FROM RoomPromotion WHERE Id_hotel = ? ",[id])
+    const userQuery =  await pool.query("SELECT day_number,id_hotel FROM RoomPromotion WHERE Id_hotel = ? ",[id])
 
     return res.status(201).json({
       ok:true,

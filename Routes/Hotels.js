@@ -23,10 +23,7 @@ router.post("/SeacrhHotelsById", [
     ValidarCampos
   ],HotelCreateWebSite)
 
-  router.post("/RoomHotelPromotion",[
-    check("days", "es obligatorio").not().isEmpty(),
-    ValidarCampos
-  ],RoomHotelPromotion)
+  router.post("/RoomHotelPromotion",RoomHotelPromotion)
 
   router.get("/RoomHotelPromotion/:id",GetRoomHotelPromotion)
 
