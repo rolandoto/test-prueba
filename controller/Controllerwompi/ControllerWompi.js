@@ -498,7 +498,6 @@ const getDetailtPayment =async(req,res=response) =>{
 
   try {
 
-
     const response = await fetch(`https://api.wompi.co/v1/transactions/${id}`, {
       method: "GET",
       headers: { 'Content-type': 'application/json',
@@ -515,7 +514,6 @@ const getDetailtPayment =async(req,res=response) =>{
 
   const Trasntion= await response.json();
 
- 
   return res.status(201).json({
     ok:true,
     Trasntion

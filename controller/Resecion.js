@@ -1229,6 +1229,7 @@ const updateDetailReservation = async (req, res = response) => {
 
     res.status(201).json({ ok: true });
   } catch (error) {
+  
     res.status(500).json({ ok: false });
   }
 };

@@ -36,7 +36,7 @@ const GetHotelsbyID =async(req,res=response) =>{
     const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getHotelDetails?propertyID=${id}`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer cbat_IQWnqN9nTQLBc1mqd8DrCK8CiKbYjXiV` }
+            'Authorization': `Bearer cbat_pSi8B1QEGnS2bdFXrQdSoC4KtUe7OkzS` }
         });
 
         if (response.status === 401) {
@@ -66,7 +66,7 @@ const GetReservationBypropertyID =async(req,res=response) =>{
     const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${id}`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer cbat_IQWnqN9nTQLBc1mqd8DrCK8CiKbYjXiV` }
+            'Authorization': `Bearer cbat_pSi8B1QEGnS2bdFXrQdSoC4KtUe7OkzS` }
         });
 
         if (!response) {

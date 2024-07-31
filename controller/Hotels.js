@@ -78,7 +78,7 @@ const SearchHotels =async(req, res = response) =>{
 
             return resultado.map((element) => {
               if (element.Num_Reservas === 0 && element.ID_estado_habitacion !==2 ) {
-                if( counPeople <= room.person){
+                if( counPeople <= room.max_people){
                     const roomObject = {
                       ID_Room:element.id_room,
                       ID: room.id,
