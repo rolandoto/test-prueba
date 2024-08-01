@@ -4746,6 +4746,39 @@ const HandDetalleHistory =async(req, res = response) =>{
 
 
 
+const InsertSubcategory =async(req, res = response) =>{
+
+  try { 
+
+    const {Product,Tipo_categoria} = req.body
+
+    let dataOne={
+      Product,
+      Tipo_categoria
+    }
+
+   
+    await pool.query('INSERT INTO sub_categorias set ?', dataOne, (err, customer) => {
+      if(err){
+          return res.status(401).json({
+                  ok:false,
+                  msg:"error al insertar datos"
+          })
+      }else{
+        return res.status(201).json({
+          ok:true
+        })
+      }   
+    })
+  } catch (error) {
+      return res.status(401).json({
+        ok:false
+      })
+  }
+}
+
+
+
 module.exports = {
   GetRooms,
   validateAvaible,
@@ -4833,5 +4866,6 @@ module.exports = {
   InsertRegisterHuespedBreafast,
   Getbreakfast,
   PostRoomOcasionalMonth,
-  HandDetalleHistory
+  HandDetalleHistory,
+  InsertSubcategory
 };

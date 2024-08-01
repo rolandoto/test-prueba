@@ -100,7 +100,8 @@ const {
   InsertRegisterHuespedBreafast,
   Getbreakfast,
   PostRoomOcasionalMonth,
-  HandDetalleHistory
+  HandDetalleHistory,
+  InsertSubcategory
 } = require("../controller/Resecion");
 const { ValidarCampos } = require("../middleweres/middleweres");
 const router = require("express").Router();
@@ -363,5 +364,7 @@ router.post("/PostInsertRegisterHuespedBreafast",
     ],PostRoomOcasionalMonth)
 
 router.get("/HandDetalleHistory/:id",HandDetalleHistory)
+
+router.post("/InsertSubcategory",InsertSubcategory)
 
 module.exports = { router };  

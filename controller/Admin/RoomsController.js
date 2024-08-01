@@ -326,7 +326,7 @@ const getSubProduct =async(req, res = response) => {
 
     try {   
 
-        const query=  await pool.query("SELECT ID,Product,Tipo_categoria FROM sub_categorias")
+        const query=  await pool.query("SELECT * FROM sub_categorias ORDER BY ID DESC")
 
         if(query.length==0){
             res.status(401).json({
