@@ -479,7 +479,7 @@ const getReserva = async (req, res = response) => {
   try {
     if(type){
       const response = await pool.query(
-        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.ID_Canal, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 7;  `,
+        `SELECT web_checking.ID_facturacion, web_checking.Celular,Prefijo_number.codigo ,Prefijo_number.nombre as nacionalidad, web_checking.Num_documento, web_checking.Nombre,web_checking.Apellido, Reservas.ID_Canal, Reservas.Noches,Reservas.Adultos,Reservas.Ninos, Reservas.ID_Tipo_Estados_Habitaciones ,Habitaciones.Numero, Reservas.ID, Reservas.ID_Habitaciones, Reservas.Codigo_reserva, Reservas.Fecha_inicio, Reservas.Fecha_final,Reservas.Observacion, Habitaciones.ID_Tipo_estados , Pagos.Valor_habitacion,Pagos.Abono,Pagos.valor_dia_habitacion FROM Reservas INNER JOIN Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones INNER join web_checking on web_checking.ID_Reserva = Reservas.id INNER JOIN Pagos on Pagos.ID_Reserva = Reservas.id INNER join Prefijo_number on Prefijo_number.ID = web_checking.ID_Prefijo WHERE Habitaciones.ID_Hotel =? and Pagos.pago_valid =1 and Reservas.ID_Tipo_Estados_Habitaciones = 6 and Reservas.ID_Tipo_Estados_Habitaciones != 7 and  MONTH(Reservas.Fecha_inicio)  `,
          [id]
        );
        const promises = [];
@@ -1952,13 +1952,15 @@ const handInformeCamarera = async (req, res = response) => {
     const FechaFinal = `${fecha}`;
 
     const query = await pool.query(
-      "SELECT Habitaciones.ID,  Habitaciones.ID_estado_habitacion as ID_Tipo_Estados_Habitaciones,   Reservas.Fecha_final, Reservas.Adultos,  Reservas.Fecha_final,  Reservas.Ninos,   Reservas.Noches,  web_checking.nombre,   web_checking.Apellido,  Habitaciones.Numero,  Habitaciones.ID as id_habitaciones,  CASE  WHEN Habitaciones.ID_estado_habitacion = 0 THEN 'Disponible' WHEN Habitaciones.ID_estado_habitacion = 5 THEN 'Sucia'  WHEN Habitaciones.ID_estado_habitacion = 2 THEN 'Bloqueada'  ELSE 'Ocupada'  END as Estado_Habitacio FROM  Reservas  INNER JOIN   web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN  Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE  (Reservas.ID_Tipo_Estados_Habitaciones = 3 OR Habitaciones.ID_estado_habitacion = 0 or Habitaciones.ID_estado_habitacion=5 or Habitaciones.ID_estado_habitacion=2 )  AND Habitaciones.ID_Hotel = ? GROUP BY  Habitaciones.ID;",
+      "SELECT Habitaciones.ID,  Habitaciones.ID_estado_habitacion as ID_Tipo_Estados_Habitaciones,   Reservas.Fecha_final, Reservas.Adultos,  Reservas.Fecha_final, Reservas.Fecha_inicio,  Reservas.Ninos,   Reservas.Noches,  web_checking.nombre,   web_checking.Apellido,  Habitaciones.Numero,  Habitaciones.ID as id_habitaciones,  CASE  WHEN Reservas.ID_Tipo_Estados_Habitaciones = 0 THEN 'Reservada ' WHEN Habitaciones.ID_estado_habitacion = 0 THEN 'Disponible '   WHEN Habitaciones.ID_estado_habitacion = 5 THEN 'Sucia'  WHEN Habitaciones.ID_estado_habitacion = 2 THEN 'Bloqueada'  ELSE 'Ocupada'  END as Estado_Habitacio FROM  Reservas  INNER JOIN   web_checking ON web_checking.ID_Reserva = Reservas.id  INNER JOIN  Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones  WHERE  (Reservas.ID_Tipo_Estados_Habitaciones = 3 OR Habitaciones.ID_estado_habitacion = 0 or Habitaciones.ID_estado_habitacion=5 or Habitaciones.ID_estado_habitacion=2 )  AND Habitaciones.ID_Hotel = ? GROUP BY  Habitaciones.ID;",
       [id,
       ]
     );
 
     const result = query
     .sort((a, b) => a.Numero - b.Numero);
+
+    console.log(query)
 
     res.status(201).json({
       ok: true,
