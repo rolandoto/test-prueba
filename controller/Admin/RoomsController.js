@@ -379,12 +379,11 @@ const getproduct =async(req, res = response) => {
 const updateProduct =async(req, res = response) =>{
     
   
-    const  {ID,Cantidad,ID_user,Price,Fecha} = req.body
-    
-  
+    const  {ID,Cantidad,ID_user,Price,Fecha,Nombre} = req.body
+      
     try {
 
-        
+
         const query = await pool.query("SELECT * FROM Productos  WHERE  Productos.ID =?",[ID])
 
         let count =0
@@ -405,7 +404,8 @@ const updateProduct =async(req, res = response) =>{
     
         const data = {
             Precio:Price,
-            Cantidad:Cantidad
+            Cantidad:Cantidad,
+            Nombre:Nombre
         }
     
         await pool.query('INSERT INTO history_product_update set ?', dateOne, (err, customer) => {
