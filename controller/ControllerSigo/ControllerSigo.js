@@ -174,6 +174,51 @@ const GetClientSigo =async(req,res=response) =>{
     }
 }
 
+const GetClientsSigo =async(req,res=response) =>{
+
+  const {token} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/customers?created_start=2021-02-17`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+
+      
+      
+      if(data.pagination.total_results ==0){
+          return res.status(401).json({ ok: false });
+      }
+
+    
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
 const PostClientSigo =async(req,res=response) =>{
 
   const {token,body} = req.body
@@ -383,7 +428,6 @@ const GetProductsigoDashboard=async(req,res=response) =>{
 
 }
 
-
 const CitySigo =async(req, res = response) =>{
 
   try {
@@ -402,6 +446,63 @@ const CitySigo =async(req, res = response) =>{
   }
 }
 
+const ProductDian =async(req, res = response) =>{
+
+  try {
+
+    const  query = await  pool.query("SELECT ID_DIAN,id_paymen,id_type_document,observations,Code, hotels.name as hotel FROM `Dian_register` INNER JOIN hotels on hotels.id = Dian_register.id_hotel;")
+
+    return res.status(201).json({
+      ok:true,
+      query
+    })
+  } catch (error) {
+
+   return res.status(401).json({
+    ok:false
+   }) 
+  }
+}
+
+
+
+const GetInvoinces =async(req,res=response) =>{
+
+  const {token} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/invoices`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
 
 module.exports={
     PostInvoinceByIdCLient,
@@ -412,5 +513,8 @@ module.exports={
     PostAuthSigo,
     GetProductsigoDashboard,
     CitySigo,
-    PostClientSigo
+    PostClientSigo,
+    GetClientsSigo,
+    ProductDian,
+    GetInvoinces
 }
