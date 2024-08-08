@@ -34,7 +34,7 @@ async function fetchTransaction(transactionId) {
 const RegisterCardWompi =async(req,res=response) =>{
     
     /*const dataCard = req.body*/
-    const {cart,name,apellido,email,city,country,fecha,number,exp_month,exp_year,cvc,card_holder,subtotal} = req.body
+    const {cart,name,apellido,email,city,country,fecha,number,exp_month,exp_year,cvc,card_holder,subtotal,phone} = req.body
 
     try {
 
@@ -173,7 +173,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Nombre: name,
                 Apellido: apellido,
                 Fecha_nacimiento: room.start,
-                Celular: "3000",
+                Celular: phone,
                 Correo: email,
                 Ciudad: city,
                 ID_Prefijo: country,
@@ -203,7 +203,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Nombre: name,
                 Apellido:apellido,
                 Fecha_nacimiento:room.start,
-                Celular:"33123",
+                Celular:phone,
                 Correo: email,
                 Ciudad:city,
                 ID_Prefijo: country,
@@ -290,7 +290,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Nombre: name,
                 Apellido: apellido,
                 Fecha_nacimiento: room.start,
-                Celular: "3000",
+                Celular: phone,
                 Correo: email,
                 Ciudad: city,
                 ID_Prefijo: country,
@@ -320,7 +320,7 @@ const RegisterCardWompi =async(req,res=response) =>{
                 Nombre: name,
                 Apellido:apellido,
                 Fecha_nacimiento:room.start,
-                Celular:"33123",
+                Celular:phone,
                 Correo: email,
                 Ciudad:city,
                 ID_Prefijo: country,
@@ -395,7 +395,7 @@ const RegisterCardWompi =async(req,res=response) =>{
               Nombre: name,
               Apellido: apellido,
               Fecha_nacimiento: room.start,
-              Celular: "3000",
+              Celular: phone,
               Correo: email,
               Ciudad: city,
               ID_Prefijo: country,
@@ -425,7 +425,7 @@ const RegisterCardWompi =async(req,res=response) =>{
               Nombre: name,
               Apellido:apellido,
               Fecha_nacimiento:room.start,
-              Celular:"33123",
+              Celular:phone,
               Correo: email,
               Ciudad:city,
               ID_Prefijo: country,
