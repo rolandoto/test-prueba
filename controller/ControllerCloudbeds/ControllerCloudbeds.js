@@ -135,7 +135,7 @@ const getAvailableRoomTypes =async(req,res=response) =>{
         }
 
         const filteredRooms = data[0].propertyRooms.filter(room => {
-            if(room.roomTypeNameShort !="HAB"){
+            if(room.roomTypeNameShort !="HAB" && room.roomTypeNameShort !="AIR" && room.roomTypeNameShort !="CLA"&& room.roomTypeNameShort !="JAC"){
                 const maxGuests = parseInt(room.maxGuests);
                 const meetsCondition = counPeople <= maxGuests
                 return meetsCondition 
