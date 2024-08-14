@@ -134,14 +134,17 @@ const getAvailableRoomTypes =async(req,res=response) =>{
             })
         }
 
+        const excludedRoomTypes = ["CLASICA (ocasional)","JACUZZI (ocasional)","AIRE (ocasional)","Hab Virtuales VENTILADOR (ocasional)","Hab Virtuales AIRE (ocasional)"];
+
         const filteredRooms = data[0].propertyRooms.filter(room => {
-            if(room.roomTypeNameShort !="HAB" && room.roomTypeNameShort !="AIR" && room.roomTypeNameShort !="CLA"&& room.roomTypeNameShort !="JAC"){
-                const maxGuests = parseInt(room.maxGuests);
-                const meetsCondition = counPeople <= maxGuests
-                return meetsCondition 
+            if (!excludedRoomTypes.includes(room.roomTypeName)) {
+                const maxGuests = parseInt(room.maxGuests, 10);
+                return counPeople <= maxGuests;
             }
+            return false;
         });
 
+        console.log(filteredRooms)
         const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
         const differenceInTime = endDateObj - startDateObj;
