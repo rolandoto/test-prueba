@@ -328,6 +328,45 @@ const GetProductSigo =async(req,res=response) =>{
   }
 }
 
+
+const GetProductById =async(req,res=response) =>{
+
+  const {token,id_product} = req.body
+
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/products/${id_product}`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroupe'
+            },
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
+
 const GetPdfSigo =async(req,res=response) =>{
 
   const {token,id} = req.body
@@ -488,8 +527,59 @@ const GetInvoinces =async(req,res=response) =>{
           return res.status(401).json({ ok: false });
       }
 
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+const GetInvoinceById =async(req,res=response) =>{
+
+  const {token,date} = req.body
+
+  function adjustEndDate(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    // Sumar un día a la fecha de finalización si es anterior o igual a la fecha de inicio
+    if (end <= start) {
+      end.setDate(end.getDate() + 1);
+    }
+  
+    // Devolver la fecha de finalización ajustada en formato ISO (o cualquier formato que prefieras)
+    return end.toISOString().split('T')[0];
+  }
+
+  const adjustedEndDate = adjustEndDate(date, date);
+ 
+  try {   
+      const response = await fetch(`https://api.siigo.com/v1/invoices?date_start=${date}&&date_end=${adjustedEndDate}`, {
+          method: "GET",
+          headers: {
+              "Authorization":token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
 
       const data = await response.json();
+
 
       return res.status(201).json({
           ok:true,
@@ -516,5 +606,7 @@ module.exports={
     PostClientSigo,
     GetClientsSigo,
     ProductDian,
-    GetInvoinces
+    GetInvoinces,
+    GetProductById,
+    GetInvoinceById
 }
