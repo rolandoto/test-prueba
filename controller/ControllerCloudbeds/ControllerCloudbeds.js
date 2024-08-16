@@ -144,7 +144,6 @@ const getAvailableRoomTypes =async(req,res=response) =>{
             return false;
         });
 
-        console.log(filteredRooms)
         const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
         const differenceInTime = endDateObj - startDateObj;
@@ -300,78 +299,78 @@ const PostpostReservation =async(req,res=response) =>{
 
         const getValidTransation= await getTranstion.json();
 
-        console.log(getValidTransation)
+        console.log(getValidTransation.data.status)
 
         if(getValidTransation.data.status =="APPROVED"){
             
-        const formData = new FormData();
-        formData.append("startDate", startDate)
-        formData.append("endDate",endDate)
-        formData.append("guestFirstName",guestFirstName)
-        formData.append("guestLastName", guestLastName)
-        formData.append("guestCountry", "CO")
-        formData.append("guestEmail", guestEmail)
-        formData.append("guestPhone", guestPhone)
-        formData.append("rooms", JSON.stringify(rooms));
-        formData.append("adults", JSON.stringify(adults));
-        formData.append("children", JSON.stringify(children));
-        formData.append("paymentMethod", "Wompi")
-        formData.append("dateCreated", dateCreated)
-        formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
+                    const formData = new FormData();
+                    formData.append("startDate", startDate)
+                    formData.append("endDate",endDate)
+                    formData.append("guestFirstName",guestFirstName)
+                    formData.append("guestLastName", guestLastName)
+                    formData.append("guestCountry", "CO")
+                    formData.append("guestEmail", guestEmail)
+                    formData.append("guestPhone", guestPhone)
+                    formData.append("rooms", JSON.stringify(rooms));
+                    formData.append("adults", JSON.stringify(adults));
+                    formData.append("children", JSON.stringify(children));
+                    formData.append("paymentMethod", "Wompi")
+                    formData.append("dateCreated", dateCreated)
+                    formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
 
-        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formData
-        });
-    
-        if (response.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-        
-        const reservationData = await response.json();
-        const { success, reservationID, grandTotal } = reservationData;
-    
-        if (!success) {
-            return res.status(400).json({
-                ok: false,
-                error: "Reservation failed",
-            });
-        }
-    
-        const formDataPayment = new FormData();
-        formDataPayment.append("amount", grandTotal);
-        formDataPayment.append("type", "Wompi");
-        formDataPayment.append("reservationID", reservationID);
-    
-        const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formDataPayment
-        });
-    
-        if (responsePayment.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-    
-        const paymentData = await responsePayment.json();
-    
-        if (!paymentData.success) {
-            return res.status(400).json({
-                ok: false,
-                error: "Payment failed",
-            });
-        }
-    
-        return res.status(201).json({
-            ok: true,
-            reservationID,
-        });
+                    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
+                        method: "POST",
+                        headers: { 
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: formData
+                    });
+                
+                    if (response.status === 401) {
+                        return res.status(401).json({ ok: false });
+                    }
+                    
+                    const reservationData = await response.json();
+                    const { success, reservationID, grandTotal } = reservationData;
+                
+                    if (!success) {
+                        return res.status(400).json({
+                            ok: false,
+                            error: "Reservation failed",
+                        });
+                    }
+                
+                    const formDataPayment = new FormData();
+                    formDataPayment.append("amount", grandTotal);
+                    formDataPayment.append("type", "Wompi");
+                    formDataPayment.append("reservationID", reservationID);
+                
+                    const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
+                        method: "POST",
+                        headers: { 
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: formDataPayment
+                    });
+                
+                    if (responsePayment.status === 401) {
+                        return res.status(401).json({ ok: false });
+                    }
+                
+                    const paymentData = await responsePayment.json();
+                
+                    if (!paymentData.success) {
+                        return res.status(400).json({
+                            ok: false,
+                            error: "Payment failed",
+                        });
+                    }
+                    console.log(paymentData)
+                    return res.status(201).json({
+                        ok: true
+                    });
     }else if(getValidTransation.data.status =="DECLINED"){
+              
         const formData = new FormData();
         formData.append("startDate", startDate)
         formData.append("endDate",endDate)
@@ -400,18 +399,21 @@ const PostpostReservation =async(req,res=response) =>{
         }
         
         const reservationData = await response.json();
-        const { success, reservationID, grandTotal } = reservationData;
+        const { success } = reservationData;
     
         if (!success) {
-            return res.status(400).json({
+            console.log("success")
+            return res.status(401).json({
                 ok: false,
                 error: "Reservation failed",
             });
         }
-    
+
+
         return res.status(201).json({
-            ok: true,
+            ok: true
         });
+   
     }else if(getValidTransation.data.status =="PENDING"){
         const formData = new FormData();
         formData.append("startDate", startDate)
@@ -470,15 +472,16 @@ const PostpostReservation =async(req,res=response) =>{
         const paymentData = await responsePayment.json();
     
         if (!paymentData.success) {
-            return res.status(400).json({
+            return res.status(401).json({
                 ok: false,
                 error: "Payment failed",
             });
         }
-    
+        
+        console.log(paymentData)
+
         return res.status(201).json({
-            ok: true,
-            reservationID,
+            ok: true
         });
     }
 
