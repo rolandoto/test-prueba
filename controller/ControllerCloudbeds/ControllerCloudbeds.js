@@ -134,7 +134,7 @@ const getAvailableRoomTypes =async(req,res=response) =>{
             })
         }
 
-        const excludedRoomTypes = ["CLASICA (ocasional)","JACUZZI (ocasional)","AIRE (ocasional)","Hab Virtuales VENTILADOR (ocasional)","Hab Virtuales AIRE (ocasional)"];
+        const excludedRoomTypes = ["CLASICA (ocasional)","JACUZZI (ocasional)","AIRE (ocasional)","Hab Virtuales VENTILADOR (ocasional)","Hab Virtuales AIRE (ocasional)","Hab virtuales CLASICAS (Ocasionales)","Hab virtuales BAÑERA (Ocasionales)"];
 
         const filteredRooms = data[0].propertyRooms.filter(room => {
             if (!excludedRoomTypes.includes(room.roomTypeName)) {
