@@ -1,4 +1,5 @@
-const {response, json, query} = require('express')
+const {response, json, query} = require('express');
+const { pool } = require('../../database/connection');
 
 
 function delay(ms) {
@@ -6,20 +7,23 @@ function delay(ms) {
 }
 
 
-const GetHotels =async(req,res=response) =>{
+const getHotelDetails =async(req,res=response) =>{
 
+    const {propertyID,token} = req.body
+
+  
     try {
-        const response = await fetch(`https://hotels.cloudbeds.com/api/v1.1/getHotels`, {
+        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getHotelDetails?propertyID=${propertyID}`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer cbat_IQWnqN9nTQLBc1mqd8DrCK8CiKbYjXiV` }
+            'Authorization': `Bearer ${token}` }
         });
 
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }
-
-        const data = await response.json();
+        
+        const {data} = await response.json();
 
         return res.status(201).json({
             ok:true,
@@ -65,14 +69,14 @@ const GetHotelsbyID =async(req,res=response) =>{
 
 const GetReservationBypropertyID =async(req,res=response) =>{
 
-    const {id} = req.params
+    const {propertyID,token} = req.body
 
     try {
 
-    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${id}`, {
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${propertyID}`, {
             method: "GET",
             headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer cbat_pSi8B1QEGnS2bdFXrQdSoC4KtUe7OkzS` }
+            'Authorization': `Bearer ${token}` }
         });
 
         if (!response) {
@@ -103,6 +107,95 @@ const GetReservationBypropertyID =async(req,res=response) =>{
         })
     }
 }
+
+
+const GetReservationDetailBypropertyID =async(req,res=response) =>{
+
+    const {propertyID,token,reservationID} = req.body
+
+    try {
+
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${propertyID}&reservationID=${reservationID}`, {
+            method: "GET",
+            headers: { 'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response) {
+            // If access is denied, return 401 status code
+            if (response.status === 401) {
+                return res.status(401).json({ ok: false });
+            }
+            // For other errors, return 500 status code
+            return res.status(401).json({ ok: false });
+        }
+
+        const {data} = await response.json();
+
+        
+
+        if(!data){
+            return res.status(401).json({
+                ok:false
+            })
+        }
+
+        return res.status(201).json({
+            ok:true,
+            data
+        })
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+const GetReservation =async(req,res=response) =>{
+
+    const {propertyID,token,reservationID} = req.body
+
+    try {
+
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${propertyID}&reservationID=${reservationID}`, {
+            method: "GET",
+            headers: { 'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response) {
+            // If access is denied, return 401 status code
+            if (response.status === 401) {
+                return res.status(401).json({ ok: false });
+            }
+            // For other errors, return 500 status code
+            return res.status(401).json({ ok: false });
+        }
+
+        const {data} = await response.json();
+
+        
+
+        if(!data){
+            return res.status(401).json({
+                ok:false
+            })
+        }
+
+        return res.status(201).json({
+            ok:true,
+            data
+        })
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
 
 
 const getAvailableRoomTypes =async(req,res=response) =>{
@@ -402,18 +495,15 @@ const PostpostReservation =async(req,res=response) =>{
         const { success } = reservationData;
     
         if (!success) {
-            console.log("success")
-            return res.status(401).json({
+            return res.status(400).json({
                 ok: false,
                 error: "Reservation failed",
             });
         }
-
-
+    
         return res.status(201).json({
             ok: true
         });
-   
     }else if(getValidTransation.data.status =="PENDING"){
         const formData = new FormData();
         formData.append("startDate", startDate)
@@ -494,11 +584,330 @@ const PostpostReservation =async(req,res=response) =>{
     }
 }
 
+async function handleCustomerAfterInsert(req, res, token, body) {
+
+
+    try {
+      // Fetch customer by identification
+      const responseCustomer = await fetch(`https://api.siigo.com/v1/customers?identification=${body.identification}`, {
+        method: "GET",
+        headers: {
+          "Authorization": token,
+          'Content-Type': 'application/json',
+          'Partner-Id': 'officegroup'
+        },
+      });
+  
+      if (!responseCustomer.ok) {
+        return res.status(500).json({ ok: false, error: 'Error fetching customer' });
+      }
+  
+      const customerByIdDocument = await responseCustomer.json();
+      const ByIdDocument = customerByIdDocument.results[0]?.id;
+  
+      // Decide whether to update or create the customer
+      const apiUrl = ByIdDocument
+        ? `https://api.siigo.com/v1/customers/${ByIdDocument}` // Update existing customer
+        : `https://api.siigo.com/v1/customers`; // Create new customer
+  
+      const method = ByIdDocument ? "PUT" : "POST";
+  
+      // Update or create customer
+      const response = await fetch(apiUrl, {
+        method: method,
+        headers: {
+          "Authorization": token,
+          'Content-Type': 'application/json',
+          'Partner-Id': 'officegroup'
+        },
+        body: JSON.stringify(body)
+      });
+  
+      if (!response.ok) {
+        const status = response.status === 400 ? 401 : response.status;
+        return res.status(status).json({ ok: false, error: 'Error saving customer data' });
+      }
+  
+      const data = await response.json();
+      return res.status(201).json({ ok: true, data });
+  
+    } catch (error) {
+      console.error('Error in handleCustomerAfterInsert:', error);
+      return res.status(500).json({ ok: false, error: 'Internal server error' });
+    }
+  }
+
+
+const PostRegisterCloubeds =async(req,res=response) =>{
+
+    const {ID_Tipo_documento,ID_city,ReservationID,token,body} = req.body
+
+    const date ={
+        ID_Tipo_documento:ID_Tipo_documento,
+        ID_city:ID_city,
+        ReservationID:ReservationID,
+    }
+
+    try {
+
+        await pool.query('SELECT * FROM RegisterCloubeds WHERE ReservationID = ?', [ReservationID], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    msg: "Error checking existing reservation"
+                });
+            }
+        
+            if (results.length > 0) {
+                // ReservationID already exists, update the existing record
+                pool.query('UPDATE RegisterCloubeds SET ? WHERE ReservationID = ?', [date, ReservationID], async(err, result) => {
+                    if (err) {
+                        return res.status(401).json({
+                            ok: false,
+                            msg: "Error updating data"
+                        });
+                    } else {
+                        await handleCustomerAfterInsert(req, res, token, body);
+                    }
+                });
+            } else {
+                // ReservationID does not exist, proceed with insert
+                pool.query('INSERT INTO RegisterCloubeds SET ?',  date, async(err, result) => {
+                    if (err) {
+                        return res.status(401).json({
+                            ok: false,
+                            msg: "Error inserting data"
+                        });
+                    } else {
+                        await handleCustomerAfterInsert(req, res, token, body);
+                    }
+                });
+            }
+        });
+       
+    } catch (error) {
+            console.log(error)
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+const PostRegisterSigoCloudbeds =async(req,res=response) =>{
+
+  const {token,body} = req.body
+
+  try {   
+        const responseCustomer = await fetch(`https://api.siigo.com/v1/customers?identification=${body.identification}`, {
+            method: "GET",
+            headers: {
+              "Authorization": token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+          });
+      
+          if (!responseCustomer.ok) {
+            return res.status(500).json({ ok: false, error: 'Error fetching customer' });
+          }
+      
+          const customerByIdDocument = await responseCustomer.json();
+          const ByIdDocument = customerByIdDocument.results[0]?.id;
+      
+          // Decide whether to update or create the customer
+          const apiUrl = ByIdDocument 
+            ? `https://api.siigo.com/v1/customers/${ByIdDocument}` // Update existing customer
+            : `https://api.siigo.com/v1/customers`; // Create new customer
+      
+          const method = ByIdDocument ? "PUT" : "POST";
+      
+          // Update or create customer
+          const response = await fetch(apiUrl, {
+            method: method,
+            headers: {
+              "Authorization": token,
+              'Content-Type': 'application/json',
+              'Partner-Id': 'officegroup'
+            },
+            body: JSON.stringify(body)
+          });
+      
+          if (!response.ok) {
+            const status = response.status === 400 ? 401 : response.status;
+            return res.status(status).json({ ok: false, error: 'Error saving customer data' });
+          }
+      
+          const data = await response.json();
+          return res.status(201).json({ ok: true, data });
+
+ 
+  } catch (error) {
+      
+      return res.status(401).json({
+          ok:false
+      })
+  }
+}
+
+
+
+const GetRegisterCloubes =async(req,res=response) =>{
+
+    const {id} = req.params
+
+
+    try {
+
+        await pool.query('SELECT tableName.City, ID_Tipo_documento,ID_city,ReservationID FROM RegisterCloubeds INNER JOIN tableName on tableName.ID = RegisterCloubeds.ID_city WHERE ReservationID = ?;', [id], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    msg: "Error checking existing reservation"
+                });
+            }else{
+                return res.status(201).json({
+                    ok:true,
+                    query:results
+                })
+            }
+            
+        });
+       
+    } catch (error) {
+         
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+
+
+
+const PostPaymentCloubeds =async(req,res=response) =>{
+
+    const {ReservationID,subTotal,taxesFees,additionalItems,Date,body,token,id_user} = req.body
+
+    const date ={
+        ReservationID:ReservationID,
+        subTotal:subTotal,
+        taxesFees:taxesFees,
+        additionalItems:additionalItems,
+        Date:Date
+    }
+
+
+
+    try {
+
+
+        const response = await fetch(`https://api.siigo.com/v1/invoices`, {
+            method: "POST",
+            headers: {
+                "Authorization":token,
+                'Content-Type': 'application/json',
+                'Partner-Id': 'officegroup'
+              },
+             body:JSON.stringify(body)
+        });
+      
+
+
+        if (response.status === 401) {
+            return res.status(401).json({ ok: false });
+        }
+
+        if (response.status === 400) {
+            return res.status(401).json({ ok: false });
+        }
+
+        const data = await response.json();
+
+        if(data.id){
+            let dataDian ={
+                Fecha:Date,
+                id_user,
+                Abono:subTotal,
+                ID_facturacion:data.id,
+                ID_Reserva:ReservationID
+              }
+            await pool.query('INSERT INTO Dian_facturacion_register set ?', dataDian, (err, customer) => {
+                if(err){
+                    return res.status(401).json({
+                         ok:false,
+                         msg:"error al insertar datos"
+                    })
+                 }else{
+
+                       pool.query('INSERT INTO Payment_Cloudbeds SET ?',  date, (err, result) => {
+                        if (err) {
+                            return res.status(401).json({
+                                ok: false,
+                                msg: "Error inserting data"
+                            });
+                        } else {
+                            return res.status(201).json({
+                                ok: true,
+                                msg: "Data inserted successfully"
+                            });
+                        }
+                    });
+                 }
+              })   
+        }
+       
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+const GetPaymentCloubeds =async(req,res=response) =>{
+
+    const {id} = req.params
+
+    try {
+
+        await pool.query('SELECT  ReservationID,SubTotal,AdditionalItems,TaxesFees,Date  FROM Payment_Cloudbeds WHERE ReservationID =?', [id], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    msg: "Error checking existing reservation"
+                });
+            }else{
+                return res.status(201).json({
+                    ok:true,
+                    query:results
+                })
+            }
+            
+        });
+       
+    } catch (error) {
+         
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
 
 module.exports ={
-    GetHotels,
+    getHotelDetails,
     GetHotelsbyID,
     GetReservationBypropertyID,
+    GetReservationDetailBypropertyID,
     getAvailableRoomTypes,
-    PostpostReservation
+    PostpostReservation,
+    GetReservation,
+    PostRegisterCloubeds,
+    GetRegisterCloubes,
+    PostPaymentCloubeds,
+    GetPaymentCloubeds,
+    PostRegisterSigoCloudbeds
 }
