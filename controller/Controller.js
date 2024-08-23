@@ -38,7 +38,7 @@ const LoginUsuario = async (req,res= response) => {
         }
 
         // Obtener información adicional del hotel
-        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva FROM hotels WHERE id = ?", [hotel]); 
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE id = ?", [hotel]); 
         
         const dian = await pool.query("SELECT observations, ID_DIAN,id_paymen,id_type_document,Code FROM Dian_register WHERE id_hotel = ?", [hotel]);  
 
@@ -46,7 +46,6 @@ const LoginUsuario = async (req,res= response) => {
         let id_payment =0
         let id_document=0
         let observation=""
-
 
         const RestDian = dian.map((item) =>{
             return item
@@ -73,6 +72,8 @@ const LoginUsuario = async (req,res= response) => {
                 logo:hotelInfoQuery[0].logo,
                 photo:hotelInfoQuery[0].logo,
                 Iva: hotelInfoQuery[0].Iva,
+                TokenCloubeds: hotelInfoQuery[0].Token,
+                propertyID: hotelInfoQuery[0].propertyID,
                 dian:ID_Dian,
                 id_payment,
                 id_document,
