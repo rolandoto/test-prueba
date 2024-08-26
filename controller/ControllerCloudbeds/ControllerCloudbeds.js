@@ -69,37 +69,53 @@ const GetHotelsbyID =async(req,res=response) =>{
 
 const GetReservationBypropertyID =async(req,res=response) =>{
 
-    const {propertyID,token} = req.body
+    const {propertyID,token,search} = req.body
 
+   
     try {
 
-    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${propertyID}`, {
-            method: "GET",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer ${token}` }
-        });
+        const fetchReservations = async (searchType, searchValue) => {
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${propertyID}&${searchType}=${searchValue}`, {
+                method: "GET",
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-        if (!response) {
-            // If access is denied, return 401 status code
-            if (response.status === 401) {
-                return res.status(401).json({ ok: false });
+            // Verifica si la respuesta no es correcta (4xx o 5xx)
+            if (!response.ok) {
+                if (response.status === 401) {
+                    return { ok: false, status: 401, data: null };
+                }
+                return { ok: false, status: 500, data: null };
             }
-            // For other errors, return 500 status code
-            return res.status(401).json({ ok: false });
+
+            const data = await response.json();
+            return { ok: true, status: 200, data: data.data };
+        };
+
+        // Busca por `firstName`
+        let result = await fetchReservations('firstName', search);
+        if (result.ok && result.data.length > 0) {
+            return res.status(200).json({ ok: true, data: result.data });
         }
 
-        const {data} = await response.json();
-
-        if(!data){
-            return res.status(401).json({
-                ok:false
-            })
+        // Si no encuentra resultados, busca por `lastName`
+        result = await fetchReservations('lastName', search);
+        if (result.ok && result.data.length > 0) {
+            return res.status(200).json({ ok: true, data: result.data });
         }
 
-        return res.status(201).json({
-            ok:true,
-            data
-        })
+        // Si tampoco encuentra por `lastName`, busca por `reservationID`
+        result = await fetchReservations('reservationID', search);
+        if (result.ok && result.data.length > 0) {
+            return res.status(200).json({ ok: true, data: result.data });
+        }
+
+        // Si no se encuentran resultados en ninguno de los casos
+        return res.status(404).json({ ok: false, message: 'No reservations found' });
+
 
     } catch (error) {
         return res.status(401).json({
