@@ -480,49 +480,48 @@ const getReserva = async (req, res = response) => {
     if(type){
       const response = await pool.query(
         `SELECT 
-    web_checking.ID_facturacion, 
-    web_checking.Celular,
-    Prefijo_number.codigo,
-    Prefijo_number.nombre as nacionalidad, 
-    web_checking.Num_documento, 
-    web_checking.Nombre,
-    web_checking.Apellido, 
-    Reservas.ID_Canal, 
-    Reservas.Noches,
-    Reservas.Adultos,
-    Reservas.Ninos, 
-    Reservas.ID_Tipo_Estados_Habitaciones,
-    Habitaciones.Numero, 
-    Reservas.ID, 
-    Reservas.ID_Habitaciones, 
-    Reservas.Codigo_reserva, 
-    Reservas.Fecha_inicio, 
-    Reservas.Fecha_final,
-    Reservas.Observacion, 
-    Habitaciones.ID_Tipo_estados, 
-    Pagos.Valor_habitacion,
-    Pagos.Abono,
-    Pagos.valor_dia_habitacion 
-FROM 
-    Reservas 
-INNER JOIN 
-    Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones 
-INNER JOIN 
-    web_checking ON web_checking.ID_Reserva = Reservas.ID 
-INNER JOIN 
-    Pagos ON Pagos.ID_Reserva = Reservas.ID 
-INNER JOIN 
-    Prefijo_number ON Prefijo_number.ID = web_checking.ID_Prefijo 
-WHERE 
-    Habitaciones.ID_Hotel = ? 
-    AND Pagos.pago_valid = 1 
-    AND Reservas.ID_Tipo_Estados_Habitaciones = 6 
-    AND MONTH(Reservas.Fecha_inicio) BETWEEN 8 AND 8;`,
-         [id]
+          web_checking.ID_facturacion, 
+          web_checking.Celular,
+          Prefijo_number.codigo,
+          Prefijo_number.nombre as nacionalidad, 
+          web_checking.Num_documento, 
+          web_checking.Nombre,
+          web_checking.Apellido, 
+          Reservas.ID_Canal, 
+          Reservas.Noches,
+          Reservas.Adultos,
+          Reservas.Ninos, 
+          Reservas.ID_Tipo_Estados_Habitaciones,
+          Habitaciones.Numero, 
+          Reservas.ID, 
+          Reservas.ID_Habitaciones, 
+          Reservas.Codigo_reserva, 
+          Reservas.Fecha_inicio, 
+          Reservas.Fecha_final,
+          Reservas.Observacion, 
+          Habitaciones.ID_Tipo_estados, 
+          Pagos.Valor_habitacion,
+          Pagos.Abono,
+          Pagos.valor_dia_habitacion 
+      FROM 
+          Reservas 
+      INNER JOIN 
+          Habitaciones ON Habitaciones.ID = Reservas.ID_Habitaciones 
+      INNER JOIN 
+          web_checking ON web_checking.ID_Reserva = Reservas.ID 
+      INNER JOIN 
+          Pagos ON Pagos.ID_Reserva = Reservas.ID 
+      INNER JOIN 
+          Prefijo_number ON Prefijo_number.ID = web_checking.ID_Prefijo 
+      WHERE 
+          Habitaciones.ID_Hotel = ? 
+          AND Pagos.pago_valid = 1 
+          AND Reservas.ID_Tipo_Estados_Habitaciones = 6 
+          AND MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 8;`,
+              [id]
        );
        const promises = [];
         
-
        for (let i = 0; i < response.length; i++) {
        
          promises.push({
