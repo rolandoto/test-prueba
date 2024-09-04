@@ -517,7 +517,7 @@ const getReserva = async (req, res = response) => {
           Habitaciones.ID_Hotel = ? 
           AND Pagos.pago_valid = 1 
           AND Reservas.ID_Tipo_Estados_Habitaciones = 6 
-          AND MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 8;`,
+          AND MONTH(Reservas.Fecha_inicio) BETWEEN 1 AND 9;`,
               [id]
        );
        const promises = [];
