@@ -47,7 +47,7 @@ const getEvents =async(req,res=response) => {
     
     try {
         
-    const userQuery = await pool.query("SELECT * FROM `Events` WHERE id_hotel = ?",[id]);
+    const userQuery = await pool.query("SELECT * FROM `Events` WHERE id_hotel = ? ORDER BY `ID` DESC;",[id]);
         
     return res.status(201).json({
         ok:true,
@@ -68,7 +68,7 @@ const getEventsDatail =async(req,res=response) => {
     
     try {
    
-        const eventDetails = await pool.query("SELECT * FROM `Events` WHERE id = ?", [id]);
+        const eventDetails = await pool.query("SELECT *  FROM `Events`  WHERE id = ? ", [id]);
 
         // Obtener las actividades relacionadas con el evento
         const activities = await pool.query("SELECT * FROM `activities` WHERE Event_id = ?", [id])
@@ -86,8 +86,13 @@ const getEventsDatail =async(req,res=response) => {
           ...eventDetails[0],
           activities: groupedActivities
         };
-    
 
+
+        /*const groupedRoomsArray = Array.from(groupedRooms, ([ID_Tipo_habitaciones, data]) => ({ ID_Tipo_habitaciones, ...data }));
+        groupedRoomsArray.sort(function(a, b){return a.Price - b.Price});
+    */
+
+   
     return res.status(201).json({
         ok:true,
         userQuery
