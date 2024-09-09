@@ -3,21 +3,21 @@ const { pool } = require('../../database/connection');
 
 const InsertEventsWebsite =async(req,res=response) =>{
 
-    const {Name,DescriptionEvent1,DescriptionEvent2,Start_date,End_date,Place,id_hotel,actividades1,actividades2,Finally} = req.body
+    const {Name,Description,Start_date,End_date,Place,id_hotel} = req.body
+
 
     try {
 
         let data = {
             Name: Name,
-            DescriptionEvent1: DescriptionEvent1,
-            DescriptionEvent2:DescriptionEvent2,
+            Description: Description,
             Start_date:Start_date,
             End_date:End_date,
             Place:Place,
             id_hotel:id_hotel,
-            Finally:Finally
         };
 
+    
     await pool.query('INSERT INTO Events set ?', data, (err, customer) => {
         if(err){
             console.log(err)
@@ -26,38 +26,11 @@ const InsertEventsWebsite =async(req,res=response) =>{
                     msg:"error al insertar datos"
             })
             }else{
-                const insertSecondQuery = async() => {
-                    const queryResult = await pool.query("SELECT MAX(ID) as max FROM Events");
-                    const result = queryResult[0].max;
-
-                    for(let i =0;i<actividades1.length;i++){
-                       let dataOne ={
-                        Tipo:actividades1[i].tipo,
-                        Description:actividades1[i].descripcion,
-                        type:actividades1[i].type,
-                        Event_id:result
-                       }
-                       await pool.query('INSERT INTO activities set ?',dataOne)
-                    }
-                   
-                    for(let i =0;i<actividades2.length;i++){
-                        let dataOne ={
-                         Tipo:actividades2[i].tipo,
-                         Description:actividades2[i].descripcion,
-                         type:actividades2[i].type,
-                         Event_id:result
-                        }
-                        await pool.query('INSERT INTO activities set ?',dataOne)
-                     }
-                    
-                    return res.status(201).json({
-                        ok:true
-                    })
-                    }  
-                
-                    insertSecondQuery()
-                }
-            })
+                return res.status(201).json({
+                    ok:true
+                })    
+            }
+    })
 
     } catch (error) {
         return res.status(401).json({
@@ -107,7 +80,7 @@ const getEventsDatail =async(req,res=response) => {
           acc[activity.type].push(activity);
           return acc;
         }, {});
-    
+        
         // Agregar las actividades agrupadas al evento
         const userQuery = {
           ...eventDetails[0],
