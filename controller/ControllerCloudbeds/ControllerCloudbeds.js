@@ -913,6 +913,48 @@ const GetPaymentCloubeds =async(req,res=response) =>{
 
 
 
+const getRoomTypes =async(req,res=response) =>{
+
+    const {propertyID,token} = req.body
+
+    try {
+
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getRoomTypes?propertyID=${propertyID}`, {
+            method: "GET",
+            headers: { 'Content-type': 'application/json',
+            'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response) {
+            // If access is denied, return 401 status code
+            if (response.status === 401) {
+                return res.status(401).json({ ok: false });
+            }
+            // For other errors, return 500 status code
+            return res.status(401).json({ ok: false });
+        }
+
+        const {data,success} = await response.json();
+
+        if(!success){
+            return res.status(401).json({
+                ok:false,
+            })
+        }
+
+        return res.status(201).json({
+            ok:true,
+            data
+        })
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
 module.exports ={
     getHotelDetails,
     GetHotelsbyID,
@@ -925,5 +967,6 @@ module.exports ={
     GetRegisterCloubes,
     PostPaymentCloubeds,
     GetPaymentCloubeds,
-    PostRegisterSigoCloudbeds
+    PostRegisterSigoCloudbeds,
+    getRoomTypes
 }

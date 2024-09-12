@@ -1,5 +1,5 @@
 const { check } = require('express-validator');
-const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
+const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds, getRoomTypes } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
 const { ValidarCampos } = require('../middleweres/middleweres');
 
 const router = require('express').Router()
@@ -64,5 +64,7 @@ router.post("/PostpostReservation",[
     check("card_holder","es obligatorio").not().isEmpty(),
     check("subtotal","es obligatorio").not().isEmpty(),
 ],PostpostReservation);
+
+router.post("/getRoomTypes",getRoomTypes);
 
 module.exports = { router };  
