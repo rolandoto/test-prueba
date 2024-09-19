@@ -19,6 +19,7 @@ router.post("/SeacrhHotelsById", [
     check("email", "es obligatorio").not().isEmpty(),
     check("city", "es obligatorio").not().isEmpty(),
     check("country", "es obligatorio").not().isEmpty(),
+    check("phone", "es obligatorio").not().isEmpty(),
     check("fecha", "es obligatorio").not().isEmpty(),
     ValidarCampos
   ],HotelCreateWebSite)

@@ -52,7 +52,6 @@ const RegisterCardWompi =async(req,res=response) =>{
             method: "GET",
             headers: { 'Content-type': 'application/json',
             'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
-           
         });
 
         if (responsejSON.status === 401) {
@@ -469,7 +468,6 @@ const RegisterCardWompi =async(req,res=response) =>{
       
         }
 
-        console.log("se creo la resera")
           return res.status(201).json({
               ok:true
           })
@@ -479,7 +477,6 @@ const RegisterCardWompi =async(req,res=response) =>{
                 ok:false
             })
         }
-        
 
   
     } catch (error) {

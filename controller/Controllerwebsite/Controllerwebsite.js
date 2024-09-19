@@ -88,10 +88,6 @@ const getEventsDatail =async(req,res=response) => {
         };
 
 
-        /*const groupedRoomsArray = Array.from(groupedRooms, ([ID_Tipo_habitaciones, data]) => ({ ID_Tipo_habitaciones, ...data }));
-        groupedRoomsArray.sort(function(a, b){return a.Price - b.Price});
-    */
-
    
     return res.status(201).json({
         ok:true,

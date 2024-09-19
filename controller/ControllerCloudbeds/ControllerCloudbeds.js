@@ -828,9 +828,7 @@ const PostPaymentCloubeds =async(req,res=response) =>{
               },
              body:JSON.stringify(body)
         });
-      
-
-
+    
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }

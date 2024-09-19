@@ -21,7 +21,6 @@ router.post("/RegisterCardWompi",[
     ValidarCampos
 ],RegisterCardWompi);
 
-
 router.get("/getDetailtPayment/:id",getDetailtPayment);
 
 module.exports = { router };  

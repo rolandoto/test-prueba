@@ -596,42 +596,42 @@ const FowrwardEmail =async(req,res=response) => {
 
   const {token,id,Email_to,Copy_to} = req.body
 
-  const body ={
-    "mail_to": Email_to,
-    "copy_to": Copy_to
+    const body ={
+      "mail_to": Email_to,
+      "copy_to": Copy_to
+    }
+
+    try {   
+      const response = await fetch(`https://api.siigo.com/v1/invoices/${id}/mail`, {
+        method: "POST",
+        headers: {
+            "Authorization":token,
+            'Content-Type': 'application/json',
+            'Partner-Id': 'officegroup'
+          },
+        body:JSON.stringify(body)
+      });
+
+      if (response.status === 401) {
+          return res.status(401).json({ ok: false });
+      }
+
+      if (response.status === 400) {
+          return res.status(401).json({ ok: false });
+      }
+
+      const data = await response.json();
+
+      return res.status(201).json({
+          ok:true,
+          data
+      })
+
+  } catch (error) {
+      return res.status(401).json({
+          ok:false
+      })
   }
-
-  try {   
-    const response = await fetch(`https://api.siigo.com/v1/invoices/${id}/mail`, {
-      method: "POST",
-      headers: {
-          "Authorization":token,
-          'Content-Type': 'application/json',
-          'Partner-Id': 'officegroup'
-        },
-      body:JSON.stringify(body)
-    });
-
-    if (response.status === 401) {
-        return res.status(401).json({ ok: false });
-    }
-
-    if (response.status === 400) {
-        return res.status(401).json({ ok: false });
-    }
-
-    const data = await response.json();
-
-    return res.status(201).json({
-        ok:true,
-        data
-    })
-
-} catch (error) {
-    return res.status(401).json({
-        ok:false
-    })
-}
 
 }
 

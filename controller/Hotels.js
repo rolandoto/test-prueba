@@ -301,7 +301,6 @@ const RoomHotelPromotion = (req, res = response) => {
         success = false;
         console.error("Error deleting old records:", deleteError);
       }
-
       // Luego, para cada día en el array de días, realiza la actualización o inserción
       days.forEach(day => {
         pool.query("SELECT * FROM RoomPromotion WHERE id_hotel = ? AND day_number = ?", [day.id_hotel, day.day_number], (selectError, results) => {
