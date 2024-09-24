@@ -17,7 +17,17 @@ const http = require("http");
 const { Server } = require("socket.io");
 const puppeteer = require('puppeteer');
 
+const cloudinary = require('cloudinary').v2;
+
 dbConnection();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+
 //connection database
 
 const server = http.createServer(app);

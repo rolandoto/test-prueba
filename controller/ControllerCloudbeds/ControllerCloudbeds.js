@@ -584,7 +584,6 @@ const PostpostReservation =async(req,res=response) =>{
             });
         }
         
-        console.log(paymentData)
 
         return res.status(201).json({
             ok: true
@@ -804,7 +803,7 @@ const GetRegisterCloubes =async(req,res=response) =>{
 
 const PostPaymentCloubeds =async(req,res=response) =>{
 
-    const {ReservationID,subTotal,taxesFees,additionalItems,Date,body,token,id_user} = req.body
+    const {ReservationID,subTotal,taxesFees,additionalItems,Date,body,token,id_user,propertyID,tokenCloudbes} = req.body
 
     const date ={
         ReservationID:ReservationID,
@@ -814,10 +813,7 @@ const PostPaymentCloubeds =async(req,res=response) =>{
         Date:Date
     }
 
-
-
     try {
-
 
         const response = await fetch(`https://api.siigo.com/v1/invoices`, {
             method: "POST",
@@ -828,7 +824,7 @@ const PostPaymentCloubeds =async(req,res=response) =>{
               },
              body:JSON.stringify(body)
         });
-    
+
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }
@@ -862,10 +858,40 @@ const PostPaymentCloubeds =async(req,res=response) =>{
                                 msg: "Error inserting data"
                             });
                         } else {
-                            return res.status(201).json({
-                                ok: true,
-                                msg: "Data inserted successfully"
-                            });
+
+                            const insertThrirdeQuery = async() =>{
+                                            const formDataNote = new FormData();
+                                            formDataNote.append("reservationID", ReservationID);
+                                            formDataNote.append("reservationNote", "SE ENVIÓ FACTURACIÓN ELECTRÓNICA");
+                                            const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservationNote?propertyID=${propertyID}`, {
+                                                method: "POST",
+                                                headers: { 
+                                                    'Authorization': `Bearer ${tokenCloudbes}` 
+                                                },
+                                                body: formDataNote
+                                            });
+                                        
+                                            if (responseNote.status === 401) {
+                                                return res.status(401).json({ ok: false });
+                                            }
+                                        
+                                            const note = await responseNote.json();
+
+                                            
+                                            if (!note.success) {
+                                                return res.status(401).json({
+                                                    ok: false,
+                                                    error: "Payment failed",
+                                                });
+                                            }
+                                            
+                                            return res.status(201).json({
+                                                ok: true,
+                                                msg: "Data inserted successfully"
+                                            });
+                            }
+
+                            insertThrirdeQuery()
                         }
                     });
                  }

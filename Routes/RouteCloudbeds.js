@@ -30,6 +30,8 @@ router.post("/PostPaymentCloubeds",[
     check("taxesFees","es obligatorio").not().isEmpty(),
     check("additionalItems","es obligatorio").not().isEmpty(),
     check("Date","es obligatorio").not().isEmpty(),
+    check("propertyID","es obligatorio").not().isEmpty(),
+    check("tokenCloudbes","es obligatorio").not().isEmpty(),
     ValidarCampos
 ],PostPaymentCloubeds);
 
