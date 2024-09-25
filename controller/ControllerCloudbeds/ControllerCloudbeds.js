@@ -308,6 +308,78 @@ const PostpostReservation =async(req,res=response) =>{
             subtotal} = req.body
     try {
 
+        const formData = new FormData();
+        formData.append("startDate", startDate)
+        formData.append("endDate",endDate)
+        formData.append("guestFirstName",guestFirstName)
+        formData.append("guestLastName", guestLastName)
+        formData.append("guestCountry", "CO")
+        formData.append("guestEmail", guestEmail)
+        formData.append("guestPhone", guestPhone)
+        formData.append("rooms", JSON.stringify(rooms));
+        formData.append("adults", JSON.stringify(adults));
+        formData.append("children", JSON.stringify(children));
+        formData.append("paymentMethod", "Wompi")
+        formData.append("dateCreated", dateCreated)
+        formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
+        
+        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
+            method: "POST",
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: formData
+        });
+    
+        if (response.status === 401) {
+            return res.status(401).json({ ok: false });
+        }
+        
+        const reservationData = await response.json();
+        const { success } = reservationData;
+    
+        if (!success) {
+            return res.status(400).json({
+                ok: false,
+                error: "Reservation failed",
+            });
+        }
+    
+        return res.status(201).json({
+            ok: true
+        });
+    
+      
+    } catch (error) {
+        return res.status(401).json({
+            ok:false,
+            msg:"ocurrio un error"
+        })
+    }
+
+
+    /**
+     * 
+     *  const { propertyID,
+            token,
+            startDate,
+            endDate,
+            guestFirstName,
+            guestLastName,
+            guestEmail,
+            guestPhone,
+            rooms,
+            adults,
+            children,
+            dateCreated,
+            number,
+            exp_month,
+            exp_year,
+            cvc,
+            card_holder,
+            subtotal} = req.body
+    try {
+
 
  
 
@@ -597,6 +669,9 @@ const PostpostReservation =async(req,res=response) =>{
             msg:"ocurrio un error"
         })
     }
+     * 
+     */
+
 }
 
 async function handleCustomerAfterInsert(req, res, token, body) {
