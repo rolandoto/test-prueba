@@ -428,7 +428,7 @@ try {
         "public-key": `${pub_prud}` ,
         "amount_in_cents":amount_in_cents,
         "currency": "COP",
-        "signature":  "",
+        "signature":  hashHex,
         "customer_email": guestEmail,
         "reference":ProductoToken,
         "acceptance_token": acceptance_token,
