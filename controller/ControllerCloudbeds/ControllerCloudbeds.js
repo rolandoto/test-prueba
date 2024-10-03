@@ -428,15 +428,16 @@ try {
                 "token":ProductoToken
             }
     }
-  
-    const responseTranstion = await fetch(` https://api.wompi.co/v1/transactions`, {
+    
+    console.log(dataTransTions)
+    const responseTranstion = await fetch(`https://api.wompi.co/v1/transactions`, {
         method: "POST",
         headers: { 'Content-type': 'application/json',
         'Authorization': `Bearer ${pub_prud}` },
         body:JSON.stringify(dataTransTions)
     });
 
-    console.log(cadenaConcatenada)
+    console.log(responseTranstion)
 
     if (responseTranstion.status === 422) {
         const messege= await responseTranstion.json();
