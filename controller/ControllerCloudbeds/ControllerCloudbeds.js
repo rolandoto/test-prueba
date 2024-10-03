@@ -358,7 +358,7 @@ try {
         console.log("Property ID no encontrado.");
       }
 
-    console.log(pub_prud)
+   
       
     const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/${pub_prud}`, {
         method: "GET",
@@ -400,6 +400,9 @@ try {
         })
     }
 
+    console.log(pub_prud)
+    console.log(propertyID)
+
     const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
     const ProductoToken = productToken.data.id
 
@@ -437,7 +440,7 @@ try {
         body:JSON.stringify(dataTransTions)
     });
 
-    console.log(responseTranstion)
+ 
 
     if (responseTranstion.status === 422) {
         const messege= await responseTranstion.json();
