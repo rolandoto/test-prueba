@@ -400,16 +400,18 @@ try {
         })
     }
 
-    console.log(pub_prud)
-    console.log(propertyID)
-
+   
     const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
     const ProductoToken = productToken.data.id
 
     let total = subtotal; // example value
     let amount_in_cents = total * 100; // add two zeros
 
+    console.log(pub_prud)
+    console.log(propertyID)
+
     const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
+    console.lo(cadenaConcatenada)
     const encodedText = new TextEncoder().encode(cadenaConcatenada);
     const hashBuffer = await crypto.subtle.digest("SHA-256", encodedText);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -417,6 +419,8 @@ try {
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
 
+      console.log(hashHex)
+    
       const dataTransTions ={
         "public-key": `${pub_prud}` ,
         "amount_in_cents":amount_in_cents,
@@ -432,7 +436,7 @@ try {
             }
     }
     
-    console.log(dataTransTions)
+  
     const responseTranstion = await fetch(`https://api.wompi.co/v1/transactions`, {
         method: "POST",
         headers: { 'Content-type': 'application/json',
