@@ -366,8 +366,6 @@ try {
         'Authorization': `Bearer ${pub_prud}` },
     });
 
-    
-    console.log({"w":pub_prud})
 
     if (responsejSON.status === 401) {
     return res.status(401).json({ ok: false });
@@ -380,6 +378,8 @@ try {
             ok:false
         })
     }
+
+    console.log({"w":dataJson})
 
     const responseCardWompi = await fetch(`https://api.wompi.co/v1/tokens/cards`, {
         method: "POST",
@@ -400,6 +400,9 @@ try {
             ok:false
         })
     }
+
+    console.log({"w":productToken})
+
     const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
     const ProductoToken = productToken.data.id
 
