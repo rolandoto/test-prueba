@@ -317,29 +317,47 @@ try {
         "card_holder":card_holder
     }
 
-    let pub_prud =0
-    let prod_integrity=0
-  
-    if(propertyID ==315187){
-        pub_prud="pub_prod_cDEtQv88NubGXtHe93BPDlHlQE7PiFYE"
-        prod_integrity="prod_integrity_RNL8ipoo3kL967PV9EsvzFaR7PIBDYGl"
-    }else if(propertyID ==315188){
-        pub_prud="pub_prod_t6vU4sNJVhfhfSZZ19lxqztcyX4m6SC1"
-        prod_integrity="prod_integrity_jFRyzKXDRCXWTQDMJq8cjGWPwhHBMN34"
-    }else if(propertyID ==315189){
-        pub_prud="pub_prod_XwhXR7ZHlmCyco8zcGEXTZtweK5JELEH"
-        prod_integrity="prod_integrity_EBzQdc21H2auF17sF0DGRFcykCQVcna9"
-    }else if(propertyID ==315191){
-        pub_prud="pub_prod_S4fZBanQpzL1Bf9Z1qP4sssh8vVS2aus"
-        prod_integrity="prod_integrity_YaYbpHVcNgevN209DPL3bsDGaqakxeEj"
-    }else if(propertyID ==315192){
-        pub_prud="pub_prod_gs7xg5A9jFrZAXMFdITBN8BB7MquPm2l"
-        prod_integrity="prod_integrity_RPY4gLaZXn752qyrrBwdDj7GlP0JWauC"
-    }else if(propertyID ==315187 || propertyID ==315193){
-        pub_prud="pub_prod_4K8DnlOLsTbxSBuXcBaXYorzq662AkkD"
-        prod_integrity="prod_integrity_aMTK18bVmDiEcni4ypf1xSzYoYzyr2st"
-    }
-
+    const propertyMap = {
+        315187: {
+          pub_prud: "pub_prod_cDEtQv88NubGXtHe93BPDlHlQE7PiFYE",
+          prod_integrity: "prod_integrity_RNL8ipoo3kL967PV9EsvzFaR7PIBDYGl"
+        },
+        315188: {
+          pub_prud: "pub_prod_t6vU4sNJVhfhfSZZ19lxqztcyX4m6SC1",
+          prod_integrity: "prod_integrity_jFRyzKXDRCXWTQDMJq8cjGWPwhHBMN34"
+        },
+        315189: {
+          pub_prud: "pub_prod_XwhXR7ZHlmCyco8zcGEXTZtweK5JELEH",
+          prod_integrity: "prod_integrity_EBzQdc21H2auF17sF0DGRFcykCQVcna9"
+        },
+        315191: {
+          pub_prud: "pub_prod_S4fZBanQpzL1Bf9Z1qP4sssh8vVS2aus",
+          prod_integrity: "prod_integrity_YaYbpHVcNgevN209DPL3bsDGaqakxeEj"
+        },
+        315192: {
+          pub_prud: "pub_prod_gs7xg5A9jFrZAXMFdITBN8BB7MquPm2l",
+          prod_integrity: "prod_integrity_RPY4gLaZXn752qyrrBwdDj7GlP0JWauC"
+        },
+        315193: {
+          pub_prud: "pub_prod_4K8DnlOLsTbxSBuXcBaXYorzq662AkkD",
+          prod_integrity: "prod_integrity_aMTK18bVmDiEcni4ypf1xSzYoYzyr2st"
+        }
+      };
+      
+      // Obtener los valores para propertyID
+      let pub_prud = "";
+      let prod_integrity = "";
+      
+      if (propertyID === 315187 || propertyID === 315193) {
+        pub_prud = propertyMap[315193].pub_prud;
+        prod_integrity = propertyMap[315193].prod_integrity;
+      } else if (propertyMap[propertyID]) {
+        pub_prud = propertyMap[propertyID].pub_prud;
+        prod_integrity = propertyMap[propertyID].prod_integrity;
+      } else {
+        console.log("Property ID no encontrado.");
+      }
+      
     const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/${pub_prud}`, {
         method: "GET",
         headers: { 'Content-type': 'application/json',
@@ -366,7 +384,6 @@ try {
     });
 
 
-
     if (responseCardWompi.status === 401) {
         return res.status(401).json({ ok: false });
     }
@@ -378,11 +395,8 @@ try {
             ok:false
         })
     }
-
-
     const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
     const ProductoToken = productToken.data.id
-
 
     let total = subtotal; // example value
     let amount_in_cents = total * 100; // add two zeros
