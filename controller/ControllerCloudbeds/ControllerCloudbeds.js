@@ -407,18 +407,16 @@ try {
     let total = subtotal; // example value
     let amount_in_cents = total * 100; // add two zeros
 
-    console.log(pub_prud)
-    console.log(propertyID)
+    console.log(ProductoToken)
+    console.log(amount_in_cents)
+    console.log(prod_integrity)
 
     const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
-    console.lo(cadenaConcatenada)
-    const encodedText = new TextEncoder().encode(cadenaConcatenada);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", encodedText);
+   
+    const encondedText = new TextEncoder().encode(cadenaConcatenada);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encondedText);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
-
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); 
       console.log(hashHex)
     
       const dataTransTions ={
