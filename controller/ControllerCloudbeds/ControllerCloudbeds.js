@@ -436,11 +436,7 @@ try {
         body:JSON.stringify(dataTransTions)
     });
 
-
-    const messege= await responseTranstion.json();
-    console.log(messege)
     console.log(cadenaConcatenada)
-
 
     if (responseTranstion.status === 422) {
         const messege= await responseTranstion.json();
