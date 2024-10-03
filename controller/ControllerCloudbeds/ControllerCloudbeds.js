@@ -437,7 +437,10 @@ try {
     });
 
 
-    
+    const messege= await responseTranstion.json();
+    console.log(messege)
+    console.log(cadenaConcatenada)
+
 
     if (responseTranstion.status === 422) {
         const messege= await responseTranstion.json();
@@ -452,7 +455,7 @@ try {
        
     const Trasntion= await responseTranstion.json();
 
-    console.log({"w":Trasntion})
+
 
     const getTranstion = await fetch(` https://api.wompi.co/v1/transactions/${Trasntion.data.id}`, {
         method: "GET",
