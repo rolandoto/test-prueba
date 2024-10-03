@@ -412,18 +412,14 @@ try {
     console.log(prod_integrity)
 
     const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
-   
-    const encondedText = new TextEncoder().encode(cadenaConcatenada);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", encondedText);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); 
-      console.log(hashHex)
     
+    console.log(cadenaConcatenada)
+
       const dataTransTions ={
         "public-key": `${pub_prud}` ,
         "amount_in_cents":amount_in_cents,
         "currency": "COP",
-        "signature":  hashHex,
+        "signature":  "",
         "customer_email": guestEmail,
         "reference":ProductoToken,
         "acceptance_token": acceptance_token,
