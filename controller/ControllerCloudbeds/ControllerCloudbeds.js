@@ -1,5 +1,6 @@
 const {response, json, query} = require('express');
 const { pool } = require('../../database/connection');
+const crypto = require('crypto');
 
 
 function delay(ms) {
@@ -413,7 +414,15 @@ try {
 
     const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
     
-    console.log(cadenaConcatenada)
+ 
+        // Generar el hash SHA-256
+        const hash = crypto.createHash('sha256');
+
+        // Actualizar el hash con la cadena concatenada y obtener el resultado en formato hexadecimal
+        hash.update(cadenaConcatenada);
+        const hashHex = hash.digest('hex');
+
+        console.log("Hash generado:", hashHex);
 
       const dataTransTions ={
         "public-key": `${pub_prud}` ,
