@@ -379,8 +379,7 @@ try {
         })
     }
 
-    console.log({"w":dataJson})
-
+  
     const responseCardWompi = await fetch(`https://api.wompi.co/v1/tokens/cards`, {
         method: "POST",
         headers: { 'Content-type': 'application/json',
@@ -401,23 +400,21 @@ try {
         })
     }
 
-    console.log({"w":productToken})
-
     const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
     const ProductoToken = productToken.data.id
 
     let total = subtotal; // example value
     let amount_in_cents = total * 100; // add two zeros
 
-    var cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
-
-    //Ejemplo
-    const encondedText = new TextEncoder().encode(cadenaConcatenada);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", encondedText);
+    const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
+    const encodedText = new TextEncoder().encode(cadenaConcatenada);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encodedText);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); 
+    const hashHex = hashArray
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
 
-    const dataTransTions ={
+      const dataTransTions ={
         "public-key": `${pub_prud}` ,
         "amount_in_cents":amount_in_cents,
         "currency": "COP",
@@ -439,9 +436,12 @@ try {
         body:JSON.stringify(dataTransTions)
     });
 
+
+    
+
     if (responseTranstion.status === 422) {
         const messege= await responseTranstion.json();
-        console.log(messege.error.messages)
+        console.log(messege)
         return res.status(401).json({
              ok: false,
              msg:messege.error.messages });
@@ -451,6 +451,8 @@ try {
     await delay(10000);
        
     const Trasntion= await responseTranstion.json();
+
+    console.log({"w":Trasntion})
 
     const getTranstion = await fetch(` https://api.wompi.co/v1/transactions/${Trasntion.data.id}`, {
         method: "GET",
