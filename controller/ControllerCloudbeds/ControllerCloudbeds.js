@@ -340,8 +340,6 @@ try {
         prod_integrity="prod_integrity_aMTK18bVmDiEcni4ypf1xSzYoYzyr2st"
     }
 
-
-
     const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/${pub_prud}`, {
         method: "GET",
         headers: { 'Content-type': 'application/json',
@@ -439,8 +437,6 @@ try {
     });
 
     const getValidTransation= await getTranstion.json();
-
-    console.log(getValidTransation)
 
     if(getValidTransation.data.status =="APPROVED"){
         
