@@ -289,386 +289,349 @@ const getAvailableRoomTypes =async(req,res=response) =>{
 const PostpostReservation =async(req,res=response) =>{
 
     const { propertyID,
-            token,
-            startDate,
-            endDate,
-            guestFirstName,
-            guestLastName,
-            guestEmail,
-            guestPhone,
-            rooms,
-            adults,
-            children,
-            dateCreated,
-            number,
-            exp_month,
-            exp_year,
-            cvc,
-            card_holder,
-            subtotal} = req.body
-    try {
+        token,
+        startDate,
+        endDate,
+        guestFirstName,
+        guestLastName,
+        guestEmail,
+        guestPhone,
+        rooms,
+        adults,
+        children,
+        dateCreated,
+        number,
+        exp_month,
+        exp_year,
+        cvc,
+        card_holder,
+        subtotal} = req.body
+try {
 
-        const formData = new FormData();
-        formData.append("startDate", startDate)
-        formData.append("endDate",endDate)
-        formData.append("guestFirstName",guestFirstName)
-        formData.append("guestLastName", guestLastName)
-        formData.append("guestCountry", "CO")
-        formData.append("guestEmail", guestEmail)
-        formData.append("guestPhone", guestPhone)
-        formData.append("rooms", JSON.stringify(rooms));
-        formData.append("adults", JSON.stringify(adults));
-        formData.append("children", JSON.stringify(children));
-        formData.append("paymentMethod", "Wompi")
-        formData.append("dateCreated", dateCreated)
-        formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
-        
-        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formData
-        });
-    
-        if (response.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-        
-        const reservationData = await response.json();
-        const { success } = reservationData;
-    
-        if (!success) {
-            return res.status(400).json({
-                ok: false,
-                error: "Reservation failed",
-            });
-        }
-    
-        return res.status(201).json({
-            ok: true
-        });
-    
-      
-    } catch (error) {
+
+    const dataCard =  {
+        "number":`${number}` ,
+        "exp_month":exp_month, 
+        "exp_year": exp_year,  // Código de seguridad (como string de 3 o 4 dígitos)
+        "cvc": cvc,
+        "card_holder":card_holder
+    }
+
+    let pub_prud =0
+    let prod_integrity=0
+  
+    if(propertyID ==315187){
+        pub_prud="pub_prod_cDEtQv88NubGXtHe93BPDlHlQE7PiFYE"
+        prod_integrity="prod_integrity_RNL8ipoo3kL967PV9EsvzFaR7PIBDYGl"
+    }else if(propertyID ==315188){
+        pub_prud="pub_prod_t6vU4sNJVhfhfSZZ19lxqztcyX4m6SC1"
+        prod_integrity="prod_integrity_jFRyzKXDRCXWTQDMJq8cjGWPwhHBMN34"
+    }else if(propertyID ==315189){
+        pub_prud="pub_prod_XwhXR7ZHlmCyco8zcGEXTZtweK5JELEH"
+        prod_integrity="prod_integrity_EBzQdc21H2auF17sF0DGRFcykCQVcna9"
+    }else if(propertyID ==315191){
+        pub_prud="pub_prod_S4fZBanQpzL1Bf9Z1qP4sssh8vVS2aus"
+        prod_integrity="prod_integrity_YaYbpHVcNgevN209DPL3bsDGaqakxeEj"
+    }else if(propertyID ==315192){
+        pub_prud="pub_prod_gs7xg5A9jFrZAXMFdITBN8BB7MquPm2l"
+        prod_integrity="prod_integrity_RPY4gLaZXn752qyrrBwdDj7GlP0JWauC"
+    }else if(propertyID ==315187 || propertyID ==315193){
+        pub_prud="pub_prod_4K8DnlOLsTbxSBuXcBaXYorzq662AkkD"
+        prod_integrity="prod_integrity_aMTK18bVmDiEcni4ypf1xSzYoYzyr2st"
+    }
+
+
+
+    const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/${pub_prud}`, {
+        method: "GET",
+        headers: { 'Content-type': 'application/json',
+        'Authorization': `Bearer ${pub_prud}` },
+    });
+
+    if (responsejSON.status === 401) {
+    return res.status(401).json({ ok: false });
+    }
+
+    const dataJson= await responsejSON.json();
+
+    if(!dataJson){
         return res.status(401).json({
-            ok:false,
-            msg:"ocurrio un error"
+            ok:false
+        })
+    }
+
+    const responseCardWompi = await fetch(`https://api.wompi.co/v1/tokens/cards`, {
+        method: "POST",
+        headers: { 'Content-type': 'application/json',
+        'Authorization': `Bearer ${pub_prud}` },
+        body:JSON.stringify(dataCard)
+    });
+
+
+
+    if (responseCardWompi.status === 401) {
+        return res.status(401).json({ ok: false });
+    }
+       
+    const productToken= await responseCardWompi.json();
+
+    if(!productToken){
+        return res.status(401).json({
+            ok:false
         })
     }
 
 
+    const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
+    const ProductoToken = productToken.data.id
+
+
+    let total = subtotal; // example value
+    let amount_in_cents = total * 100; // add two zeros
+
+    var cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
+
+    //Ejemplo
+    const encondedText = new TextEncoder().encode(cadenaConcatenada);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encondedText);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(""); 
+
+    const dataTransTions ={
+        "public-key": `${pub_prud}` ,
+        "amount_in_cents":amount_in_cents,
+        "currency": "COP",
+        "signature":  hashHex,
+        "customer_email": guestEmail,
+        "reference":ProductoToken,
+        "acceptance_token": acceptance_token,
+            "payment_method": {
+                "type": "CARD",
+                "installments": 1, // Número de cuotas
+                "token":ProductoToken
+            }
+    }
+  
+    const responseTranstion = await fetch(` https://api.wompi.co/v1/transactions`, {
+        method: "POST",
+        headers: { 'Content-type': 'application/json',
+        'Authorization': `Bearer ${pub_prud}` },
+        body:JSON.stringify(dataTransTions)
+    });
+
+    if (responseTranstion.status === 422) {
+        const messege= await responseTranstion.json();
+        console.log(messege.error.messages)
+        return res.status(401).json({
+             ok: false,
+             msg:messege.error.messages });
+    }
+   
+    
+    await delay(10000);
+       
+    const Trasntion= await responseTranstion.json();
+
+    const getTranstion = await fetch(` https://api.wompi.co/v1/transactions/${Trasntion.data.id}`, {
+        method: "GET",
+        headers: { 'Content-type': 'application/json',
+        'Authorization': `Bearer ${pub_prud}` },
+    });
+
+    const getValidTransation= await getTranstion.json();
+
+    console.log(getValidTransation)
+
+    if(getValidTransation.data.status =="APPROVED"){
+        
+                const formData = new FormData();
+                formData.append("startDate", startDate)
+                formData.append("endDate",endDate)
+                formData.append("guestFirstName",guestFirstName)
+                formData.append("guestLastName", guestLastName)
+                formData.append("guestCountry", "CO")
+                formData.append("guestEmail", guestEmail)
+                formData.append("guestPhone", guestPhone)
+                formData.append("rooms", JSON.stringify(rooms));
+                formData.append("adults", JSON.stringify(adults));
+                formData.append("children", JSON.stringify(children));
+                formData.append("paymentMethod", "Wompi")
+                formData.append("dateCreated", dateCreated)
+                formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
+
+                const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
+                    method: "POST",
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: formData
+                });
+            
+                if (response.status === 401) {
+                    return res.status(401).json({ ok: false });
+                }
+                
+                const reservationData = await response.json();
+                const { success, reservationID, grandTotal } = reservationData;
+            
+                if (!success) {
+                    return res.status(400).json({
+                        ok: false,
+                        error: "Reservation failed",
+                    });
+                }
+            
+                const formDataPayment = new FormData();
+                formDataPayment.append("amount", grandTotal);
+                formDataPayment.append("type", "Wompi");
+                formDataPayment.append("reservationID", reservationID);
+            
+                const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
+                    method: "POST",
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: formDataPayment
+                });
+            
+                if (responsePayment.status === 401) {
+                    return res.status(401).json({ ok: false });
+                }
+            
+                const paymentData = await responsePayment.json();
+            
+                if (!paymentData.success) {
+                    return res.status(400).json({
+                        ok: false,
+                        error: "Payment failed",
+                    });
+                }
+                console.log(paymentData)
+                return res.status(201).json({
+                    ok: true
+                });
+}else if(getValidTransation.data.status =="DECLINED"){
+          
+    const formData = new FormData();
+    formData.append("startDate", startDate)
+    formData.append("endDate",endDate)
+    formData.append("guestFirstName",guestFirstName)
+    formData.append("guestLastName", guestLastName)
+    formData.append("guestCountry", "CO")
+    formData.append("guestEmail", guestEmail)
+    formData.append("guestPhone", guestPhone)
+    formData.append("rooms", JSON.stringify(rooms));
+    formData.append("adults", JSON.stringify(adults));
+    formData.append("children", JSON.stringify(children));
+    formData.append("paymentMethod", "Wompi")
+    formData.append("dateCreated", dateCreated)
+    formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
+
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
+        method: "POST",
+        headers: { 
+            'Authorization': `Bearer ${token}` 
+        },
+        body: formData
+    });
+
+    if (response.status === 401) {
+        return res.status(401).json({ ok: false });
+    }
+    
+    const reservationData = await response.json();
+    const { success } = reservationData;
+
+    if (!success) {
+        return res.status(400).json({
+            ok: false,
+            error: "Reservation failed",
+        });
+    }
+
+    return res.status(201).json({
+        ok: true
+    });
+}else if(getValidTransation.data.status =="PENDING"){
+    const formData = new FormData();
+    formData.append("startDate", startDate)
+    formData.append("endDate",endDate)
+    formData.append("guestFirstName",guestFirstName)
+    formData.append("guestLastName", guestLastName)
+    formData.append("guestCountry", "CO")
+    formData.append("guestEmail", guestEmail)
+    formData.append("guestPhone", guestPhone)
+    formData.append("rooms", JSON.stringify(rooms));
+    formData.append("adults", JSON.stringify(adults));
+    formData.append("children", JSON.stringify(children));
+    formData.append("paymentMethod", "Wompi")
+    formData.append("dateCreated", dateCreated)
+    formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
+
+    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
+        method: "POST",
+        headers: { 
+            'Authorization': `Bearer ${token}` 
+        },
+        body: formData
+    });
+
+    if (response.status === 401) {
+        return res.status(401).json({ ok: false });
+    }
+    
+    const reservationData = await response.json();
+    const { success, reservationID, grandTotal } = reservationData;
+
+    if (!success) {
+        return res.status(400).json({
+            ok: false,
+            error: "Reservation failed",
+        });
+    }
+
+    const formDataPayment = new FormData();
+    formDataPayment.append("amount", grandTotal);
+    formDataPayment.append("type", "Wompi");
+    formDataPayment.append("reservationID", reservationID);
+
+    const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
+        method: "POST",
+        headers: { 
+            'Authorization': `Bearer ${token}` 
+        },
+        body: formDataPayment
+    });
+
+    if (responsePayment.status === 401) {
+        return res.status(401).json({ ok: false });
+    }
+
+    const paymentData = await responsePayment.json();
+
+    if (!paymentData.success) {
+        return res.status(401).json({
+            ok: false,
+            error: "Payment failed",
+        });
+    }
+    
+
+    return res.status(201).json({
+        ok: true
+    });
+}
+
+  
+} catch (error) {
+    return res.status(401).json({
+        ok:false,
+        msg:"ocurrio un error"
+    })
+}
     /**
      * 
-     *  const { propertyID,
-            token,
-            startDate,
-            endDate,
-            guestFirstName,
-            guestLastName,
-            guestEmail,
-            guestPhone,
-            rooms,
-            adults,
-            children,
-            dateCreated,
-            number,
-            exp_month,
-            exp_year,
-            cvc,
-            card_holder,
-            subtotal} = req.body
-    try {
-
-
- 
-
-        const dataCard =  {
-            "number":`${number}` ,
-            "exp_month":exp_month, 
-            "exp_year": exp_year,  // Código de seguridad (como string de 3 o 4 dígitos)
-            "cvc": cvc,
-            "card_holder":card_holder
-        }
-
-
-        const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ`, {
-            method: "GET",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
-        });
-
-        if (responsejSON.status === 401) {
-        return res.status(401).json({ ok: false });
-        }
-
-        const dataJson= await responsejSON.json();
-
-        if(!dataJson){
-            return res.status(401).json({
-                ok:false
-            })
-        }
-        const responseCardWompi = await fetch(`https://api.wompi.co/v1/tokens/cards`, {
-            method: "POST",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
-            body:JSON.stringify(dataCard)
-        });
-
-        if (responseCardWompi.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-           
-        const productToken= await responseCardWompi.json();
-       
-        if(!productToken){
-            return res.status(401).json({
-                ok:false
-            })
-        }
-
-        const acceptance_token = dataJson.data.presigned_acceptance.acceptance_token
-        const ProductoToken = productToken.data.id
-
-
-
-        let total = subtotal; // example value
-        let amount_in_cents = total * 100; // add two zeros
-
-        const dataTransTions ={
-            "public-key": "pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ",
-            "amount_in_cents":amount_in_cents,
-            "currency": "COP",
-            "customer_email": guestEmail,
-            "reference":ProductoToken,
-            "acceptance_token": acceptance_token,
-                "payment_method": {
-                    "type": "CARD",
-                    "installments": 1, // Número de cuotas
-                    "token":ProductoToken
-                }
-        }
-      
-        const responseTranstion = await fetch(` https://api.wompi.co/v1/transactions`, {
-            method: "POST",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
-            body:JSON.stringify(dataTransTions)
-        });
-
-     
-
-        if (responseTranstion.status === 422) {
-            const messege= await responseTranstion.json();
-           
-            return res.status(401).json({
-                 ok: false,
-                 msg:messege.error.messages });
-        }
-
-
-        await delay(10000);
-           
-        const Trasntion= await responseTranstion.json();
-
-        const getTranstion = await fetch(` https://api.wompi.co/v1/transactions/${Trasntion.data.id}`, {
-            method: "GET",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer pub_prod_GlPKJMtPAgxDIMX3ht392orLWYa5bQLJ` },
-        });
-
-        const getValidTransation= await getTranstion.json();
-
-        console.log(getValidTransation.data.status)
-
-        if(getValidTransation.data.status =="APPROVED"){
-            
-                    const formData = new FormData();
-                    formData.append("startDate", startDate)
-                    formData.append("endDate",endDate)
-                    formData.append("guestFirstName",guestFirstName)
-                    formData.append("guestLastName", guestLastName)
-                    formData.append("guestCountry", "CO")
-                    formData.append("guestEmail", guestEmail)
-                    formData.append("guestPhone", guestPhone)
-                    formData.append("rooms", JSON.stringify(rooms));
-                    formData.append("adults", JSON.stringify(adults));
-                    formData.append("children", JSON.stringify(children));
-                    formData.append("paymentMethod", "Wompi")
-                    formData.append("dateCreated", dateCreated)
-                    formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
-
-                    const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
-                        method: "POST",
-                        headers: { 
-                            'Authorization': `Bearer ${token}` 
-                        },
-                        body: formData
-                    });
-                
-                    if (response.status === 401) {
-                        return res.status(401).json({ ok: false });
-                    }
-                    
-                    const reservationData = await response.json();
-                    const { success, reservationID, grandTotal } = reservationData;
-                
-                    if (!success) {
-                        return res.status(400).json({
-                            ok: false,
-                            error: "Reservation failed",
-                        });
-                    }
-                
-                    const formDataPayment = new FormData();
-                    formDataPayment.append("amount", grandTotal);
-                    formDataPayment.append("type", "Wompi");
-                    formDataPayment.append("reservationID", reservationID);
-                
-                    const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
-                        method: "POST",
-                        headers: { 
-                            'Authorization': `Bearer ${token}` 
-                        },
-                        body: formDataPayment
-                    });
-                
-                    if (responsePayment.status === 401) {
-                        return res.status(401).json({ ok: false });
-                    }
-                
-                    const paymentData = await responsePayment.json();
-                
-                    if (!paymentData.success) {
-                        return res.status(400).json({
-                            ok: false,
-                            error: "Payment failed",
-                        });
-                    }
-                    console.log(paymentData)
-                    return res.status(201).json({
-                        ok: true
-                    });
-    }else if(getValidTransation.data.status =="DECLINED"){
-              
-        const formData = new FormData();
-        formData.append("startDate", startDate)
-        formData.append("endDate",endDate)
-        formData.append("guestFirstName",guestFirstName)
-        formData.append("guestLastName", guestLastName)
-        formData.append("guestCountry", "CO")
-        formData.append("guestEmail", guestEmail)
-        formData.append("guestPhone", guestPhone)
-        formData.append("rooms", JSON.stringify(rooms));
-        formData.append("adults", JSON.stringify(adults));
-        formData.append("children", JSON.stringify(children));
-        formData.append("paymentMethod", "Wompi")
-        formData.append("dateCreated", dateCreated)
-        formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
-
-        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formData
-        });
-    
-        if (response.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-        
-        const reservationData = await response.json();
-        const { success } = reservationData;
-    
-        if (!success) {
-            return res.status(400).json({
-                ok: false,
-                error: "Reservation failed",
-            });
-        }
-    
-        return res.status(201).json({
-            ok: true
-        });
-    }else if(getValidTransation.data.status =="PENDING"){
-        const formData = new FormData();
-        formData.append("startDate", startDate)
-        formData.append("endDate",endDate)
-        formData.append("guestFirstName",guestFirstName)
-        formData.append("guestLastName", guestLastName)
-        formData.append("guestCountry", "CO")
-        formData.append("guestEmail", guestEmail)
-        formData.append("guestPhone", guestPhone)
-        formData.append("rooms", JSON.stringify(rooms));
-        formData.append("adults", JSON.stringify(adults));
-        formData.append("children", JSON.stringify(children));
-        formData.append("paymentMethod", "Wompi")
-        formData.append("dateCreated", dateCreated)
-        formData.append("sendEmailConfirmation", "true") // es necesario que este valor sea una cadena
-
-        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservation?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formData
-        });
-    
-        if (response.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-        
-        const reservationData = await response.json();
-        const { success, reservationID, grandTotal } = reservationData;
-    
-        if (!success) {
-            return res.status(400).json({
-                ok: false,
-                error: "Reservation failed",
-            });
-        }
-    
-        const formDataPayment = new FormData();
-        formDataPayment.append("amount", grandTotal);
-        formDataPayment.append("type", "Wompi");
-        formDataPayment.append("reservationID", reservationID);
-    
-        const responsePayment = await fetch(`https://api.cloudbeds.com/api/v1.1/postPayment?propertyID=${propertyID}`, {
-            method: "POST",
-            headers: { 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: formDataPayment
-        });
-    
-        if (responsePayment.status === 401) {
-            return res.status(401).json({ ok: false });
-        }
-    
-        const paymentData = await responsePayment.json();
-    
-        if (!paymentData.success) {
-            return res.status(401).json({
-                ok: false,
-                error: "Payment failed",
-            });
-        }
-        
-
-        return res.status(201).json({
-            ok: true
-        });
-    }
-
-      
-    } catch (error) {
-        return res.status(401).json({
-            ok:false,
-            msg:"ocurrio un error"
-        })
-    }
+     * 
      * 
      */
 
