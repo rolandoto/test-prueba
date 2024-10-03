@@ -357,12 +357,17 @@ try {
       } else {
         console.log("Property ID no encontrado.");
       }
+
+    console.log(pub_prud)
       
     const responsejSON = await fetch(` https://api.wompi.co/v1/merchants/${pub_prud}`, {
         method: "GET",
         headers: { 'Content-type': 'application/json',
         'Authorization': `Bearer ${pub_prud}` },
     });
+
+    
+    console.log({"w":pub_prud})
 
     if (responsejSON.status === 401) {
     return res.status(401).json({ ok: false });
