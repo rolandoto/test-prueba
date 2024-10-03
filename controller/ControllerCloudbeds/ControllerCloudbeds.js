@@ -413,18 +413,11 @@ try {
     console.log(prod_integrity)
 
     const cadenaConcatenada = `${ProductoToken}${amount_in_cents}COP${prod_integrity}`;
-    
- 
-        // Generar el hash SHA-256
-        const hash = crypto.createHash('sha256');
+    const hash = crypto.createHash('sha256');
+    hash.update(cadenaConcatenada);
+    const hashHex = hash.digest('hex');
 
-        // Actualizar el hash con la cadena concatenada y obtener el resultado en formato hexadecimal
-        hash.update(cadenaConcatenada);
-        const hashHex = hash.digest('hex');
-
-        console.log("Hash generado:", hashHex);
-
-      const dataTransTions ={
+    const dataTransTions ={
         "public-key": `${pub_prud}` ,
         "amount_in_cents":amount_in_cents,
         "currency": "COP",
@@ -471,6 +464,8 @@ try {
     });
 
     const getValidTransation= await getTranstion.json();
+
+    console.log(getValidTransation)
 
     if(getValidTransation.data.status =="APPROVED"){
         
