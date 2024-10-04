@@ -10,6 +10,7 @@ const RouterWompi = require("./Routes/RouteWompi")
 const RouteWenSite = require("./Routes/Website.route")
 const cors = require("cors");
 require("dotenv").config();
+const bodyParser = require('body-parser');
 var path = require('path')
 const { dbConnection } = require("./database/Config");
 const app = require("express")();
@@ -72,6 +73,23 @@ io.on("connection", (socket) => {
   });
 
 });
+
+app.use(bodyParser.json());
+
+app.post('/webhook', (req, res) => {
+  // Aquí es donde recibirás los datos del webhook
+  const webhookEvent = req.body;
+
+  // Imprimir los datos del webhook en consola
+  console.log('Webhook recibido:', webhookEvent);
+
+  // Realiza cualquier procesamiento que necesites (guardar en DB, procesar el evento, etc.)
+  // Ejemplo: Guardar la reserva en la base de datos
+
+  // Responder al servicio de webhook que se recibió correctamente
+  res.status(200).send('Webhook recibido');
+});
+
 
 
 
