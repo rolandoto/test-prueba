@@ -1116,7 +1116,12 @@ const webhooksStatus_changed =async(req,res=response) =>{
             })
         }
 
+
+        console.log(data)
+
         const  customFields = data.customFields[0]
+
+        console.log(customFields)
 
         // Función para validar los campos personalizados
         const validateCustomFields = (fields) => {
