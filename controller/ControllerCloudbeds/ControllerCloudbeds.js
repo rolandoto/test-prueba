@@ -1171,7 +1171,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
                     method: "PUT",
                     headers: { 
                         'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                    body: formDateCheck
+                    body: JSON.stringify({reservationID:webhookEvent.reservationID})
                 });
 
                 if (responseCheck.status === 401) {
