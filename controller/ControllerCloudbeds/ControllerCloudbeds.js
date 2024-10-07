@@ -1117,7 +1117,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
         }
 
 
-        const  customFields = data.customFields[0]
+        const  customFields = data.customFields
 
         console.log({customFields})
 
