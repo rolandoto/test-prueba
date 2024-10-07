@@ -1119,30 +1119,29 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
         const  customFields = data.customFields
 
-   
-
-        // Función para validar los campos personalizados
         const validateCustomFields = (fields) => {
+            // Verifica si el array está vacío
+            if (!fields || fields.length === 0) {
+                return false;  // Retorna false si no hay campos
+            }
+            
+            // Verifica si todos los campos tienen valores válidos
             return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
         };
         
-
-        console.log({customFields})
-        console.log({webhookEvent})
         // Validación
         if (validateCustomFields(customFields)) {
             console.log('Todos los campos están completos.');
             return res.status(201).json({
-                ok:true
-            })
+                ok: true
+            });
         } else {
-            console.log('Hay campos vacíos. Por favor completa todos los campos.');
+            console.log('Hay campos vacíos o no hay campos.');
             return res.status(401).json({
-                ok:false
-            })
-          
+                ok: false,
+                error: customFields.length === 0 ? 'No hay campos disponibles' : 'Hay campos vacíos'
+            });
         }
-
       
     } catch (error) {
         
