@@ -1086,7 +1086,7 @@ const getTaxesfree =async(req,res=response) =>{
 const webhooksStatus_changed =async(req,res=response) =>{
     
     const webhookEvent = req.body;
-    console.log(webhookEvent)
+
     try {
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
@@ -1171,7 +1171,10 @@ const webhooksStatus_changed =async(req,res=response) =>{
                     method: "PUT",
                     headers: { 
                         'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                    body: JSON.stringify({reservationID:webhookEvent.reservationID})
+                        body: JSON.stringify({
+                            reservationID: webhookEvent.reservationID,
+                            status: "confirmed" // Añade el estado al cuerpo de la solicitud
+                        })
                 });
 
                 if (responseCheck.status === 401) {
