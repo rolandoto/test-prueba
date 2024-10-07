@@ -1161,9 +1161,14 @@ const webhooksStatus_changed =async(req,res=response) =>{
                     });
                 }
 
-                const formDateCheck = new FormData();
+                /*const formDateCheck = new FormData();
                 formDateCheck.append("reservationID", webhookEvent.reservationID);
                 formDateCheck.append("status", "confirmed");
+                */
+                const formDateCheck = {
+                    reservationID:webhookEvent.reservationID,
+                    status:"confirmed"
+                }
 
                 const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
                     method: "PUT",
@@ -1172,13 +1177,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
                     body: JSON.stringify(formDateCheck)
                 });
 
-                if (responseCheck.status === 401) {
-                    console.log("error")
-                    return res.status(401).json({ ok: false });
-                }
-                
-
-
+              
                 const check = await responseCheck.json();
 
                 console.log(check)
