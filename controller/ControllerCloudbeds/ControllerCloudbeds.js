@@ -1,6 +1,7 @@
 const {response, json, query} = require('express');
 const { pool } = require('../../database/connection');
 const crypto = require('crypto');
+const { URLSearchParams } = require('url');
 
 
 function delay(ms) {
@@ -1165,16 +1166,14 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 formDateCheck.append("reservationID", webhookEvent.reservationID);
                 formDateCheck.append("status", "confirmed");
                 */
-                const formDateCheck = {
-                    reservationID:webhookEvent.reservationID,
-                    status:"confirmed"
-                }
-
+                const formData = new URLSearchParams();
+                formData.append("reservationID", webhookEvent.propertyID);
+                formData.append("status", "confirmed");
                 const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
                     method: "PUT",
                     headers: { 
                         'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                    body: JSON.stringify(formDateCheck) // Send the body as JSON
+                    body:formData // Send the body as JSON
                 });
 
               
