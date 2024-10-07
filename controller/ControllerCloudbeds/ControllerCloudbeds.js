@@ -1167,7 +1167,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 formDateCheck.append("status", "confirmed");
                 */
                 const formData = new URLSearchParams();
-                formData.append("reservationID", webhookEvent.propertyID);
+                formData.append("reservationID", webhookEvent.reservationID);
                 formData.append("status", "confirmed");
                 const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
                     method: "PUT",
