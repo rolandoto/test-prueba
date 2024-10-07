@@ -1086,7 +1086,7 @@ const getTaxesfree =async(req,res=response) =>{
 const webhooksStatus_changed =async(req,res=response) =>{
     
     const webhookEvent = req.body;
-
+    console.log(webhookEvent)
     try {
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
@@ -1136,7 +1136,8 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 ok: true
             });
         } else {
-            const formDataNote = new FormData();
+          
+           /** const formDataNote = new FormData();
                 formDataNote.append("reservationID", webhookEvent.ReservationID);
                 formDataNote.append("reservationNote", "HAY CAMPOS VACIOS");
                 const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
@@ -1149,7 +1150,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
             
             if (responseNote.status === 401) {
                 return res.status(401).json({ ok: false });
-            }
+            } */
 
             return res.status(401).json({
                 ok: false,
