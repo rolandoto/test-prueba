@@ -1136,7 +1136,21 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 ok: true
             });
         } else {
-            console.log('Hay campos vacíos o no hay campos.');
+            const formDataNote = new FormData();
+                formDataNote.append("reservationID", webhookEvent.ReservationID);
+                formDataNote.append("reservationNote", "HAY CAMPOS VACIOS");
+                const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.1/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                    method: "POST",
+                    headers: { 
+                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}` 
+                    },
+                    body: formDataNote
+                });
+            
+            if (responseNote.status === 401) {
+                return res.status(401).json({ ok: false });
+            }
+
             return res.status(401).json({
                 ok: false,
                 error: customFields.length === 0 ? 'No hay campos disponibles' : 'Hay campos vacíos'
