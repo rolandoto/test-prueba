@@ -81,7 +81,6 @@ app.post('/webhook', (req, res) => {
   const webhookEvent = req.body;
 
   // Imprimir los datos del webhook en consola
-  console.log('Webhook recibido:', webhookEvent);
 
   // Realiza cualquier procesamiento que necesites (guardar en DB, procesar el evento, etc.)
   // Ejemplo: Guardar la reserva en la base de datos

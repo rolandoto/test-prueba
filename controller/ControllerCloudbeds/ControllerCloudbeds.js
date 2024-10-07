@@ -1119,27 +1119,31 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
         const  customFields = data.customFields
 
-        console.log({customFields})
+   
 
         // Función para validar los campos personalizados
         const validateCustomFields = (fields) => {
             return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
         };
         
+
+        console.log({customFields})
+        console.log({webhookEvent})
         // Validación
         if (validateCustomFields(customFields)) {
             console.log('Todos los campos están completos.');
-            // Continuar con la lógica
+            return res.status(201).json({
+                ok:true
+            })
         } else {
             console.log('Hay campos vacíos. Por favor completa todos los campos.');
+            return res.status(401).json({
+                ok:false
+            })
+          
         }
 
-        
-
-        return res.status(201).json({
-            ok:true
-        })
-        
+      
     } catch (error) {
         
         return res.status(401).json({
