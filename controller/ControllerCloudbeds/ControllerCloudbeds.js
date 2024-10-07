@@ -1089,8 +1089,6 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
     try {
 
-        console.log(webhookEvent)
-
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
         const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
@@ -1110,7 +1108,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
         const {data} = await response.json();
 
-        console.log(data)
+        
 
         if(!data){
             return res.status(401).json({
@@ -1118,6 +1116,22 @@ const webhooksStatus_changed =async(req,res=response) =>{
             })
         }
 
+        const  customFields = data.customFields[0]
+
+        // Función para validar los campos personalizados
+        const validateCustomFields = (fields) => {
+            return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
+        };
+        
+        // Validación
+        if (validateCustomFields(customFields)) {
+            console.log('Todos los campos están completos.');
+            // Continuar con la lógica
+        } else {
+            console.log('Hay campos vacíos. Por favor completa todos los campos.');
+        }
+
+        
 
         return res.status(201).json({
             ok:true
