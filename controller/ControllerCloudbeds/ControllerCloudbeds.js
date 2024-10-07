@@ -465,8 +465,6 @@ try {
 
     const getValidTransation= await getTranstion.json();
 
-    console.log(getValidTransation)
-
     if(getValidTransation.data.status =="APPROVED"){
         
                 const formData = new FormData();
@@ -1085,6 +1083,28 @@ const getTaxesfree =async(req,res=response) =>{
 }
 
 
+const webhooksStatus_changed =async(req,res=response) =>{
+    
+    const webhookEvent = req.body;
+
+    try {
+
+        console.log({"ok perfect":webhookEvent })
+
+        return res.status(201).json({
+            ok:true
+        })
+        
+    } catch (error) {
+        
+        return res.status(401).json({
+            ok:false
+        })
+
+    }
+
+}
+
 module.exports ={
     getHotelDetails,
     GetHotelsbyID,
@@ -1099,5 +1119,6 @@ module.exports ={
     GetPaymentCloubeds,
     PostRegisterSigoCloudbeds,
     getRoomTypes,
-    getTaxesfree
+    getTaxesfree,
+    webhooksStatus_changed
 }
