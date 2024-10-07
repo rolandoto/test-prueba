@@ -1176,10 +1176,19 @@ const webhooksStatus_changed =async(req,res=response) =>{
                     body:formData // Send the body as JSON
                 });
 
-              
+                if (responseCheck.status === 401) {
+                    console.log("error")
+                    return res.status(401).json({ ok: false });
+                }
+            
                 const check = await responseCheck.json();
 
-                console.log({check})
+                if (!check.success) {
+                    return res.status(401).json({
+                        ok: false,
+                        error: "Payment failed",
+                    });
+                }
 
                 console.log("todo correctamente")
                     
