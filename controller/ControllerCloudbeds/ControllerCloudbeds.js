@@ -1179,19 +1179,13 @@ const webhooksStatus_changed =async(req,res=response) =>{
               
                 const check = await responseCheck.json();
 
-                console.log(check)
+                console.log({check})
 
                 console.log("todo correctamente")
-                if (!check.success) {
-                    return res.status(401).json({
-                        ok: false,
-                    });
-                }
-
-
-            return res.status(401).json({
-                ok: true
-            });
+                    
+                return res.status(401).json({
+                    ok: true
+                });
         }
       
     } catch (error) {
