@@ -1090,7 +1090,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
     try {
         if(webhookEvent.status =="checked_in"){
-            
+
             const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
@@ -1122,6 +1122,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
             const  customFields = data.customFields
     
             const validateCustomFields = (fields) => {
+                console.log({"fields":fields})
                 // Verifica si el array está vacío
                 if (!fields || fields.length === 0) {
                     return false;  // Retorna false si no hay campos
