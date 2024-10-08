@@ -1089,6 +1089,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
     const webhookEvent = req.body;
 
     try {
+        console.log()
         if(webhookEvent.status =="checked_in"){
 
             const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
@@ -1129,7 +1130,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 }
                 
                 // Verifica si todos los campos tienen valores válidos
-                return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
+                return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== ''&& field.customFieldValue.trim() !== '0');
             };
             
             // Validación
