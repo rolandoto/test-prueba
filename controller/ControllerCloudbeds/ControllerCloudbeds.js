@@ -1089,118 +1089,117 @@ const webhooksStatus_changed =async(req,res=response) =>{
     const webhookEvent = req.body;
 
     try {
+        if(webhookEvent.status =="checked_in"){
+            
+            const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
-        console.log(webhookEvent)
-        
-        
-
-        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
-
-        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
-            method: "GET",
-            headers: { 'Content-type': 'application/json',
-            'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
-        });
-
-        if (!response) {
-            // If access is denied, return 401 status code
-            if (response.status === 401) {
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
+                method: "GET",
+                headers: { 'Content-type': 'application/json',
+                'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
+            });
+    
+            if (!response) {
+                // If access is denied, return 401 status code
+                if (response.status === 401) {
+                    return res.status(401).json({ ok: false });
+                }
+                // For other errors, return 500 status code
                 return res.status(401).json({ ok: false });
             }
-            // For other errors, return 500 status code
-            return res.status(401).json({ ok: false });
-        }
-
-        const {data} = await response.json();
-
-        
-
-        if(!data){
-            return res.status(401).json({
-                ok:false
-            })
-        }
-
-
-        const  customFields = data.customFields
-
-        const validateCustomFields = (fields) => {
-            // Verifica si el array está vacío
-            if (!fields || fields.length === 0) {
-                return false;  // Retorna false si no hay campos
-            }
+    
+            const {data} = await response.json();
+    
             
-            // Verifica si todos los campos tienen valores válidos
-            return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
-        };
-        
-        // Validación
-        if (validateCustomFields(customFields)) {
-            console.log('Todos los campos están completos.');
-            return res.status(201).json({
-                ok: true
-            });
-        } else {
-                console.log('Hay campos vacíos o no hay campos.');
-                const formDataNote = new FormData();
-                formDataNote.append("reservationID", webhookEvent.reservationID);
-                formDataNote.append("reservationNote", "HAY CAMPOS VACIOS");
-                const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
-                    method: "POST",
-                    headers: { 
-                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                    body: formDataNote
-                });
-            
-                if (responseNote.status === 401) {
-                    console.log("error")
-                    return res.status(401).json({ ok: false });
-                }
-            
-                const note = await responseNote.json();
-
-                if (!note.success) {
-                    return res.status(401).json({
-                        ok: false,
-                        error: "Payment failed",
-                    });
-                }
-
-                /*const formDateCheck = new FormData();
-                formDateCheck.append("reservationID", webhookEvent.reservationID);
-                formDateCheck.append("status", "confirmed");
-                */
-                const formData = new URLSearchParams();
-                formData.append("reservationID", webhookEvent.reservationID);
-                formData.append("status", "confirmed");
-                const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
-                    method: "PUT",
-                    headers: { 
-                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                    body:formData // Send the body as JSON
-                });
-
-                if (responseCheck.status === 401) {
-                    console.log("error")
-                    return res.status(401).json({ ok: false });
-                }
-            
-                const check = await responseCheck.json();
-
-                if (!check.success) {
-                    return res.status(401).json({
-                        ok: false,
-                        error: "Payment failed",
-                    });
-                }
-
-                console.log("todo correctamente")
-                    
+    
+            if(!data){
                 return res.status(401).json({
+                    ok:false
+                })
+            }
+    
+    
+            const  customFields = data.customFields
+    
+            const validateCustomFields = (fields) => {
+                // Verifica si el array está vacío
+                if (!fields || fields.length === 0) {
+                    return false;  // Retorna false si no hay campos
+                }
+                
+                // Verifica si todos los campos tienen valores válidos
+                return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== '');
+            };
+            
+            // Validación
+            if (validateCustomFields(customFields)) {
+                console.log('Todos los campos están completos.');
+                return res.status(201).json({
                     ok: true
                 });
+            } else {
+                    console.log('Hay campos vacíos o no hay campos.');
+                    const formDataNote = new FormData();
+                    formDataNote.append("reservationID", webhookEvent.reservationID);
+                    formDataNote.append("reservationNote", "HAY CAMPOS VACIOS");
+                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                        method: "POST",
+                        headers: { 
+                            'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                        body: formDataNote
+                    });
+                
+                    if (responseNote.status === 401) {
+                        console.log("error")
+                        return res.status(401).json({ ok: false });
+                    }
+                
+                    const note = await responseNote.json();
+    
+                    if (!note.success) {
+                        return res.status(401).json({
+                            ok: false,
+                            error: "Payment failed",
+                        });
+                    }
+    
+                    /*const formDateCheck = new FormData();
+                    formDateCheck.append("reservationID", webhookEvent.reservationID);
+                    formDateCheck.append("status", "confirmed");
+                    */
+                    const formData = new URLSearchParams();
+                    formData.append("reservationID", webhookEvent.reservationID);
+                    formData.append("status", "confirmed");
+                    const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
+                        method: "PUT",
+                        headers: { 
+                            'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                        body:formData // Send the body as JSON
+                    });
+    
+                    if (responseCheck.status === 401) {
+                        console.log("error")
+                        return res.status(401).json({ ok: false });
+                    }
+                
+                    const check = await responseCheck.json();
+    
+                    if (!check.success) {
+                        return res.status(401).json({
+                            ok: false,
+                            error: "Payment failed",
+                        });
+                    }
+    
+                    console.log("todo correctamente")
+                        
+                    return res.status(401).json({
+                        ok: true
+                    });
+            }
+
         }
-      
+
     } catch (error) {
         
         return res.status(401).json({
