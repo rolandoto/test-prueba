@@ -1217,8 +1217,33 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
     try {
 
-        console.log({"dasdsaldnbsjanhdjksahdksa":webhookEvent})
-        
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
+
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
+                method: "GET",
+                headers: { 'Content-type': 'application/json',
+                'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
+            });
+            
+            if (!response) {
+                // If access is denied, return 401 status code
+                if (response.status === 401) {
+                    return res.status(401).json({ ok: false });
+                }
+                // For other errors, return 500 status code
+                return res.status(401).json({ ok: false });
+            }
+    
+            const {data} = await response.json();
+    
+            if(!data){
+                return res.status(401).json({
+                    ok:false
+                })
+            }
+    
+            console.log(data)
+
         return res.status(201).json({
             ok:true
         })
