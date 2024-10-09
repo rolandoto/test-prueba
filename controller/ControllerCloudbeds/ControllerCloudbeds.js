@@ -1287,23 +1287,23 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 const  customFields = data.customFields
 
                 if (validateCustomFields(customFields)) {
-                await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guestID, (selectError, results) =>{
-                    if (selectError) {
-                        success = false;
-                    }else{
-                        if(results.length > 0){
-                            checkCompletion();
-                        }else{
-                            pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
-                                if (insertError) {
-                                  success = false;
-                                  console.error("Error inserting record:", insertError);
-                                }
+                    await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guestID, (selectError, results) => {
+                        if (selectError) {
+                            success = false;
+                        } else {
+                            if (results.length > 0) {
                                 checkCompletion();
-                            });
+                            } else {
+                                pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                    if (insertError) {
+                                        success = false;
+                                        console.error("Error inserting record:", insertError);
+                                    }
+                                    checkCompletion();
+                                });
+                            }
                         }
-                    }
-                });
+                    });
                 }
             })
                 
