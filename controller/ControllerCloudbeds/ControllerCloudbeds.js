@@ -1285,7 +1285,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     reservationID:reservationID
                 }
                 
-                console.log({bodyGuest})
 
                 const  customFields = data.customFields
 
@@ -1294,16 +1293,21 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         if (selectError) {
                             success = false;
                         } else {
-                            if (results.length > 0) {
+                            if (results.length === 0) {
+                                // Solo insertar si no existe ningún registro con ese guestID
                                 pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
                                     if (insertError) {
                                         success = false;
                                         console.error("Error inserting record:", insertError);
+                                    } else {
+                                        console.log(`GuestID ${guestID} insertado correctamente.`);
                                     }
                                     checkCompletion();
                                 });
                             } else {
-                                success = true;
+                                // Si ya existe, no hacer nada y marcar como completado
+                                console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                                checkCompletion();
                             }
                         }
                     });
