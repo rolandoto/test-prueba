@@ -1120,9 +1120,9 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 })
             }
     
-    
+            console.log({data})
             const  customFields = data.customFields
-            console.log({customFields})
+        
             const validateCustomFields = (fields) => {
                 console.log({"fields":fields})
                 // Verifica si el array está vacío
