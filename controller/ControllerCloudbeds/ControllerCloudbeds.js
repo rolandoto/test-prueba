@@ -1256,6 +1256,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 }
 
                 console.log(bodyGuest)
+                console.log({"guest":guest})
 
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
                     if (selectError) {
