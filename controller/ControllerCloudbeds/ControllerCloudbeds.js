@@ -1249,28 +1249,31 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             data.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.guestID;
-                console.log(guestID)
-                /*const bodyGuest = {
+            
+                const bodyGuest = {
                     guestID:guestID,
                     reservationID:reservationID
-                }*/
+                }
 
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
-                    console.log({"sadsadsa":selectError})
                     if (selectError) {
                         success = false;
-                      
                     }else{
                         if(results.length > 0){
                             checkCompletion();
                         }else{
-                            console.log("grupo hotel")
-                            checkCompletion();
+                            pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                if (insertError) {
+                                  success = false;
+                                  console.error("Error inserting record:", insertError);
+                                }
+                                checkCompletion();
+                            });
                         }
                     }
                 });
 
-
+                
 
                /**  if (rows.length === 0) {
                     pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
@@ -1289,6 +1292,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
         
         function checkCompletion() {
             completedQueries++;
+            console.log(completedQueries)
             if (completedQueries === totalQueries) {
             return res.status(success ? 200 : 500).json({ ok: success });
             }
