@@ -1,5 +1,5 @@
 const { check } = require('express-validator');
-const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds, getRoomTypes, getTaxesfree, webhooksStatus_changed } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
+const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds, getRoomTypes, getTaxesfree, webhooksStatus_changed, webhooksAdd_Guest } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
 const { ValidarCampos } = require('../middleweres/middleweres');
 
 const router = require('express').Router()
@@ -70,6 +70,8 @@ router.post("/PostpostReservation",[
 router.post("/getRoomTypes",getRoomTypes);
 
 router.post("/webhooksStatus_changed",webhooksStatus_changed)
+
+router.post("/webhooksAdd_Guest",webhooksAdd_Guest)
 
 router.post("/getTaxesfree",getTaxesfree);
 

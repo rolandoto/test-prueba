@@ -1210,6 +1210,29 @@ const webhooksStatus_changed =async(req,res=response) =>{
 
 }
 
+
+const webhooksAdd_Guest =async(req,res=response) =>{
+
+    const webhookEvent = req.body;
+
+    try {
+
+        console.log({"dasdsaldnbsjanhdjksahdksa":webhookEvent})
+        
+        return res.status(201).json({
+            ok:true
+        })
+
+    } catch (error) {
+
+        return res.status(401).json({
+            ok:false
+        })
+        
+    }
+
+}
+
 module.exports ={
     getHotelDetails,
     GetHotelsbyID,
@@ -1225,5 +1248,6 @@ module.exports ={
     PostRegisterSigoCloudbeds,
     getRoomTypes,
     getTaxesfree,
-    webhooksStatus_changed
+    webhooksStatus_changed,
+    webhooksAdd_Guest
 }
