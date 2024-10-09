@@ -1256,6 +1256,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 }*/
 
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
+                    console.log({"sadsadsa":selectError})
                     if (selectError) {
                         success = false;
                       
@@ -1284,6 +1285,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 }*/
             })
                 
+        
+        
         function checkCompletion() {
             completedQueries++;
             if (completedQueries === totalQueries) {
