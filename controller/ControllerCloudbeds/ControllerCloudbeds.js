@@ -1241,14 +1241,41 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     ok:false
                 })
             }
-    
-            data.forEach(day => {
-                console.log({"day":day})
-            })
 
-        return res.status(201).json({
-            ok:true
-        })
+            let success = true;
+            let completedQueries = 0;
+            const totalQueries = data.length;
+
+            data.forEach(async (guest) => {   
+                const guestID = guest.guestID;
+                const reservationID = guest.guestID;
+
+                const bodyGuest = {
+                    guestID:guestID,
+                    reservationID:reservationID
+                }
+
+                const [rows] = await connection.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID]);
+
+                if (rows.length === 0) {
+                    pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
+                        if (insertError) {
+                          success = false;
+                          console.error("Error updating record:", insertError);
+                        }
+                        checkCompletion();
+                      }); 
+                } else {
+                    console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                }
+            })
+ 
+        function checkCompletion() {
+            completedQueries++;
+            if (completedQueries === totalQueries) {
+            return res.status(success ? 200 : 500).json({ ok: success });
+            }
+        }
 
     } catch (error) {
 
