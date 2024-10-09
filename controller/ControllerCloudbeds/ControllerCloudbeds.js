@@ -1089,9 +1089,9 @@ const webhooksStatus_changed =async(req,res=response) =>{
     const webhookEvent = req.body;
 
     try {
-   
+        
         if(webhookEvent.status =="checked_in"){
-
+            console.log(webhookEvent)
             const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
@@ -1121,7 +1121,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
             const  customFields = data.customFields
         
             const validateCustomFields = (fields) => {
-                console.log({"fields":fields.customFieldValue})
+           
                 // Verifica si el array está vacío
                 if (!fields || fields.length === 0) {
                     return false;  // Retorna false si no hay campos
@@ -1242,7 +1242,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 })
             }
     
-            console.log(data)
+            data.forEach(day => {
+                console.log({"day":day})
+            })
 
         return res.status(201).json({
             ok:true
