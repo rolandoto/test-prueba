@@ -1089,7 +1089,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
     const webhookEvent = req.body;
 
     try {
-        console.log()
+   
         if(webhookEvent.status =="checked_in"){
 
             const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
@@ -1111,20 +1111,17 @@ const webhooksStatus_changed =async(req,res=response) =>{
     
             const {data} = await response.json();
     
-            console.log({data})
-            
-
             if(!data){
                 return res.status(401).json({
                     ok:false
                 })
             }
     
-            console.log({data})
+        
             const  customFields = data.customFields
         
             const validateCustomFields = (fields) => {
-                console.log({"fields":fields})
+                console.log({"fields":fields.customFieldValue})
                 // Verifica si el array está vacío
                 if (!fields || fields.length === 0) {
                     return false;  // Retorna false si no hay campos
