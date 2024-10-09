@@ -1255,9 +1255,16 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     reservationID:reservationID
                 }
 
-                const [rows] = await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID]);
+                await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
+                    if (selectError) {
+                        success = false;
+                        console.error("Error querying RoomPromotion:", selectError);
+                    }else{
+                        console.log(results)
+                    }
+                });
 
-                console.log(rows)
+     
 
                /**  if (rows.length === 0) {
                     pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
