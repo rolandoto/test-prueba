@@ -1255,11 +1255,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
             
-                const bodyGuest = {
-                    guestID:guestID,
-                    reservationID:reservationID
-                }
-            
+               
         
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
                 method: "GET",
@@ -1283,6 +1279,13 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         ok:false
                     })
                 }
+
+                const bodyGuest = {
+                    guestID:guestID,
+                    reservationID:reservationID
+                }
+                
+                console.log({bodyGuest})
 
                 const  customFields = data.customFields
 
@@ -1310,9 +1313,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 
         function checkCompletion() {
             completedQueries++;
-            console.log(completedQueries)
-            if (completedQueries === totalQueries) {
-            return res.status(success ? 200 : 500).json({ ok: success });
+            if(completedQueries === totalQueries) {
+                return res.status(success ? 200 : 500).json({ ok: success });
             }
         }
 
