@@ -1257,7 +1257,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 const [rows] = await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID]);
 
-                if (rows.length === 0) {
+                console.log(rows)
+
+               /**  if (rows.length === 0) {
                     pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
                         if (insertError) {
                           success = false;
@@ -1267,9 +1269,13 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                       }); 
                 } else {
                     console.log(`GuestID ${guestID} ya existe, no se inserta.`);
-                }
+                }*/
             })
- 
+                
+            
+        return res.status(201).json({
+            ok:true
+        })
         function checkCompletion() {
             completedQueries++;
             if (completedQueries === totalQueries) {
