@@ -1131,14 +1131,12 @@ const webhooksStatus_changed =async(req,res=response) =>{
                 return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== ''&& field.customFieldValue.trim() !== '0');
             };
             
-            // Validación
+            // Validación if 
             if (validateCustomFields(customFields)) {
-                console.log('Todos los campos están completos.');
                 return res.status(201).json({
                     ok: true
                 });
             } else {
-                    console.log('Hay campos vacíos o no hay campos.');
                     const formDataNote = new FormData();
                     formDataNote.append("reservationID", webhookEvent.reservationID);
                     formDataNote.append("reservationNote", "HAY CAMPOS VACIOS");
@@ -1163,10 +1161,6 @@ const webhooksStatus_changed =async(req,res=response) =>{
                         });
                     }
     
-                    /*const formDateCheck = new FormData();
-                    formDateCheck.append("reservationID", webhookEvent.reservationID);
-                    formDateCheck.append("status", "confirmed");
-                    */
                     const formData = new URLSearchParams();
                     formData.append("reservationID", webhookEvent.reservationID);
                     formData.append("status", "confirmed");
@@ -1190,10 +1184,8 @@ const webhooksStatus_changed =async(req,res=response) =>{
                             error: "Payment failed",
                         });
                     }
-    
-                    console.log("todo correctamente")
-                        
-                    return res.status(401).json({
+     
+                    return res.status(201).json({
                         ok: true
                     });
             }
@@ -1216,6 +1208,19 @@ const webhooksAdd_Guest =async(req,res=response) =>{
     const webhookEvent = req.body;
 
     try {
+
+
+        const validateCustomFields = (fields) => {
+           
+            // Verifica si el array está vacío
+            if (!fields || fields.length === 0) {
+                return false;  // Retorna false si no hay campos
+            }
+            
+            // Verifica si todos los campos tienen valores válidos
+            return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== ''&& field.customFieldValue.trim() !== '0');
+        };
+        
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
@@ -1279,8 +1284,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     })
                 }
 
-                console.log({"sdsadasd":data})
+                const  customFields = data.customFields
 
+                if (validateCustomFields(customFields)) {
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
                     if (selectError) {
                         success = false;
@@ -1298,24 +1304,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         }
                     }
                 });
-
-                
-
-               /**  if (rows.length === 0) {
-                    pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
-                        if (insertError) {
-                          success = false;
-                          console.error("Error updating record:", insertError);
-                        }
-                        checkCompletion();
-                      }); 
-                } else {
-                    console.log(`GuestID ${guestID} ya existe, no se inserta.`);
-                }*/
+                }
             })
                 
-        
-        
         function checkCompletion() {
             completedQueries++;
             console.log(completedQueries)
