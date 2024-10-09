@@ -1291,6 +1291,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         if (selectError) {
                             success = false;
                         } else {
+                            console.log({"results":results})
                             if (results.length > 0) {
                                 checkCompletion();
                             } else {
