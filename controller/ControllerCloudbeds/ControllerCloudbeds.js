@@ -1249,16 +1249,16 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             data.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.guestID;
-
-                const bodyGuest = {
+                console.log(guestID)
+                /*const bodyGuest = {
                     guestID:guestID,
                     reservationID:reservationID
-                }
+                }*/
 
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
                     if (selectError) {
                         success = false;
-                        console.error("Error querying RoomPromotion:", selectError);
+                      
                     }else{
                         if(results.length > 0){
                             checkCompletion();
@@ -1284,10 +1284,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 }*/
             })
                 
-            
-        return res.status(201).json({
-            ok:true
-        })
         function checkCompletion() {
             completedQueries++;
             if (completedQueries === totalQueries) {
