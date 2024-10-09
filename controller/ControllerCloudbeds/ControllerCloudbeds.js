@@ -1260,11 +1260,16 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         success = false;
                         console.error("Error querying RoomPromotion:", selectError);
                     }else{
-                        console.log(results)
+                        if(results.length > 0){
+                            checkCompletion();
+                        }else{
+                            console.log("grupo hotel")
+                            checkCompletion();
+                        }
                     }
                 });
 
-     
+
 
                /**  if (rows.length === 0) {
                     pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
