@@ -1255,9 +1255,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     reservationID:reservationID
                 }
             
-            
-                
-            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}&guestID=${guestID}`, {
+        
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
                 method: "GET",
                 headers: { 'Content-type': 'application/json',
                 'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
