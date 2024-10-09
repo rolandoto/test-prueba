@@ -1248,12 +1248,14 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
             data.forEach(async (guest) => {   
                 const guestID = guest.guestID;
-                const reservationID = guest.guestID;
+                const reservationID = guest.reservationID;
             
                 const bodyGuest = {
                     guestID:guestID,
                     reservationID:reservationID
                 }
+
+                console.log(bodyGuest)
 
                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID], (selectError, results) =>{
                     if (selectError) {
