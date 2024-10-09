@@ -1255,13 +1255,11 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
             
-               
-        
-            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
-                method: "GET",
-                headers: { 'Content-type': 'application/json',
-                'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
-            });
+                const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
+                    method: "GET",
+                    headers: { 'Content-type': 'application/json',
+                    'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
+                });
             
                 if (!response) {
                     // If access is denied, return 401 status code
@@ -1287,42 +1285,61 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 
                 const  customFields = data.customFields
 
-                const to = await pool.query("SELECT * FROM Guest_cloudbed WHERE guestID = ?", [guestID]); 
-                console.log({"hola":to})
+                const guestIDs = data.map(guest => guest.guestID);  // Array con todos los guestIDs que vas a verificar
+
 
                 if (validateCustomFields(customFields)) {
-                    await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
+                    await pool.query('SELECT guestID FROM Guest_cloudbed WHERE guestID IN (?)', [guestIDs], (selectError, results) => {
                         if (selectError) {
                             success = false;
+                            console.error("Error querying Guest_cloudbed:", selectError);
+                            return res.status(500).json({ ok: false, error: selectError });
                         } else {
-                            if (results.length === 0) {
-                                // Solo insertar si no existe ningún registro con ese guestID
-                                pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                            // Filtrar los guestIDs que NO están en la tabla (los que faltan insertar)
+                            const existingGuestIDs = results.map(row => row.guestID); // Los guestID que ya están
+                            const guestsToInsert = data.filter(guest => !existingGuestIDs.includes(guest.guestID)); // Filtrar los que no están en la tabla
+                    
+                            // Si no hay guests que insertar, finalizar
+                            if (guestsToInsert.length === 0) {
+                                console.log('No hay guests para insertar.');
+                                return res.status(200).json({ ok: true });
+                            }
+                    
+                            // Inserción en bloque para los guests que no están en la base de datos
+                            let completedQueries = 0;
+                            const totalQueries = guestsToInsert.length;
+                    
+                            guestsToInsert.forEach(async (guest) => {
+                                const bodyGuest = {
+                                    guestID: guest.guestID,
+                                    reservationID: guest.reservationID
+                                };
+                    
+                                // Insertar el guest en la base de datos
+                                await pool.query('INSERT INTO Guest_cloudbed SET ?', bodyGuest, (insertError) => {
                                     if (insertError) {
                                         success = false;
                                         console.error("Error inserting record:", insertError);
                                     } else {
-                                        console.log(`GuestID ${guestID} insertado correctamente.`);
+                                        console.log(`GuestID ${guest.guestID} insertado correctamente.`);
                                     }
                                     checkCompletion();
                                 });
-                            } else {
-                                // Si ya existe, no hacer nada y marcar como completado
-                                console.log(`GuestID ${guestID} ya existe, no se inserta.`);
-                                checkCompletion();
+                            });
+                    
+                            // Función para verificar si se completaron todas las consultas
+                            function checkCompletion() {
+                                completedQueries++;
+                                if (completedQueries === totalQueries) {
+                                    return res.status(success ? 200 : 500).json({ ok: success });
+                                }
                             }
                         }
                     });
                 }
             })
                 
-        function checkCompletion() {
-            completedQueries++;
-            if(completedQueries === totalQueries) {
-                return res.status(success ? 200 : 500).json({ ok: success });
-            }
-        }
-
+     
     } catch (error) {
         return res.status(401).json({
             ok:false
