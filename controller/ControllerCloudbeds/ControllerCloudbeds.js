@@ -1255,7 +1255,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     reservationID:reservationID
                 }
 
-                const [rows] = await connection.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID]);
+                const [rows] = await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', [guestID]);
 
                 if (rows.length === 0) {
                     pool.query("INSERT INTO Guest_cloudbed SET ?",bodyGuest, (insertError) => {
