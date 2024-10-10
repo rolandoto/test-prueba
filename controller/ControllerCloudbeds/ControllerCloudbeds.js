@@ -1257,7 +1257,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
-            
+                
                 const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
                     method: "GET",
                     headers: { 'Content-type': 'application/json',
@@ -1275,7 +1275,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             
                 const {data} = await response.json();
 
-                console.log({"djasbdkjsjdsads":data})
+
         
                 if(!data){
                     return res.status(401).json({
@@ -1292,6 +1292,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
    
                 if (validateCustomFields(customFields)) {
+
+                    console.log(customFields[8])
+
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                         if (selectError) {
                             success = false;
