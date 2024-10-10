@@ -1336,7 +1336,10 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         rnt_establecimiento:hotelInfoQuery[0].RNT
                 }
 
-                console.log(body)
+                console.log(body)   
+
+
+                
 
                     
 
