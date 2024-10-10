@@ -1288,6 +1288,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
+                console.log(guest)
                 
                 const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
                     method: "GET",
@@ -1340,11 +1341,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         nombre_establecimiento:hotelInfoQuery[0].name,
                         rnt_establecimiento:hotelInfoQuery[0].RNT
                 }
-
-                console.log(body)   
-
-
-                
 
                     
 
