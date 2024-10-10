@@ -1222,7 +1222,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
         };
         
 
-        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
                 method: "GET",
@@ -1254,8 +1254,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             const uniqueGuests = Array.from(new Set(data.map(guest => guest.guestID)))
                           .map(guestID => data.find(guest => guest.guestID === guestID));
             
-
-
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
@@ -1276,6 +1274,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 }
             
                 const {data} = await response.json();
+
+                console.log({"djasbdkjsjdsads":data})
         
                 if(!data){
                     return res.status(401).json({
@@ -1283,8 +1283,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     })
                 }
                 
-
-
                 const bodyGuest = {
                     guestID:guestID,
                     reservationID:reservationID
