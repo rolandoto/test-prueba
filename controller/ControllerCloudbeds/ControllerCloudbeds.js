@@ -1253,7 +1253,38 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
             const uniqueGuests = Array.from(new Set(data.map(guest => guest.guestID)))
                           .map(guestID => data.find(guest => guest.guestID === guestID));
+
             
+
+            const responseReservation = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
+                method: "GET",
+                headers: { 'Content-type': 'application/json',
+                'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
+            });
+            
+            if (!responseReservation) {
+                // If access is denied, return 401 status code
+                if (response.status === 401) {
+                    return res.status(401).json({ ok: false });
+                }
+                // For other errors, return 500 status code
+                return res.status(401).json({ ok: false });
+            }
+    
+            const reservation = await responseReservation.json();
+    
+            if(!reservation){
+                return res.status(401).json({
+                    ok:false
+                })
+            }
+
+            const reservationCheckIn =  reservation.data[0].reservationCheckIn
+            const reservationCheckOut =  reservation.data[0].reservationCheckOut
+
+            console.log(reservationCheckIn)
+            console.log(reservationCheckOut)
+
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
@@ -1272,11 +1303,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     // For other errors, return 500 status code
                     return res.status(401).json({ ok: false });
                 }
-            
                 const {data} = await response.json();
-
-
-        
                 if(!data){
                     return res.status(401).json({
                         ok:false
@@ -1292,7 +1319,27 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 if (validateCustomFields(customFields)) {
 
-                    console.log(customFields[4].customFieldValue)
+                const CountPeople= uniqueGuests.length
+
+                const body ={
+                        tipo_identificacion: data.documentType,
+                        numero_identificacion: data.documentNumber,
+                        nombres: data.firstName,
+                        apellidos:data.lastName,
+                        cuidad_residencia:customFields[4].customFieldValue,
+                        cuidad_procedencia:customFields[4].customFieldValue,
+                        numero_habitacion:guest.roomName,
+                        motivo:"hospedaje",
+                        numero_acompanantes:`${CountPeople}`,
+                        check_in:fechaChecking,
+                        check_out:fechaCheckout,
+                        tipo_acomodacion:"Hotel",
+                        costo:resulDetailDashboard.valor_habitacion,
+                        nombre_establecimiento:hotelInfoQuery[0].name,
+                        rnt_establecimiento:hotelInfoQuery[0].RNT
+                    }
+
+                    
 
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                         if (selectError) {
