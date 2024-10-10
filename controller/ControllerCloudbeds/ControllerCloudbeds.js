@@ -1282,9 +1282,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             const reservationCheckIn =  reservation.data[0].reservationCheckIn
             const reservationCheckOut =  reservation.data[0].reservationCheckOut
 
-            console.log(reservationCheckIn)
-            console.log(reservationCheckOut)
-
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
@@ -1321,7 +1318,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 const CountPeople= uniqueGuests.length
 
-                /**const body ={
+                const body ={
                         tipo_identificacion: data.documentType,
                         numero_identificacion: data.documentNumber,
                         nombres: data.firstName,
@@ -1331,14 +1328,16 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         numero_habitacion:guest.roomName,
                         motivo:"hospedaje",
                         numero_acompanantes:`${CountPeople}`,
-                        check_in:fechaChecking,
-                        check_out:fechaCheckout,
+                        check_in:reservationCheckIn,
+                        check_out:reservationCheckOut,
                         tipo_acomodacion:"Hotel",
                         costo:resulDetailDashboard.valor_habitacion,
                         nombre_establecimiento:hotelInfoQuery[0].name,
                         rnt_establecimiento:hotelInfoQuery[0].RNT
-                    }
-*/
+                }
+
+                console.log(body)
+
                     
 
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
