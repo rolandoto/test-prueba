@@ -1251,6 +1251,11 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             let completedQueries = 0;
             const totalQueries = data.length;
 
+            const uniqueGuests = Array.from(new Set(data.map(guest => guest.guestID)))
+                          .map(guestID => data.find(guest => guest.guestID === guestID));
+            
+            console.log(uniqueGuests)
+
             data.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
@@ -1277,6 +1282,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         ok:false
                     })
                 }
+                
+
 
                 const bodyGuest = {
                     guestID:guestID,
@@ -1286,6 +1293,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 const  customFields = data.customFields
 
                 console.log(guest.guestID)
+                
+
 
                 if (validateCustomFields(customFields)) {
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
