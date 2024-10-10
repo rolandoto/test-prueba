@@ -1321,7 +1321,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 const CountPeople= uniqueGuests.length
 
-                const body ={
+                /**const body ={
                         tipo_identificacion: data.documentType,
                         numero_identificacion: data.documentNumber,
                         nombres: data.firstName,
@@ -1338,7 +1338,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         nombre_establecimiento:hotelInfoQuery[0].name,
                         rnt_establecimiento:hotelInfoQuery[0].RNT
                     }
-
+*/
                     
 
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
