@@ -1285,6 +1285,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 
                 const  customFields = data.customFields
 
+                console.log(guest.guestID)
 
                 if (validateCustomFields(customFields)) {
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
