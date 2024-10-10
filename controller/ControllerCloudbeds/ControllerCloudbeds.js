@@ -1281,6 +1281,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
             const reservationCheckIn =  reservation.data[0].reservationCheckIn
             const reservationCheckOut =  reservation.data[0].reservationCheckOut
+            const subtotal = data[0].balanceDetailed.subTotal
+            let amount_in_cents = subtotal * 100; // add two zeros
+
 
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
@@ -1318,6 +1321,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 const CountPeople= uniqueGuests.length
 
+              
+
                 const body ={
                         tipo_identificacion: data.documentType,
                         numero_identificacion: data.documentNumber,
@@ -1331,7 +1336,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         check_in:reservationCheckIn,
                         check_out:reservationCheckOut,
                         tipo_acomodacion:"Hotel",
-                        costo:resulDetailDashboard.valor_habitacion,
+                        costo:amount_in_cents,
                         nombre_establecimiento:hotelInfoQuery[0].name,
                         rnt_establecimiento:hotelInfoQuery[0].RNT
                 }
