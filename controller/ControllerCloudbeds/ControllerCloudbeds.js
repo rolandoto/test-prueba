@@ -1281,7 +1281,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
             const reservationCheckIn =  reservation.data[0].reservationCheckIn
             const reservationCheckOut =  reservation.data[0].reservationCheckOut
-            const subtotal = data[0].balanceDetailed.subTotal
+            const subtotal =reservation.data[0].balanceDetailed.subTotal
             let amount_in_cents = subtotal * 100; // add two zeros
 
 
