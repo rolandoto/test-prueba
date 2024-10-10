@@ -1222,7 +1222,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
         };
         
 
-        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
                 method: "GET",
