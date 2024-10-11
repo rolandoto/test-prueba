@@ -1412,15 +1412,14 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                             });
 
                     }else{
-
-                
+                    console.log("edsadsad")
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', reservationID, async(selectError, results) => {
                         if (selectError) {
                             success = false;
                         } else {
                             if (results.length === 0) {
                                         // Si ya existe, no hacer nada y marcar como completado
-                                        console.log(`GuestID ${guestID}, no se inserta.`);
+                                        console.log(`GuestID no encontrado`);
                                         checkCompletion();
                             } else {
                                 const code = results[0].Code;
@@ -1520,6 +1519,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     }
                 }    
             })
+
+            
         function checkCompletion() {
             completedQueries++;
             if(completedQueries === totalQueries) {
