@@ -1372,7 +1372,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         propertyID:prepertyById
                                     }
         
-                                    console.log("aqui se prendio",responseData)
+                                
                                     
                                         pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, async (insertError) => {
                                             if (insertError) {
@@ -1412,55 +1412,58 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     } else {
                                         // guestID exists, so now check the reservationID
                                         const existingReservation = results.find(r => r.reservationID === reservationById);
-                                        
-                                        const body ={
-                                            tipo_identificacion: customFields[1].customFieldValue,
-                                            numero_identificacion:customFields[0].customFieldValue,
-                                            nombres: data.firstName,
-                                            apellidos:data.lastName,
-                                            cuidad_residencia:customFields[4].customFieldValue,
-                                            cuidad_procedencia:customFields[4].customFieldValue,
-                                            numero_habitacion:guest.roomName,
-                                            motivo:"hospedaje",
-                                            numero_acompanantes:`${CountPeople}`,
-                                            check_in:reservationCheckIn,
-                                            check_out:reservationCheckOut,
-                                            tipo_acomodacion:"Hotel",
-                                            costo:amount_in_cents,
-                                            nombre_establecimiento:hotelInfoQuery[0].name,
-                                            rnt_establecimiento:hotelInfoQuery[0].RNT
-                                    }
-        
-                                    const response = await fetch('https://pms.mincit.gov.co/one/', {
-                                        method: 'POST',
-                                        headers: {
-                                        'Authorization': `token ${hotelInfoQuery[0].Tra}`,
-                                        'Content-Type': 'application/json'
-                                        },
-                                    body:JSON.stringify(body)
-                                    });
-                                    
-                                
-                                    const responseData = await response.json();
-                                    
-                                    if(!responseData.code){
-                                        return res.status(401).json({
-                                            ok:false,
-                                          
-                                        })
-                                    }
-        
-                                    const bodyGuest = {
-                                        guestID:guestID,
-                                        reservationID:reservationID,
-                                        guestName:guest.guestName,
-                                        Code:responseData.code,
-                                        Date:reservationCheckIn,
-                                        propertyID:prepertyById
-                                    }
-        
+                                     
                            
                                         if (!existingReservation) {
+
+                                                        
+                                                    const body ={
+                                                        tipo_identificacion: customFields[1].customFieldValue,
+                                                        numero_identificacion:customFields[0].customFieldValue,
+                                                        nombres: data.firstName,
+                                                        apellidos:data.lastName,
+                                                        cuidad_residencia:customFields[4].customFieldValue,
+                                                        cuidad_procedencia:customFields[4].customFieldValue,
+                                                        numero_habitacion:guest.roomName,
+                                                        motivo:"hospedaje",
+                                                        numero_acompanantes:`${CountPeople}`,
+                                                        check_in:reservationCheckIn,
+                                                        check_out:reservationCheckOut,
+                                                        tipo_acomodacion:"Hotel",
+                                                        costo:amount_in_cents,
+                                                        nombre_establecimiento:hotelInfoQuery[0].name,
+                                                        rnt_establecimiento:hotelInfoQuery[0].RNT
+                                                }
+                    
+                                                const response = await fetch('https://pms.mincit.gov.co/one/', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                    'Authorization': `token ${hotelInfoQuery[0].Tra}`,
+                                                    'Content-Type': 'application/json'
+                                                    },
+                                                body:JSON.stringify(body)
+                                                });
+                                                
+                                            
+                                                const responseData = await response.json();
+                                                
+                                                if(!responseData.code){
+                                                    return res.status(401).json({
+                                                        ok:false,
+                                                    
+                                                    })
+                                                }
+                    
+                                                const bodyGuest = {
+                                                    guestID:guestID,
+                                                    reservationID:reservationID,
+                                                    guestName:guest.guestName,
+                                                    Code:responseData.code,
+                                                    Date:reservationCheckIn,
+                                                    propertyID:prepertyById
+                                                }
+        
+
                                             // Insert a new record because guestID exists but reservationID is different
                                             pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, async (insertError) => {
                                                 if (insertError) {
