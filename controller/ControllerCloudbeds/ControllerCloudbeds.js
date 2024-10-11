@@ -1342,7 +1342,25 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         rnt_establecimiento:hotelInfoQuery[0].RNT
                 }
 
-                    
+                const response = await fetch('https://pms.mincit.gov.co/one/', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `token ${hotelInfoQuery[0].Tra}`,
+                      'Content-Type': 'application/json'
+                    },
+                   body:JSON.stringify(body)
+                });
+                
+                const responseData = await response.json();
+                  
+                if(!responseData.code){
+                  return res.status(401).json({
+                    ok:false,
+                    responseData
+                  })
+                }
+
+                console.log(responseData)
 
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                         if (selectError) {
