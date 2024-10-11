@@ -1360,7 +1360,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     if(!responseData.code){
                                         return res.status(401).json({
                                             ok:false,
-                                            responseData
+                                           
                                         })
                                     }
         
@@ -1447,7 +1447,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     if(!responseData.code){
                                         return res.status(401).json({
                                             ok:false,
-                                            responseData
+                                          
                                         })
                                     }
         
@@ -1544,10 +1544,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 const responseData = await response.json();
                                 
                                 if(!responseData.code){
-                                    console.log(responseData)
+                              
                                     return res.status(401).json({
-                                        ok:false,
-                                        responseData
+                                        ok:false
                                     })
                                 }
                 
