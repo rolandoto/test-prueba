@@ -1362,29 +1362,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                             }
 
 
-                            const formDataNote = new FormData();
-                            formDataNote.append("reservationID", webhookEvent.reservationID);
-                            formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
-                            const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
-                                method: "POST",
-                                headers: { 
-                                    'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                                body: formDataNote
-                            });
-                        
-                            if (responseNote.status === 401) {
-                                console.log("error")
-                                return res.status(401).json({ ok: false });
-                            }
-                        
-                            const note = await responseNote.json();
-            
-                            if (!note.success) {
-                                return res.status(401).json({
-                                    ok: false,
-                                    error: "Payment failed",
-                                });
-                            }
                         
                             await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                                 if (selectError) {
@@ -1393,11 +1370,35 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     if (results.length === 0) {
                                         
                                         // Solo insertar si no existe ningún registro con ese guestID
-                                        pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                        pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest,async (insertError) => {
                                             if (insertError) {
                                                 success = false;
                                                 console.error("Error inserting record:", insertError);
                                             } else {
+                                                
+                                                    const formDataNote = new FormData();
+                                                    formDataNote.append("reservationID", webhookEvent.reservationID);
+                                                    formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
+                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                                        method: "POST",
+                                                        headers: { 
+                                                            'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                                                        body: formDataNote
+                                                    });
+                                                
+                                                    if (responseNote.status === 401) {
+                                                        console.log("error")
+                                                        return res.status(401).json({ ok: false });
+                                                    }
+                                                
+                                                    const note = await responseNote.json();
+                                    
+                                                    if (!note.success) {
+                                                        return res.status(401).json({
+                                                            ok: false,
+                                                            error: "Payment failed",
+                                                        });
+                                                    }
                                                 console.log(`GuestID ${guestID} insertado correctamente.`);
                                             }
                                             checkCompletion();
@@ -1463,43 +1464,41 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     propertyID:webhookEvent.propertyID
                                 }
 
-                                const formDataNote = new FormData();
-                                formDataNote.append("reservationID", webhookEvent.reservationID);
-                                formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
-                                const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
-                                    method: "POST",
-                                    headers: { 
-                                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
-                                    body: formDataNote
-                                });
-                            
-                                if (responseNote.status === 401) {
-                                    console.log("error")
-                                    return res.status(401).json({ ok: false });
-                                }
-                            
-                                const note = await responseNote.json();
-                
-                                if (!note.success) {
-                                    return res.status(401).json({
-                                        ok: false,
-                                        error: "Payment failed",
-                                    });
-                                }
-                        
-                                
                                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                                     if (selectError) {
                                         success = false;
                                     } else {
                                         if (results.length === 0) {
                                             // Solo insertar si no existe ningún registro con ese guestID
-                                            pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                            pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest,async (insertError) => {
                                                 if (insertError) {
                                                     success = false;
                                                     console.error("Error inserting record:", insertError);
                                                 } else {
-                                                    console.log(`GuestID ${guestID} insertado correctamente.`);
+                                                    const formDataNote = new FormData();
+                                                    formDataNote.append("reservationID", webhookEvent.reservationID);
+                                                    formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
+                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                                        method: "POST",
+                                                        headers: { 
+                                                            'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                                                        body: formDataNote
+                                                    });
+                                                
+                                                    if (responseNote.status === 401) {
+                                                        console.log("error")
+                                                        return res.status(401).json({ ok: false });
+                                                    }
+                                                
+                                                    const note = await responseNote.json();
+                                    
+                                                    if (!note.success) {
+                                                        return res.status(401).json({
+                                                            ok: false,
+                                                            error: "Payment failed",
+                                                        });
+                                                    }
+                                            
                                                 }
                                                 checkCompletion();
                                             });
@@ -1511,8 +1510,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         }
                                     }
                                 });
-                
-
                             }
                         }
                      });
