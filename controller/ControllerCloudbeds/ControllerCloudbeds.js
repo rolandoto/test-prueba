@@ -1570,7 +1570,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             console.log(response)
                             
 
-                                            if (response.Response .status === 400) {
+                                            if (response.Response.status === 400) {
                                                 return res.status(401).json({ ok: false });
                                             }
                                             
