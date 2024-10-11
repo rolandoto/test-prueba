@@ -1210,8 +1210,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
     try {
 
-        console.log(webhookEvent)
-
+   
         const validateCustomFields = (fields) => {
            
             // Verifica si el array está vacío
@@ -1223,6 +1222,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== ''&& field.customFieldValue.trim() !== '0');
         };
         
+        console.log("1")
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
@@ -1249,6 +1249,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 })
             }
 
+            console.log("2")
+
             let success = true;
             let completedQueries = 0;
             const totalQueries = data.length;
@@ -1274,6 +1276,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
     
             const reservation = await responseReservation.json();
     
+            console.log("3")
             if(!reservation){
                 return res.status(401).json({
                     ok:false
@@ -1286,6 +1289,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             let amount_in_cents = subtotal * 100; // add two zeros
 
 
+            console.log("4")
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
