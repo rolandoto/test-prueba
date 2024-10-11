@@ -1356,6 +1356,13 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 
                                     const responseData = await response.json();
 
+
+                                    if (responseData.status === 401) {
+                                        return res.status(401).json({ ok: false });
+                                    }
+                                    
+
+
                                     if(!responseData.code){
                                         return res.status(401).json({
                                             ok:false,
@@ -1449,7 +1456,12 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 
                                             
                                                 const responseData = await response.json();
+
+                                                if (responseData.status === 401) {
+                                                    return res.status(401).json({ ok: false });
+                                                }
                                                 
+
                                                 if(!responseData.code){
                                                     return res.status(401).json({
                                                         ok:false,
@@ -1544,6 +1556,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 check_out:reservationCheckOut,
                                                 padre:code
                                             }
+
+                                            console.log(body)
                             
                                             const response = await fetch('https://pms.mincit.gov.co/two/', {
                                                 method: 'POST',
@@ -1556,12 +1570,18 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             
                                             const responseData = await response.json();
                                             
+                                            if (responseData.status === 401) {
+                                                return res.status(401).json({ ok: false });
+                                            }
+                                            
+
                                             if(!responseData.code){
-                                          
                                                 return res.status(401).json({
                                                     ok:false
                                                 })
                                             }
+
+                                            console.log(responseData)
                             
                                             const bodyGuest = {
                                                 guestID:guestID,
