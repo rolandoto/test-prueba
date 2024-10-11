@@ -1310,7 +1310,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     })
                 }
                 
-              
                 const  customFields = data.customFields
 
                 if (validateCustomFields(customFields)) {
@@ -1367,6 +1366,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         success = false;
                                     } else {
                                         if (results.length === 0) {
+                                            console.log({"results":results})
                                             // Solo insertar si no existe ningún registro con ese guestID
                                             pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
                                                 if (insertError) {
