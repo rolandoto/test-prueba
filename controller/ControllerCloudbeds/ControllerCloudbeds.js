@@ -1321,7 +1321,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 if (validateCustomFields(customFields)) {
                         const CountPeople= uniqueGuests.length
                     if(guest.isMainGuest){
-                               
                             await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, async(selectError, results) => {
                                 if (selectError) {
                                     success = false;
@@ -1373,7 +1372,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         propertyID:prepertyById
                                     }
         
-                                    console.log(responseData)
+                                    console.log("aqui se prendio",responseData)
                                     
                                         pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, async (insertError) => {
                                             if (insertError) {
@@ -1460,8 +1459,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         propertyID:prepertyById
                                     }
         
-                                    console.log(responseData)
-                                    
+                           
                                         if (!existingReservation) {
                                             // Insert a new record because guestID exists but reservationID is different
                                             pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, async (insertError) => {
