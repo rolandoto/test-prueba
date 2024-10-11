@@ -1225,7 +1225,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
         const reservationById = webhookEvent.propertyID ?  webhookEvent.reservationID : webhookEvent.reservationId
         const prepertyById = webhookEvent.propertyID ?  webhookEvent.propertyID : webhookEvent.propertyId
        
-
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [prepertyById]); 
      
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${prepertyById}&reservationID=${reservationById}`, {
@@ -1412,10 +1411,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             checkCompletion();
                                         });
                                     } else {
-                                        console.log({"results":results})
-                                        // Si ya existe, no hacer nada y marcar como completado
-                                        console.log(`GuestID ${guestID} ya existe, no se inserta.`);
-                                        checkCompletion();
+                                       
                                     }
                                 }
                             });
