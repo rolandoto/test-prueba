@@ -1530,8 +1530,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         success = false;
                                     } else {
                                         if (results.length === 0) {
+                                            console.log( results[0].Code)
                                             const code = results[0].Code;
-                                            console.log(code)
+                                         
                                             const body ={
                                                 tipo_identificacion: customFields[1].customFieldValue,
                                                 numero_identificacion:customFields[0].customFieldValue,
