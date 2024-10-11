@@ -1222,12 +1222,13 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             return fields.every(field => field.customFieldValue && field.customFieldValue.trim() !== ''&& field.customFieldValue.trim() !== '0');
         };
         
+        const reservationById = webhookEvent.propertyID ?  webhookEvent.reservationID : webhookEvent.reservationId
+        const prepertyById = webhookEvent.propertyID ?  webhookEvent.propertyID : webhookEvent.propertyId
+       
 
-
-        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
-        console.log(webhookEvent)
-        console.log(webhookEvent.propertyID)
-            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [prepertyById]); 
+     
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuestsByFilter?propertyID=${prepertyById}&reservationID=${reservationById}`, {
                 method: "GET",
                 headers: { 'Content-type': 'application/json',
                 'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
@@ -1260,7 +1261,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                           .map(guestID => data.find(guest => guest.guestID === guestID));
 
             
-            const responseReservation = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
+            const responseReservation = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${prepertyById}&reservationID=${reservationById}`, {
                 method: "GET",
                 headers: { 'Content-type': 'application/json',
                 'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
@@ -1296,7 +1297,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 const reservationID = guest.reservationID;
                
                
-                const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&guestID=${guestID}`, {
+                const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${prepertyById}&guestID=${guestID}`, {
                     method: "GET",
                     headers: { 'Content-type': 'application/json',
                     'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
@@ -1365,7 +1366,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 guestName:guest.guestName,
                                 Code:responseData.code,
                                 Date:reservationCheckIn,
-                                propertyID:webhookEvent.propertyID
+                                propertyID:prepertyById
                             }
 
 
@@ -1384,9 +1385,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             } else {
                                                 
                                                     const formDataNote = new FormData();
-                                                    formDataNote.append("reservationID", webhookEvent.reservationID);
+                                                    formDataNote.append("reservationID", reservationById);
                                                     formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
-                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${prepertyById}`, {
                                                         method: "POST",
                                                         headers: { 
                                                             'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
@@ -1468,7 +1469,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     guestName:guest.guestName,
                                     Code:responseData.code,
                                     Date:reservationCheckIn,
-                                    propertyID:webhookEvent.propertyID
+                                    propertyID:prepertyById
                                 }
 
                                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
@@ -1485,7 +1486,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                     const formDataNote = new FormData();
                                                     formDataNote.append("reservationID", webhookEvent.reservationID);
                                                     formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
-                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                                    const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${prepertyById}`, {
                                                         method: "POST",
                                                         headers: { 
                                                             'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
