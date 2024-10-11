@@ -1359,6 +1359,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 })
                             }
 
+
+                            console.log(responseData)
+
                             const bodyGuest = {
                                 guestID:guestID,
                                 reservationID:reservationID,
@@ -1367,10 +1370,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 Date:reservationCheckIn,
                                 propertyID:prepertyById
                             }
-
-
                         
-                            await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
+                            await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, async(selectError, results) => {
                                 if (selectError) {
                                     success = false;
                                 } else {
@@ -1406,11 +1407,53 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                             error: "Payment failed",
                                                         });
                                                     }
-                                                console.log(`GuestID ${guestID} insertado correctamente.`);
+                                              
                                             }
                                             checkCompletion();
                                         });
                                     } else {
+                                        await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', guest.guestID, (selectError, results) => {
+                                            if (selectError) {
+                                                success = false;
+                                                console.error("Error inserting record:", insertError);
+                                            }else{
+                                                if (results.length === 0) {
+                                                    
+                                                }else{
+                                                    pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest,async (insertError) => {
+                                                        if (insertError) {
+                                                            success = false;
+                                                            console.error("Error inserting record:", insertError);
+                                                        }else{
+                                                            const formDataNote = new FormData();
+                                                            formDataNote.append("reservationID", reservationById);
+                                                            formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
+                                                            const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${prepertyById}`, {
+                                                                method: "POST",
+                                                                headers: { 
+                                                                    'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                                                                body: formDataNote
+                                                            });
+                                                        
+                                                            if (responseNote.status === 401) {
+                                                                console.log("error")
+                                                                return res.status(401).json({ ok: false });
+                                                            }
+                                                        
+                                                            const note = await responseNote.json();
+                                            
+                                                            if (!note.success) {
+                                                                return res.status(401).json({
+                                                                    ok: false,
+                                                                    error: "Payment failed",
+                                                                });
+                                                            }
+                                                        }
+                                                    })
+
+                                                }
+                                            }
+                                        })
                                        
                                     }
                                 }
