@@ -1366,7 +1366,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         success = false;
                                     } else {
                                         if (results.length === 0) {
-                                            console.log({"results":results})
+                                          
                                             // Solo insertar si no existe ningún registro con ese guestID
                                             pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
                                                 if (insertError) {
@@ -1378,6 +1378,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 checkCompletion();
                                             });
                                         } else {
+                                            console.log({"results":results})
                                             // Si ya existe, no hacer nada y marcar como completado
                                             console.log(`GuestID ${guestID} ya existe, no se inserta.`);
                                             checkCompletion();
