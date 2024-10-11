@@ -1418,8 +1418,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 console.error("Error inserting record:", insertError);
                                             }else{
                                                 if (results.length === 0) {
-                                                    
-                                                }else{
                                                     pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest,async (insertError) => {
                                                         if (insertError) {
                                                             success = false;
@@ -1451,6 +1449,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                         }
                                                     })
 
+                                                }else{
+                                                  console.log("6")
                                                 }
                                             }
                                         })
