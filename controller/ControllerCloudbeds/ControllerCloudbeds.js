@@ -1572,7 +1572,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                     console.error("Error inserting record:", insertError);
                                                 } else {
                                                     const formDataNote = new FormData();
-                                                    formDataNote.append("reservationID", webhookEvent.reservationID);
+                                                    formDataNote.append("reservationID", reservationById);
                                                     formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
                                                     const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${prepertyById}`, {
                                                         method: "POST",
