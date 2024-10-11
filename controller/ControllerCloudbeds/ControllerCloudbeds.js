@@ -1556,12 +1556,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 padre:code
                                             }
 
-                                            if(guest.roomName ==null){
-                                                return res.status(401).json({
-                                                    ok:false
-                                                })
-                                            }
-                            
                                             const response = await fetch('https://pms.mincit.gov.co/two/', {
                                                 method: 'POST',
                                                 headers: {
