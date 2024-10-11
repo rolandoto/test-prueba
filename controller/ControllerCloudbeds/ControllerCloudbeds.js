@@ -1314,7 +1314,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
                 if (validateCustomFields(customFields)) {
                         const CountPeople= uniqueGuests.length
-                        if(guest.isMainGuest){
+                    if(guest.isMainGuest){
                                 const body ={
                                     tipo_identificacion: data.documentType,
                                     numero_identificacion: data.documentNumber,
@@ -1386,7 +1386,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 }
                             });
 
-                }else{
+                    }else{
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', reservationID, async(selectError, results) => {
                         if (selectError) {
                             success = false;
@@ -1413,7 +1413,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 const response = await fetch('https://pms.mincit.gov.co/two/', {
                                     method: 'POST',
                                     headers: {
-                                    'Authorization': `token ${token}`,
+                                    'Authorization': `token ${hotelInfoQuery[0].Tra}`,
                                     'Content-Type': 'application/json'
                                     },
                                 body:JSON.stringify(body)
