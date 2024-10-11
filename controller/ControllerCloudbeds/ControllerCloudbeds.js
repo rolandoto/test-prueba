@@ -1556,7 +1556,11 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 padre:code
                                             }
 
-                                            console.log(body)
+                                            if(guest.roomName ==null){
+                                                return res.status(401).json({
+                                                    ok:false
+                                                })
+                                            }
                             
                                             const response = await fetch('https://pms.mincit.gov.co/two/', {
                                                 method: 'POST',
@@ -1567,13 +1571,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             body:JSON.stringify(body)
                                             });
 
-                                            console.log(response)
-                            
-
-                                            if (response.Response.status === 400) {
-                                                return res.status(401).json({ ok: false });
-                                            }
-                                            
+                                           
                                           
                                             const responseData = await response.json();
 
