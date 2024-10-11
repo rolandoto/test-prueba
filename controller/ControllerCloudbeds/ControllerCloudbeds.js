@@ -1360,37 +1360,121 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 Date:reservationCheckIn,
                                 propertyID:webhookEvent.propertyID
                             }
-                            
-                                await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
-                                    if (selectError) {
-                                        success = false;
-                                    } else {
-                                        if (results.length === 0) {
-                                          
-                                            // Solo insertar si no existe ningún registro con ese guestID
-                                            pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
-                                                if (insertError) {
-                                                    success = false;
-                                                    console.error("Error inserting record:", insertError);
-                                                } else {
-                                                    console.log(`GuestID ${guestID} insertado correctamente.`);
-                                                }
-                                                checkCompletion();
-                                            });
-                                        } else {
-                                            console.log({"results":results})
-                                            // Si ya existe, no hacer nada y marcar como completado
-                                            console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                        
+                            await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
+                                if (selectError) {
+                                    success = false;
+                                } else {
+                                    if (results.length === 0) {
+                                        
+                                        // Solo insertar si no existe ningún registro con ese guestID
+                                        pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                            if (insertError) {
+                                                success = false;
+                                                console.error("Error inserting record:", insertError);
+                                            } else {
+                                                console.log(`GuestID ${guestID} insertado correctamente.`);
+                                            }
                                             checkCompletion();
-                                        }
+                                        });
+                                    } else {
+                                        console.log({"results":results})
+                                        // Si ya existe, no hacer nada y marcar como completado
+                                        console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                                        checkCompletion();
                                     }
-                                });
+                                }
+                            });
 
                 }else{
+                    await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', reservationID, (selectError, results) => {
+                        if (selectError) {
+                            success = false;
+                        } else {
+                            if (results.length === 0) {
+                                
+                            } else {
+                                const code = results[0].Code;
+                            }
+                        }
+                    });
+                    /**
 
+                    const body ={
+                        tipo_identificacion: data.documentType,
+                        numero_identificacion: data.documentNumber,
+                        nombres: data.firstName,
+                        apellidos:data.lastName,
+                        cuidad_residencia:customFields[4].customFieldValue,
+                        cuidad_procedencia:customFields[4].customFieldValue,
+                        numero_habitacion:guest.roomName,
+                        motivo:"hospedaje",
+                        numero_acompanantes:`${CountPeople}`,
+                        check_in:reservationCheckIn,
+                        check_out:reservationCheckOut,
+                        tipo_acomodacion:"Hotel",
+                        costo:amount_in_cents,
+                        nombre_establecimiento:hotelInfoQuery[0].name,
+                        rnt_establecimiento:hotelInfoQuery[0].RNT
                 }
 
+                const response = await fetch('https://pms.mincit.gov.co/two/', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `token ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                   body:JSON.stringify(body)
+                  });
+                
+                const responseData = await response.json();
+                
+                if(!responseData.code){
+                    return res.status(401).json({
+                        ok:false,
+                        responseData
+                    })
                 }
+
+                const bodyGuest = {
+                    guestID:guestID,
+                    reservationID:reservationID,
+                    guestName:guest.guestName,
+                    Code:responseData.code,
+                    Date:reservationCheckIn,
+                    propertyID:webhookEvent.propertyID
+                }
+                
+                        await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
+                            if (selectError) {
+                                success = false;
+                            } else {
+                                if (results.length === 0) {
+                                    // Solo insertar si no existe ningún registro con ese guestID
+                                    pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest, (insertError) => {
+                                        if (insertError) {
+                                            success = false;
+                                            console.error("Error inserting record:", insertError);
+                                        } else {
+                                            console.log(`GuestID ${guestID} insertado correctamente.`);
+                                        }
+                                        checkCompletion();
+                                    });
+                                } else {
+                                    console.log({"results":results})
+                                    // Si ya existe, no hacer nada y marcar como completado
+                                    console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                                    checkCompletion();
+                                }
+                            }
+                        });
+
+                          */
+
+                    }
+
+                }
+                   
             })
                 
         function checkCompletion() {
