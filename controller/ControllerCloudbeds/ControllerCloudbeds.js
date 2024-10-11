@@ -1360,6 +1360,31 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                 Date:reservationCheckIn,
                                 propertyID:webhookEvent.propertyID
                             }
+
+
+                            const formDataNote = new FormData();
+                            formDataNote.append("reservationID", webhookEvent.reservationID);
+                            formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
+                            const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                method: "POST",
+                                headers: { 
+                                    'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                                body: formDataNote
+                            });
+                        
+                            if (responseNote.status === 401) {
+                                console.log("error")
+                                return res.status(401).json({ ok: false });
+                            }
+                        
+                            const note = await responseNote.json();
+            
+                            if (!note.success) {
+                                return res.status(401).json({
+                                    ok: false,
+                                    error: "Payment failed",
+                                });
+                            }
                         
                             await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                                 if (selectError) {
@@ -1387,6 +1412,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                             });
 
                     }else{
+
+                
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', reservationID, async(selectError, results) => {
                         if (selectError) {
                             success = false;
@@ -1436,6 +1463,31 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                     Date:reservationCheckIn,
                                     propertyID:webhookEvent.propertyID
                                 }
+
+                                const formDataNote = new FormData();
+                                formDataNote.append("reservationID", webhookEvent.reservationID);
+                                formDataNote.append("reservationNote", "SE ENVIO TRA DEL HUESPED");
+                                const responseNote = await fetch(`https://api.cloudbeds.com/api/v1.2/postReservationNote?propertyID=${webhookEvent.propertyID}`, {
+                                    method: "POST",
+                                    headers: { 
+                                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                                    body: formDataNote
+                                });
+                            
+                                if (responseNote.status === 401) {
+                                    console.log("error")
+                                    return res.status(401).json({ ok: false });
+                                }
+                            
+                                const note = await responseNote.json();
+                
+                                if (!note.success) {
+                                    return res.status(401).json({
+                                        ok: false,
+                                        error: "Payment failed",
+                                    });
+                                }
+                        
                                 
                                 await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, (selectError, results) => {
                                     if (selectError) {
