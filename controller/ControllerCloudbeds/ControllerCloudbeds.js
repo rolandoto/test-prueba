@@ -1316,8 +1316,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                         const CountPeople= uniqueGuests.length
                     if(guest.isMainGuest){
                                 const body ={
-                                    tipo_identificacion: data.documentType,
-                                    numero_identificacion: data.documentNumber,
+                                    tipo_identificacion: customFields[1].customFieldValue,
+                                    numero_identificacion:customFields[0].customFieldValue,
                                     nombres: data.firstName,
                                     apellidos:data.lastName,
                                     cuidad_residencia:customFields[4].customFieldValue,
@@ -1412,7 +1412,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                             });
 
                     }else{
-                    console.log("edsadsad")
+                   
                     await pool.query('SELECT * FROM Guest_cloudbed WHERE reservationID = ?', reservationID, async(selectError, results) => {
                         if (selectError) {
                             success = false;
@@ -1424,8 +1424,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                             } else {
                                 const code = results[0].Code;
                                 const body ={
-                                    tipo_identificacion: data.documentType,
-                                    numero_identificacion: data.documentNumber,
+                                    tipo_identificacion: customFields[1].customFieldValue,
+                                    numero_identificacion:customFields[0].customFieldValue,
                                     nombres: data.firstName,
                                     apellidos:data.lastName,
                                     cuidad_residencia:customFields[4].customFieldValue,
