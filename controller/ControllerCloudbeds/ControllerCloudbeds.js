@@ -1293,6 +1293,13 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             uniqueGuests.forEach(async (guest) => {   
                 const guestID = guest.guestID;
                 const reservationID = guest.reservationID;
+
+
+                if(guest.guestName==null){
+                    return res.status(401).json({
+                        ok:false
+                    })
+                }
                
                
                 const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${prepertyById}&guestID=${guestID}`, {
@@ -1321,6 +1328,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 if (validateCustomFields(customFields)) {
                         const CountPeople= uniqueGuests.length
                     if(guest.isMainGuest){
+
+
                             await pool.query('SELECT * FROM Guest_cloudbed WHERE guestID = ?', guest.guestID, async(selectError, results) => {
                                 if (selectError) {
                                     success = false;
@@ -1572,10 +1581,12 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             const responseData = await response.json();
                                             
                                                 // If responseData doesn't contain a code, return with status 401
-                                                if (!responseData.code) {
-                                                    success = false;
-                                                }
-                                         
+                                            if (!responseData.code) {
+                                                return res.status(401).json({
+                                                    ok: false
+                                                });
+                                            }
+                                        
                                             const bodyGuest = {
                                                 guestID:guestID,
                                                 reservationID:reservationID,
@@ -1620,9 +1631,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 checkCompletion();
                                             });
                                         } else {
-                                            console.log({"results":results})
-                                            // Si ya existe, no hacer nada y marcar como completado
-                                            console.log(`GuestID ${guestID} ya existe, no se inserta.`);
+                                          
                                             checkCompletion();
                                         }
                                     }
