@@ -1259,6 +1259,20 @@ const webhooksAdd_Guest =async(req,res=response) =>{
             const uniqueGuests = Array.from(new Set(data.map(guest => guest.guestID)))
                           .map(guestID => data.find(guest => guest.guestID === guestID));
 
+
+            const filteredGuests = data.filter(guest => guest.roomName !== null);
+
+            // If there are guests with roomName as null, handle it here
+            if (filteredGuests.length !== data.length) {
+                console.log('Some guests have "roomName" as null.');
+                // You can return or handle the validation error here if needed
+                return res.status(400).json({
+                    ok: false,
+                    message: 'Some guests have roomName as null'
+                });
+            }
+
+            
             
             const responseReservation = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${prepertyById}&reservationID=${reservationById}`, {
                 method: "GET",
@@ -1277,7 +1291,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
     
             const reservation = await responseReservation.json();
     
-            console.log("3")
+   
             if(!reservation){
                 return res.status(401).json({
                     ok:false
