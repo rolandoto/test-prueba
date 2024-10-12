@@ -1564,15 +1564,9 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 body: JSON.stringify(body)
                                             });
 
-                                             // If response is 400, return immediately to avoid sending multiple responses
-                                                if (response.status === 400) {
-                                                    return res.status(400).json({
-                                                        ok: false
-                                                    });
-                                                }
-
+                                            
                                                 const responseData = await response.json();
-                                       
+                                                console.log(responseData)
 
                                                 // If responseData doesn't contain a code, return with status 401
                                                 if (!responseData.code) {
