@@ -1561,21 +1561,24 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 'Authorization': `token ${hotelInfoQuery[0].Tra}`,
                                                 'Content-Type': 'application/json'
                                                 },
-                                            body:JSON.stringify(body)
+                                                    body:JSON.stringify(body)
                                             });
 
-                                            const responseData = await response.json();
-
-                                            if(!responseData.code){
-                                                return res.status(401).json({
-                                                    ok:false
-                                                })
-                                            }
 
                                             if (response.status === 400) {
                                                 return res.status(400).json({
                                                     ok: false
                                                 });
+                                            }
+                                            
+                                            const responseData = await response.json();
+
+                                            console.log(responseData)
+
+                                            if(!responseData.code){
+                                                return res.status(401).json({
+                                                    ok:false
+                                                })
                                             }
                                          
                                             const bodyGuest = {
