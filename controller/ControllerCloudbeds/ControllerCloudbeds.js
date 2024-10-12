@@ -1565,11 +1565,14 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                             body:JSON.stringify(body)
                                             });
 
-                                            console.log(response.status)
-                                          
+                                            if(response.status ==400){
+                                                return res.status(400).json({
+                                                    ok:false
+                                                })
+                                            }
+                                         
                                             const responseData = await response.json();
 
-                                           
                                             if(!responseData.code){
                                                 return res.status(401).json({
                                                     ok:false
