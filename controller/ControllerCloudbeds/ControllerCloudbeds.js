@@ -1569,15 +1569,11 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                
                                             }
                                         
-
-                                                const responseData = await response.json();
-                                                
-
+                                            const responseData = await response.json();
+                                            
                                                 // If responseData doesn't contain a code, return with status 401
                                                 if (!responseData.code) {
-                                                    return res.status(401).json({
-                                                        ok: false
-                                                    });
+                                                    success = false;
                                                 }
                                          
                                             const bodyGuest = {
