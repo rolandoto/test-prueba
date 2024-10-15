@@ -888,12 +888,6 @@ const PostPaymentCloubeds =async(req,res=response) =>{
         });
         
         
-        const to = await response.json();
-
-        console.log(to)
-
-        
-
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
         }
@@ -1096,7 +1090,7 @@ const webhooksStatus_changed =async(req,res=response) =>{
     try {
         
         if(webhookEvent.status =="checked_in"){
-            console.log(webhookEvent)
+    
             const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID FROM hotels WHERE propertyID = ?", [webhookEvent.propertyID]); 
 
             const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getGuest?propertyID=${webhookEvent.propertyID}&reservationID=${webhookEvent.reservationID}`, {
@@ -1215,8 +1209,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
     try {
 
-        console.log(webhookEvent)
-
+    
         if(webhookEvent.status =="no_show"){
             return res.status(401).json({
                 ok:false
@@ -1427,8 +1420,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                         })
                                     }
 
-                                    console.log({"1":responseData})
-        
+                                 
                                     const bodyGuest = {
                                         guestID:guestID,
                                         reservationID:reservationID,
@@ -1525,7 +1517,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                     })
                                                 }
 
-                                                console.log({"2":responseData})
+                                             
                     
                                                 const bodyGuest = {
                                                     guestID:guestID,
