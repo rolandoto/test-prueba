@@ -1710,6 +1710,27 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
 }
 
+
+const webhooksTransitions =async(req,res=response) =>{
+
+    const webhookEvent = req.body;
+
+    try {
+
+        console.log(webhookEvent)
+
+        return res.status(201).json({
+            ok:true
+        })
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
 module.exports ={
     getHotelDetails,
     GetHotelsbyID,
@@ -1726,5 +1747,6 @@ module.exports ={
     getRoomTypes,
     getTaxesfree,
     webhooksStatus_changed,
-    webhooksAdd_Guest
+    webhooksAdd_Guest,
+    webhooksTransitions
 }
