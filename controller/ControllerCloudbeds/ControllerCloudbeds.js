@@ -886,8 +886,13 @@ const PostPaymentCloubeds =async(req,res=response) =>{
               },
              body:JSON.stringify(body)
         });
+        
+        
+        const to = await response.json();
 
-     
+        console.log(to)
+
+        
 
         if (response.status === 401) {
             return res.status(401).json({ ok: false });
@@ -1209,7 +1214,11 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
 
     try {
-
+        if(webhookEvent.status =="no_show"){
+            return res.status(201).json({
+                ok:true
+            })
+        }
    
         const validateCustomFields = (fields) => {
            
@@ -1631,7 +1640,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                                 propertyID:prepertyById
                                             }
             
-                                            console.log({"3":responseData})
+                                           
                                             // Solo insertar si no existe ningún registro con ese guestID
                                             pool.query("INSERT INTO Guest_cloudbed SET ?", bodyGuest,async (insertError) => {
                                                 if (insertError) {
