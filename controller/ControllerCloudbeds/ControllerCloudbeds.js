@@ -1250,7 +1250,7 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                 })
             }
 
-            console.log("2")
+
 
             let success = true;
             let completedQueries = 0;
@@ -1264,15 +1264,36 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
             // If there are guests with roomName as null, handle it here
             if (filteredGuests.length !== data.length) {
-                console.log('Some guests have "roomName" as null.');
-                // You can return or handle the validation error here if needed
+                const formData = new URLSearchParams();
+                formData.append("reservationID", reservationById);
+                formData.append("status", "confirmed");
+                const responseCheck = await fetch(`https://api.cloudbeds.com/api/v1.2/putReservation`, {
+                    method: "PUT",
+                    headers: { 
+                        'Authorization': `Bearer ${hotelInfoQuery[0].Token}`},
+                    body:formData // Send the body as JSON
+                });
+
+                if (responseCheck.status === 401) {
+                    console.log("error")
+                    return res.status(401).json({ ok: false });
+                }
+            
+                const check = await responseCheck.json();
+
+                if (!check.success) {
+                    return res.status(401).json({
+                        ok: false,
+                        error: "Payment failed",
+                    });
+                }
                 return res.status(400).json({
                     ok: false,
                     message: 'Some guests have roomName as null'
                 });
             }
 
-            
+
             
             const responseReservation = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${prepertyById}&reservationID=${reservationById}`, {
                 method: "GET",
