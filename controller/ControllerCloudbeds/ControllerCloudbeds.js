@@ -1215,8 +1215,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
 
     try {
         if(webhookEvent.status =="no_show"){
-            return res.status(201).json({
-                ok:true
+            return res.status(401).json({
+                ok:false
             })
         }
    
