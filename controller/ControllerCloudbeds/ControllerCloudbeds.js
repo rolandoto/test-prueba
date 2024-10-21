@@ -2,7 +2,9 @@ const {response, json, query} = require('express');
 const { pool } = require('../../database/connection');
 const crypto = require('crypto');
 const { URLSearchParams } = require('url');
-
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -535,7 +537,6 @@ try {
                     ok: true
                 });
 }else if(getValidTransation.data.status =="DECLINED"){
-    console.log("hola como estas")
     const formData = new FormData();
     formData.append("startDate", startDate)
     formData.append("endDate",endDate)
@@ -573,8 +574,71 @@ try {
         });
     }
 
-    return res.status(201).json({
-        ok: true
+    
+
+    const invoiceData = {
+        guestName: `${guestFirstName} ${guestLastName}`,
+        transaction: `${getValidTransation.data.id}` ,  // Corregir typo
+        checkInDate: `${startDate}` ,
+        checkOutDate: `${endDate}` ,
+        total: `${getValidTransation.data.amount_in_cents}` ,  // Convertir centavos a formato de moneda
+        issuedDate:  `${dateCreated}`  ,
+        invoiceNumber: 1,   
+    };
+
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    // Definir el directorio donde se guardará el PDF
+    const filePath = path.join("public", `invoice-${invoiceData.transaction}.pdf`);
+    const writeStream = fs.createWriteStream(filePath);
+    doc.pipe(writeStream);
+    // Agregar contenido al PDF
+    doc.fontSize(20).text('COMPROBANTE DE WOMPY', { align: 'center' });
+    doc.fontSize(16).text(invoiceData.guestName, { align: 'center' });
+    doc.fontSize(12).text(`Número de la reserva: ${invoiceData.transaction}`, { align: 'center' });
+
+    doc.moveDown();
+    doc.text(`Número de la factura: ${invoiceData.invoiceNumber}`);
+    doc.text(`Fecha de emisión: ${invoiceData.issuedDate}`);
+    doc.text(`Check-in: ${invoiceData.checkInDate}`);
+    doc.text(`Check-out: ${invoiceData.checkOutDate}`);
+    doc.moveDown();
+
+    doc.moveDown();
+    doc.text(`Total: ${(invoiceData.total /100).toLocaleString()}`, { bold: true });
+
+    // Finalizar el PDF
+    doc.end();
+
+    writeStream.on('finish', async() => {
+        const downloadUrl = `${req.protocol}://${req.get('host')}/${path.basename(filePath)}`;
+        const formDataPdf = new FormData();
+        formDataPdf.append("name", "Wompy")
+        formDataPdf.append("url",downloadUrl)
+        formDataPdf.append("reservationID",reservationData.reservationID)
+        formDataPdf.append("amount", invoiceData.total)
+
+        const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [propertyID]); 
+
+        const response = await fetch(`https://api.cloudbeds.com/api/v1.1/postGovernmentReceipt`, {
+            method: "POST",
+            headers: { 
+                'Authorization': `Bearer ${hotelInfoQuery[0].Token}` 
+            },
+            body: formDataPdf
+        });
+
+        if (response.status === 401) {
+            return res.status(401).json({ ok: false });
+        }
+        return res.status(201).json({
+            ok:true
+        })  
+    });
+
+    writeStream.on('error', (err) => {
+        console.log('Error al generar el PDF:', err);
+        res.status(500).send('Error al generar la factura');
     });
 }else if(getValidTransation.data.status =="PENDING"){
     const formData = new FormData();
