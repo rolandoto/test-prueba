@@ -572,7 +572,7 @@ try {
         formDataPdf.append("name", "Wompy")
         formDataPdf.append("url",downloadUrl)
         formDataPdf.append("reservationID",reservationData.reservationID)
-        formDataPdf.append("amount", invoiceData.total)
+        formDataPdf.append("amount", grandTotal)
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [propertyID]); 
 
@@ -747,7 +747,7 @@ try {
         formDataPdf.append("name", "Wompy")
         formDataPdf.append("url",downloadUrl)
         formDataPdf.append("reservationID",reservationData.reservationID)
-        formDataPdf.append("amount", invoiceData.total)
+        formDataPdf.append("amount", grandTotal)
 
         const hotelInfoQuery = await pool.query("SELECT name, id, logo, Iva,Token,propertyID,Tra,RNT FROM hotels WHERE propertyID = ?", [propertyID]); 
 
