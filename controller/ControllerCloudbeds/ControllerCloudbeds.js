@@ -535,7 +535,7 @@ try {
                     ok: true
                 });
 }else if(getValidTransation.data.status =="DECLINED"){
-          
+    console.log("hola como estas")
     const formData = new FormData();
     formData.append("startDate", startDate)
     formData.append("endDate",endDate)
@@ -1349,6 +1349,8 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                     headers: { 'Content-type': 'application/json',
                     'Authorization': `Bearer ${hotelInfoQuery[0].Token}` }
                 });
+
+
             
                 if (!response) {
                     // If access is denied, return 401 status code
