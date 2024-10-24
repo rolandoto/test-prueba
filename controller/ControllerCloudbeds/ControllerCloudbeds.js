@@ -75,7 +75,6 @@ const GetReservationBypropertyID =async(req,res=response) =>{
 
     const {propertyID,token,search} = req.body
 
-   
     try {
 
         const fetchReservations = async (searchType, searchValue) => {
@@ -1608,7 +1607,6 @@ const webhooksAdd_Guest =async(req,res=response) =>{
                                      
                            
                                         if (!existingReservation) {
-
                                                         
                                                     const body ={
                                                         tipo_identificacion: customFields[1].customFieldValue,
@@ -1858,6 +1856,144 @@ const webhooksTransitions =async(req,res=response) =>{
 }
 
 
+const PostReservationCloubeds =async(req,res=response) =>{
+
+    const {dateStart,dateEnd,token}  =   req.body
+
+    try {
+
+        if (!dateStart || !dateEnd ) {
+            const fetchReservations = async () => {
+                const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${315187}&includeDeleted=true&sortByRecent=true`, {
+                    method: "GET",
+                    headers: {
+                        'Content-type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+    
+                // Verifica si la respuesta no es correcta (4xx o 5xx)
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        return { ok: false, status: 401, data: null };
+                    }
+                    return { ok: false, status: 500, data: null };
+                }
+    
+                const data = await response.json();
+                return { ok: true, status: 200, data: data.data };
+            };
+    
+            // Busca por `firstName`
+            let result = await fetchReservations();
+    
+            return res.status(201).json({
+                ok:true,
+                result
+            })
+        }
+
+        const fetchReservations = async () => {
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservations?propertyID=${315187}&checkInFrom=${dateStart}&checkOutTo=${dateEnd}&includeDeleted=true&sortByRecent=true`, {
+                method: "GET",
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Verifica si la respuesta no es correcta (4xx o 5xx)
+            if (!response.ok) {
+                if (response.status === 401) {
+                    return { ok: false, status: 401, data: null };
+                }
+                return { ok: false, status: 500, data: null };
+            }
+
+            const data = await response.json();
+            return { ok: true, status: 200, data: data.data };
+        };
+
+        // Busca por `firstName`
+        let result = await fetchReservations();
+
+ 
+        return res.status(201).json({
+            ok:true,
+            result
+        })
+
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+
+
+const PostReservationCloubedsWithRateDetails =async(req,res=response) =>{
+
+    const {token,reservationID}  =   req.body
+
+    try {
+
+        const fetchReservations = async () => {
+            const response = await fetch(`https://api.cloudbeds.com/api/v1.1/getReservationsWithRateDetails?propertyID=${315187}&reservationID=${reservationID}`, {
+                method: "GET",
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Verifica si la respuesta no es correcta (4xx o 5xx)
+            if (!response.ok) {
+                if (response.status === 401) {
+                    return { ok: false, status: 401, data: null };
+                }
+                return { ok: false, status: 500, data: null };
+            }
+
+            const data = await response.json();
+            return { ok: true, status: 200, data: data.data };
+        };
+
+        // Busca por `firstName`
+        let result = await fetchReservations();
+
+        return res.status(201).json({
+            ok:true,
+            result
+        })
+
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
+const PostReservationCloubedValidateInvoince =async(req,res=response) =>{
+
+    const {token,reservationID}  =   req.body
+
+    try {
+        
+        return res.status(201).json({
+            ok:true
+        })
+
+
+    } catch (error) {
+        return res.status(401).json({
+            ok:false
+        })
+    }
+}
+
 module.exports ={
     getHotelDetails,
     GetHotelsbyID,
@@ -1875,5 +2011,9 @@ module.exports ={
     getTaxesfree,
     webhooksStatus_changed,
     webhooksAdd_Guest,
-    webhooksTransitions
+    webhooksTransitions,
+    PostReservationCloubeds,
+    PostReservationCloubedsWithRateDetails,
+    PostReservationCloubedsWithRateDetails,
+    PostReservationCloubedValidateInvoince
 }

@@ -1,5 +1,5 @@
 const { check } = require('express-validator');
-const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds, getRoomTypes, getTaxesfree, webhooksStatus_changed, webhooksAdd_Guest, webhooksTransitions } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
+const { GetHotels, GetHotelsbyID, GetReservationBypropertyID, getAvailableRoomTypes, PostpostReservation, getHotelDetails, GetReservationDetailBypropertyID, GetReservation, PostRegisterCloubeds, GetRegisterCloubes, PostPaymentCloubeds, GetPaymentCloubeds, PostRegisterSigoCloudbeds, getRoomTypes, getTaxesfree, webhooksStatus_changed, webhooksAdd_Guest, webhooksTransitions, PostReservationCloubeds, PostReservationCloubedsWithRateDetails, PostReservationCloubedValidateInvoince } = require('../controller/ControllerCloudbeds/ControllerCloudbeds');
 const { ValidarCampos } = require('../middleweres/middleweres');
 
 const router = require('express').Router()
@@ -76,5 +76,18 @@ router.post("/webhooksAdd_Guest",webhooksAdd_Guest)
 router.post("/webhooksTransitions",webhooksTransitions)
 
 router.post("/getTaxesfree",getTaxesfree);
+
+router.post("/ReservationCloubeds",[
+    check("token","es obligatorio").not().isEmpty(),
+    ValidarCampos
+],PostReservationCloubeds);
+
+router.post("/ReservationCloubedsWithRateDetails",[
+    check("token","es obligatorio").not().isEmpty(),
+    check("reservationID","es obligatorio").not().isEmpty(),
+    ValidarCampos
+],PostReservationCloubedsWithRateDetails);
+
+router.post("/ReservationCloubedValidateInvoince",PostReservationCloubedValidateInvoince);
 
 module.exports = { router };  
